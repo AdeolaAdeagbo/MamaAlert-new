@@ -21,16 +21,11 @@ const Index = () => {
       <section className="relative px-4 pt-20 pb-16 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
           <div className="mb-8">
-            <img 
-              src="/lovable-uploads/117ef126-2a0c-4e98-a6f5-db5af60d6200.png" 
-              alt="BOMUD Logo" 
-              className="h-24 w-auto mx-auto mb-6"
-            />
             <h1 className="text-4xl sm:text-6xl font-bold text-foreground mb-6">
               Save Smart, Build Wealth
             </h1>
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Automate your savings with BOMUD. Set goals, save daily, weekly, or monthly, 
+              Automate your health savings with BOMUD Health. Set goals, save daily, weekly, or monthly, 
               and watch your financial discipline grow stronger every day.
             </p>
           </div>
@@ -50,7 +45,7 @@ const Index = () => {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-3xl mx-auto">
             <div className="text-center">
               <div className="text-3xl font-bold text-primary mb-2">₦50M+</div>
-              <div className="text-muted-foreground">Total Saved</div>
+              <div className="text-muted-foreground">Total Health Savings</div>
             </div>
             <div className="text-center">
               <div className="text-3xl font-bold text-primary mb-2">10K+</div>
@@ -69,11 +64,11 @@ const Index = () => {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-foreground mb-4">
-              Why Choose BOMUD?
+              Why Choose BOMUD Health?
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Built specifically for Nigerians who want to develop strong saving habits 
-              and achieve their financial goals systematically.
+              for their health and medical expenses.
             </p>
           </div>
 
@@ -83,11 +78,11 @@ const Index = () => {
                 <div className="mx-auto w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
                   <TrendingUp className="h-6 w-6 text-primary" />
                 </div>
-                <CardTitle className="text-lg">Smart Automation</CardTitle>
+                <CardTitle className="text-lg">Smart Health Automation</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">
-                  Set it once and forget it. Your savings happen automatically based on your preferred schedule.
+                  Set it once and forget it. Your health savings happen automatically based on your preferred schedule.
                 </p>
               </CardContent>
             </Card>
@@ -97,11 +92,11 @@ const Index = () => {
                 <div className="mx-auto w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
                   <Shield className="h-6 w-6 text-primary" />
                 </div>
-                <CardTitle className="text-lg">Secure & Safe</CardTitle>
+                <CardTitle className="text-lg">Health-Only Spending</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">
-                  Bank-level security with encrypted data and secure payment processing through trusted partners.
+                  Funds are locked and can only be used for verified health and medical expenses.
                 </p>
               </CardContent>
             </Card>
@@ -111,11 +106,11 @@ const Index = () => {
                 <div className="mx-auto w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
                   <Clock className="h-6 w-6 text-primary" />
                 </div>
-                <CardTitle className="text-lg">Lock Periods</CardTitle>
+                <CardTitle className="text-lg">Discipline Building</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">
-                  Build discipline with optional lock periods that prevent early withdrawals and strengthen habits.
+                  Build discipline with locked health funds that prevent non-medical spending and strengthen habits.
                 </p>
               </CardContent>
             </Card>
@@ -141,10 +136,10 @@ const Index = () => {
       <section className="px-4 py-16 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl font-bold text-foreground mb-4">
-            Ready to Transform Your Savings?
+            Ready to Transform Your Health Savings?
           </h2>
           <p className="text-lg text-muted-foreground mb-8">
-            Join thousands of Nigerians who are already building wealth with BOMUD.
+            Join thousands of Nigerians who are already building health wealth with BOMUD Health.
           </p>
           <Link to="/auth">
             <Button size="lg" className="gradient-primary text-lg px-8 py-6">
@@ -157,7 +152,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="border-t bg-background px-4 py-8 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto text-center text-muted-foreground">
-          <p>&copy; 2024 BOMUD. Building financial discipline, one save at a time.</p>
+          <p>&copy; 2024 BOMUD Health. Building financial discipline for your health, one save at a time.</p>
         </div>
       </footer>
     </div>
