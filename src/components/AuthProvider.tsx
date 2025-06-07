@@ -6,8 +6,10 @@ interface User {
   email: string;
   firstName: string;
   lastName: string;
-  totalSavings: number;
-  activeGoals: number;
+  pregnancyWeek?: number;
+  dueDate?: string;
+  emergencyContacts: number;
+  isHighRisk?: boolean;
 }
 
 interface AuthContextType {
@@ -26,7 +28,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Check for existing session
-    const savedUser = localStorage.getItem("bomud-user");
+    const savedUser = localStorage.getItem("mamaalert-user");
     if (savedUser) {
       setUser(JSON.parse(savedUser));
     }
@@ -35,39 +37,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
-    // Mock authentication - replace with real auth
+    // Mock authentication - replace with Supabase auth
     const mockUser: User = {
       id: "1",
       email,
-      firstName: "John",
-      lastName: "Doe",
-      totalSavings: 125000,
-      activeGoals: 3
+      firstName: "Fatima",
+      lastName: "Mohammed",
+      pregnancyWeek: 24,
+      dueDate: "2024-06-15",
+      emergencyContacts: 3,
+      isHighRisk: false
     };
     setUser(mockUser);
-    localStorage.setItem("bomud-user", JSON.stringify(mockUser));
+    localStorage.setItem("mamaalert-user", JSON.stringify(mockUser));
     setIsLoading(false);
   };
 
   const signup = async (email: string, password: string, firstName: string, lastName: string) => {
     setIsLoading(true);
-    // Mock signup - replace with real auth
+    // Mock signup - replace with Supabase auth
     const mockUser: User = {
       id: "1",
       email,
       firstName,
       lastName,
-      totalSavings: 0,
-      activeGoals: 0
+      pregnancyWeek: 12,
+      dueDate: "2024-09-01",
+      emergencyContacts: 0,
+      isHighRisk: false
     };
     setUser(mockUser);
-    localStorage.setItem("bomud-user", JSON.stringify(mockUser));
+    localStorage.setItem("mamaalert-user", JSON.stringify(mockUser));
     setIsLoading(false);
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem("bomud-user");
+    localStorage.removeItem("mamaalert-user");
   };
 
   return (

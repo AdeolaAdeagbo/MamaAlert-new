@@ -3,7 +3,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Nigerian Fintech Design System */
+/* MamaAlert Maternal Health Design System */
 
 @layer base {
   :root {
@@ -13,7 +13,7 @@
     --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
-    --primary: 84 100% 44%;
+    --primary: 346 87% 66%;
     --primary-foreground: 355 100% 97%;
     --secondary: 240 4.8% 95.9%;
     --secondary-foreground: 240 5.9% 10%;
@@ -25,8 +25,11 @@
     --destructive-foreground: 0 0% 98%;
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
-    --ring: 84 100% 44%;
+    --ring: 346 87% 66%;
     --radius: 0.75rem;
+    --success: 142 76% 36%;
+    --warning: 38 92% 50%;
+    --emergency: 0 84% 60%;
   }
 
   .dark {
@@ -36,7 +39,7 @@
     --card-foreground: 0 0% 98%;
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
-    --primary: 84 100% 44%;
+    --primary: 346 87% 66%;
     --primary-foreground: 355 100% 97%;
     --secondary: 240 3.7% 15.9%;
     --secondary-foreground: 0 0% 98%;
@@ -48,7 +51,10 @@
     --destructive-foreground: 0 0% 98%;
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
-    --ring: 84 100% 44%;
+    --ring: 346 87% 66%;
+    --success: 142 76% 36%;
+    --warning: 38 92% 50%;
+    --emergency: 0 84% 60%;
   }
 }
 
@@ -63,17 +69,32 @@
   }
 }
 
-/* Custom utilities for Nigerian fintech app */
+/* Custom utilities for MamaAlert */
 @layer utilities {
   .naira-format {
     font-variant-numeric: tabular-nums;
   }
   
   .gradient-primary {
-    background: linear-gradient(135deg, #84cc16 0%, #65a30d 100%);
+    background: linear-gradient(135deg, #f43f5e 0%, #be185d 100%);
   }
   
   .gradient-card {
-    background: linear-gradient(135deg, rgba(132, 204, 22, 0.1) 0%, rgba(101, 163, 13, 0.05) 100%);
+    background: linear-gradient(135deg, rgba(244, 63, 94, 0.1) 0%, rgba(190, 24, 93, 0.05) 100%);
+  }
+  
+  .emergency-pulse {
+    animation: emergency-pulse 2s infinite;
+  }
+  
+  @keyframes emergency-pulse {
+    0%, 100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(1.05);
+      opacity: 0.8;
+    }
   }
 }

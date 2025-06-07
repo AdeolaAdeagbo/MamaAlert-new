@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Navbar } from "@/components/Navbar";
 import { Link, Navigate } from "react-router-dom";
-import { TrendingUp, Shield, Clock, Smartphone } from "lucide-react";
+import { Heart, Shield, Phone, MapPin, Clock, Baby } from "lucide-react";
 
 const Index = () => {
   const { user } = useAuth();
@@ -22,21 +22,21 @@ const Index = () => {
         <div className="max-w-4xl mx-auto text-center">
           <div className="mb-8">
             <h1 className="text-4xl sm:text-6xl font-bold text-foreground mb-6">
-              Save Smart, Build Wealth
+              MamaAlert
             </h1>
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Automate your health savings with BOMUD Health. Set goals, save daily, weekly, or monthly, 
-              and watch your financial discipline grow stronger every day.
+              Your trusted companion during pregnancy. Get instant emergency support, 
+              track symptoms, and stay connected with healthcare providers across Nigeria.
             </p>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
             <Link to="/auth">
-              <Button size="lg" className="w-full sm:w-auto gradient-primary text-lg px-8 py-6">
-                Start Saving Today
+              <Button size="lg" className="w-full sm:w-auto bg-rose-500 hover:bg-rose-600 text-white text-lg px-8 py-6">
+                Join MamaAlert Today
               </Button>
             </Link>
-            <Button variant="outline" size="lg" className="w-full sm:w-auto text-lg px-8 py-6">
+            <Button variant="outline" size="lg" className="w-full sm:w-auto text-lg px-8 py-6 border-rose-200">
               Learn More
             </Button>
           </div>
@@ -44,87 +44,115 @@ const Index = () => {
           {/* Stats */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-3xl mx-auto">
             <div className="text-center">
-              <div className="text-3xl font-bold text-primary mb-2">₦50M+</div>
-              <div className="text-muted-foreground">Total Health Savings</div>
+              <div className="text-3xl font-bold text-rose-500 mb-2">24/7</div>
+              <div className="text-muted-foreground">Emergency Support</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-primary mb-2">10K+</div>
-              <div className="text-muted-foreground">Active Users</div>
+              <div className="text-3xl font-bold text-rose-500 mb-2">5K+</div>
+              <div className="text-muted-foreground">Mamas Protected</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-primary mb-2">98%</div>
-              <div className="text-muted-foreground">Success Rate</div>
+              <div className="text-3xl font-bold text-rose-500 mb-2">98%</div>
+              <div className="text-muted-foreground">Alert Success Rate</div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="px-4 py-16 sm:px-6 lg:px-8 bg-muted/30">
+      <section className="px-4 py-16 sm:px-6 lg:px-8 bg-rose-50/30">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-foreground mb-4">
-              Why Choose BOMUD Health?
+              Why Choose MamaAlert?
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Built specifically for Nigerians who want to develop strong saving habits 
-              for their health and medical expenses.
+              Designed specifically for Nigerian mothers-to-be who deserve immediate 
+              access to maternal healthcare support.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="text-center hover:shadow-lg transition-shadow">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <Card className="text-center hover:shadow-lg transition-shadow border-rose-100">
               <CardHeader>
-                <div className="mx-auto w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
-                  <TrendingUp className="h-6 w-6 text-primary" />
+                <div className="mx-auto w-12 h-12 bg-rose-100 rounded-lg flex items-center justify-center mb-4">
+                  <Phone className="h-6 w-6 text-rose-600" />
                 </div>
-                <CardTitle className="text-lg">Smart Health Automation</CardTitle>
+                <CardTitle className="text-lg">Emergency Alerts</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">
-                  Set it once and forget it. Your health savings happen automatically based on your preferred schedule.
+                  One-tap emergency button instantly notifies your contacts and nearest healthcare center.
                 </p>
               </CardContent>
             </Card>
 
-            <Card className="text-center hover:shadow-lg transition-shadow">
+            <Card className="text-center hover:shadow-lg transition-shadow border-rose-100">
               <CardHeader>
-                <div className="mx-auto w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
-                  <Shield className="h-6 w-6 text-primary" />
+                <div className="mx-auto w-12 h-12 bg-rose-100 rounded-lg flex items-center justify-center mb-4">
+                  <Heart className="h-6 w-6 text-rose-600" />
                 </div>
-                <CardTitle className="text-lg">Health-Only Spending</CardTitle>
+                <CardTitle className="text-lg">Symptom Tracking</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">
-                  Funds are locked and can only be used for verified health and medical expenses.
+                  Log symptoms and get instant guidance on whether you need immediate medical attention.
                 </p>
               </CardContent>
             </Card>
 
-            <Card className="text-center hover:shadow-lg transition-shadow">
+            <Card className="text-center hover:shadow-lg transition-shadow border-rose-100">
               <CardHeader>
-                <div className="mx-auto w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
-                  <Clock className="h-6 w-6 text-primary" />
+                <div className="mx-auto w-12 h-12 bg-rose-100 rounded-lg flex items-center justify-center mb-4">
+                  <MapPin className="h-6 w-6 text-rose-600" />
                 </div>
-                <CardTitle className="text-lg">Discipline Building</CardTitle>
+                <CardTitle className="text-lg">Healthcare Locator</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">
-                  Build discipline with locked health funds that prevent non-medical spending and strengthen habits.
+                  Find the nearest maternal health centers and hospitals in your area.
                 </p>
               </CardContent>
             </Card>
 
-            <Card className="text-center hover:shadow-lg transition-shadow">
+            <Card className="text-center hover:shadow-lg transition-shadow border-rose-100">
               <CardHeader>
-                <div className="mx-auto w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
-                  <Smartphone className="h-6 w-6 text-primary" />
+                <div className="mx-auto w-12 h-12 bg-rose-100 rounded-lg flex items-center justify-center mb-4">
+                  <Shield className="h-6 w-6 text-rose-600" />
                 </div>
-                <CardTitle className="text-lg">Mobile First</CardTitle>
+                <CardTitle className="text-lg">Safe & Secure</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">
-                  Beautiful, responsive design that works perfectly on all devices with Nigerian naira support.
+                  Your health data is encrypted and protected with military-grade security.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center hover:shadow-lg transition-shadow border-rose-100">
+              <CardHeader>
+                <div className="mx-auto w-12 h-12 bg-rose-100 rounded-lg flex items-center justify-center mb-4">
+                  <Clock className="h-6 w-6 text-rose-600" />
+                </div>
+                <CardTitle className="text-lg">Appointment Reminders</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Never miss important checkups with smart reminder notifications.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center hover:shadow-lg transition-shadow border-rose-100">
+              <CardHeader>
+                <div className="mx-auto w-12 h-12 bg-rose-100 rounded-lg flex items-center justify-center mb-4">
+                  <Baby className="h-6 w-6 text-rose-600" />
+                </div>
+                <CardTitle className="text-lg">Nigerian Focused</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Built specifically for Nigerian healthcare system with local language support.
                 </p>
               </CardContent>
             </Card>
@@ -136,14 +164,14 @@ const Index = () => {
       <section className="px-4 py-16 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl font-bold text-foreground mb-4">
-            Ready to Transform Your Health Savings?
+            Every Mama Deserves Immediate Care
           </h2>
           <p className="text-lg text-muted-foreground mb-8">
-            Join thousands of Nigerians who are already building health wealth with BOMUD Health.
+            Join thousands of Nigerian women who trust MamaAlert for their pregnancy journey.
           </p>
           <Link to="/auth">
-            <Button size="lg" className="gradient-primary text-lg px-8 py-6">
-              Create Your Account
+            <Button size="lg" className="bg-rose-500 hover:bg-rose-600 text-white text-lg px-8 py-6">
+              Start Your Safe Journey
             </Button>
           </Link>
         </div>
@@ -152,7 +180,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="border-t bg-background px-4 py-8 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto text-center text-muted-foreground">
-          <p>&copy; 2024 BOMUD Health. Building financial discipline for your health, one save at a time.</p>
+          <p>&copy; 2024 MamaAlert. Protecting Nigerian mothers, one alert at a time.</p>
         </div>
       </footer>
     </div>

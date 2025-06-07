@@ -3,7 +3,7 @@ import { useAuth } from "./AuthProvider";
 import { useTheme } from "./ThemeProvider";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Moon, Sun } from "lucide-react";
+import { Moon, Sun, Heart } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export function Navbar() {
@@ -15,19 +15,26 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <Link to="/" className="flex items-center space-x-2">
-            <h1 className="text-xl font-bold text-primary">BOMUD Health</h1>
+            <Heart className="h-6 w-6 text-rose-500" />
+            <h1 className="text-xl font-bold text-rose-600">MamaAlert</h1>
           </Link>
 
           {user && (
             <div className="hidden md:flex items-center space-x-6">
-              <Link to="/dashboard" className="text-sm font-medium hover:text-primary transition-colors">
+              <Link to="/dashboard" className="text-sm font-medium hover:text-rose-600 transition-colors">
                 Dashboard
               </Link>
-              <Link to="/savings" className="text-sm font-medium hover:text-primary transition-colors">
-                Health Goals
+              <Link to="/symptom-logger" className="text-sm font-medium hover:text-rose-600 transition-colors">
+                Log Symptoms
               </Link>
-              <Link to="/transactions" className="text-sm font-medium hover:text-primary transition-colors">
-                Transactions
+              <Link to="/symptom-guide" className="text-sm font-medium hover:text-rose-600 transition-colors">
+                Symptom Guide
+              </Link>
+              <Link to="/emergency-contacts" className="text-sm font-medium hover:text-rose-600 transition-colors">
+                Emergency Contacts
+              </Link>
+              <Link to="/healthcare-centers" className="text-sm font-medium hover:text-rose-600 transition-colors">
+                Healthcare Centers
               </Link>
             </div>
           )}
@@ -48,7 +55,7 @@ export function Navbar() {
             {user ? (
               <div className="flex items-center space-x-3">
                 <Avatar className="h-8 w-8">
-                  <AvatarFallback className="bg-primary text-primary-foreground text-sm">
+                  <AvatarFallback className="bg-rose-500 text-white text-sm">
                     {user.firstName[0]}{user.lastName[0]}
                   </AvatarFallback>
                 </Avatar>
@@ -58,7 +65,7 @@ export function Navbar() {
               </div>
             ) : (
               <Link to="/auth">
-                <Button variant="default" size="sm">
+                <Button variant="default" size="sm" className="bg-rose-500 hover:bg-rose-600">
                   Sign In
                 </Button>
               </Link>

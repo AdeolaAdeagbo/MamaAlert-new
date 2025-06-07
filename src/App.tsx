@@ -9,16 +9,20 @@ import { AuthProvider } from "./components/AuthProvider";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
-import SavingsGoals from "./pages/SavingsGoals";
-import Transactions from "./pages/Transactions";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
+import EmergencyContacts from "./pages/EmergencyContacts";
+import SymptomLogger from "./pages/SymptomLogger";
+import SymptomGuide from "./pages/SymptomGuide";
+import HealthcareCenters from "./pages/HealthcareCenters";
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminLogin from "./pages/AdminLogin";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider defaultTheme="dark" storageKey="bomud-theme">
+    <ThemeProvider defaultTheme="light" storageKey="mamaalert-theme">
       <AuthProvider>
         <TooltipProvider>
           <Toaster />
@@ -28,9 +32,13 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/savings" element={<SavingsGoals />} />
-              <Route path="/transactions" element={<Transactions />} />
+              <Route path="/emergency-contacts" element={<EmergencyContacts />} />
+              <Route path="/symptom-logger" element={<SymptomLogger />} />
+              <Route path="/symptom-guide" element={<SymptomGuide />} />
+              <Route path="/healthcare-centers" element={<HealthcareCenters />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route path="/admin/dashboard" element={<AdminDashboard />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
