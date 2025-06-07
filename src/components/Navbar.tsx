@@ -15,11 +15,7 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <Link to="/" className="flex items-center space-x-2">
-            <img 
-              src="/lovable-uploads/117ef126-2a0c-4e98-a6f5-db5af60d6200.png" 
-              alt="BOMUD Logo" 
-              className="h-10 w-auto"
-            />
+            <h1 className="text-xl font-bold text-primary">BOMUD Health</h1>
           </Link>
 
           {user && (
@@ -28,7 +24,7 @@ export function Navbar() {
                 Dashboard
               </Link>
               <Link to="/savings" className="text-sm font-medium hover:text-primary transition-colors">
-                Savings Goals
+                Health Goals
               </Link>
               <Link to="/transactions" className="text-sm font-medium hover:text-primary transition-colors">
                 Transactions

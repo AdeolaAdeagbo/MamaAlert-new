@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Navigate, Link } from "react-router-dom";
-import { TrendingUp, Target, Calendar, Wallet } from "lucide-react";
+import { TrendingUp, Heart, Calendar, Shield } from "lucide-react";
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -16,11 +16,11 @@ const Dashboard = () => {
     return <Navigate to="/auth" replace />;
   }
 
-  // Mock data - replace with real data from your backend
+  // Mock health-focused savings goals
   const savingsGoals = [
     {
       id: "1",
-      name: "Emergency Fund",
+      name: "Health Emergency Fund",
       targetAmount: 500000,
       currentAmount: 125000,
       frequency: "weekly" as const,
@@ -30,12 +30,12 @@ const Dashboard = () => {
     },
     {
       id: "2",
-      name: "New Laptop",
+      name: "Dental Care Fund",
       targetAmount: 200000,
       currentAmount: 75000,
       frequency: "daily" as const,
       amountPerSave: 2000,
-      isLocked: false
+      isLocked: true
     }
   ];
 
@@ -44,22 +44,22 @@ const Dashboard = () => {
       id: "1",
       type: "save" as const,
       amount: 15000,
-      description: "Weekly savings",
+      description: "Weekly health savings",
       date: "2024-01-15",
-      goalName: "Emergency Fund"
+      goalName: "Health Emergency Fund"
     },
     {
       id: "2",
       type: "save" as const,
       amount: 2000,
-      description: "Daily savings",
+      description: "Daily dental savings",
       date: "2024-01-14",
-      goalName: "New Laptop"
+      goalName: "Dental Care Fund"
     }
   ];
 
   const formatCurrency = (amount: number) => `₦${amount.toLocaleString()}`;
-  const totalProgress = user.totalSavings / 1000000 * 100; // Assuming 1M target for demo
+  const totalProgress = user.totalSavings / 1000000 * 100;
 
   return (
     <div className="min-h-screen bg-background">
@@ -72,7 +72,7 @@ const Dashboard = () => {
             Welcome back, {user.firstName}!
           </h1>
           <p className="text-muted-foreground">
-            Here's your savings progress and recent activity.
+            Your health savings progress and recent activity.
           </p>
         </div>
 
@@ -82,9 +82,9 @@ const Dashboard = () => {
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Total Savings
+                  Total Health Savings
                 </CardTitle>
-                <Wallet className="h-4 w-4 text-primary" />
+                <Shield className="h-4 w-4 text-primary" />
               </div>
             </CardHeader>
             <CardContent>
@@ -102,15 +102,15 @@ const Dashboard = () => {
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Active Goals
+                  Active Health Goals
                 </CardTitle>
-                <Target className="h-4 w-4 text-muted-foreground" />
+                <Heart className="h-4 w-4 text-red-500" />
               </div>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{user.activeGoals}</div>
               <p className="text-xs text-muted-foreground mt-2">
-                Tracking progress
+                All funds locked for health
               </p>
             </CardContent>
           </Card>
@@ -148,7 +148,7 @@ const Dashboard = () => {
                 {formatCurrency(3000)}
               </div>
               <p className="text-xs text-muted-foreground mt-2">
-                Last 30 days
+                Health savings only
               </p>
             </CardContent>
           </Card>
@@ -158,9 +158,9 @@ const Dashboard = () => {
         <Card className="mb-8">
           <CardHeader>
             <div className="flex justify-between items-center">
-              <CardTitle>Overall Savings Progress</CardTitle>
+              <CardTitle>Overall Health Savings Progress</CardTitle>
               <span className="text-sm text-muted-foreground">
-                {totalProgress.toFixed(1)}% of ₦1,000,000 goal
+                {totalProgress.toFixed(1)}% of ₦1,000,000 health fund goal
               </span>
             </div>
           </CardHeader>
@@ -170,6 +170,10 @@ const Dashboard = () => {
               <span>₦0</span>
               <span>₦1,000,000</span>
             </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              <Shield className="h-3 w-3 inline mr-1" />
+              Funds are locked and can only be used for verified health expenses
+            </p>
           </CardContent>
         </Card>
 
@@ -178,7 +182,7 @@ const Dashboard = () => {
           {/* Savings Goals */}
           <div className="lg:col-span-2">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold">Your Savings Goals</h2>
+              <h2 className="text-xl font-semibold">Your Health Savings Goals</h2>
               <Link to="/savings">
                 <Button variant="outline" size="sm">
                   Manage Goals
@@ -195,14 +199,14 @@ const Dashboard = () => {
             ) : (
               <Card className="text-center py-12">
                 <CardContent>
-                  <Target className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                  <h3 className="text-lg font-medium mb-2">No savings goals yet</h3>
+                  <Heart className="h-12 w-12 mx-auto mb-4 text-red-500 opacity-50" />
+                  <h3 className="text-lg font-medium mb-2">No health savings goals yet</h3>
                   <p className="text-muted-foreground mb-4">
-                    Create your first savings goal to start building wealth.
+                    Create your first health savings goal to start building your medical fund.
                   </p>
                   <Link to="/savings">
                     <Button className="gradient-primary">
-                      Create Your First Goal
+                      Create Your First Health Goal
                     </Button>
                   </Link>
                 </CardContent>
