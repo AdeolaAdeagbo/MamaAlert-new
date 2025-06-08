@@ -28,7 +28,8 @@ interface PregnancyData {
   currentMedications: string;
   doctorName: string;
   hospitalName: string;
-  emergencyNotes: string;
+  emergencyNotes: string
+  previouspregnancy: string;
 }
 
 const PregnancyDetails = () => {
