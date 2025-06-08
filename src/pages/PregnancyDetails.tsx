@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Navigate, useNavigate } from "react-router-dom";
 import { Heart, Calendar, Edit } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Select,
   SelectContent,
@@ -28,8 +29,8 @@ interface PregnancyData {
   currentMedications: string;
   doctorName: string;
   hospitalName: string;
-  emergencyNotes: string
-  previouspregnancy: string;
+  emergencyNotes: string;
+  previousPregnancies: string;
 }
 
 const PregnancyDetails = () => {
@@ -49,7 +50,8 @@ const PregnancyDetails = () => {
     currentMedications: "",
     doctorName: "",
     hospitalName: "",
-    emergencyNotes: ""
+    emergencyNotes: "",
+    previousPregnancies: ""
   });
 
   const [errors, setErrors] = useState<Partial<PregnancyData>>({});
@@ -59,24 +61,50 @@ const PregnancyDetails = () => {
   }
 
   useEffect(() => {
-    // Load existing pregnancy data from localStorage
-    const savedData = localStorage.getItem(`pregnancy-data-${user.id}`);
-    if (savedData) {
-      const parsed = JSON.parse(savedData);
-      setPregnancyData(parsed);
-      setIsEditing(true);
-    }
+    loadPregnancyData();
   }, [user.id]);
+
+  const loadPregnancyData = async () => {
+    try {
+      const { data } = await supabase
+        .from('pregnancy_data')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (data) {
+        setPregnancyData({
+          weeksPregnant: data.weeks_pregnant || 0,
+          dueDate: data.due_date || "",
+          lastMenstrualPeriod: data.last_menstrual_period || "",
+          isHighRisk: data.is_high_risk || false,
+          medicalConditions: data.medical_conditions || "",
+          allergies: data.allergies || "",
+          currentMedications: data.current_medications || "",
+          doctorName: data.doctor_name || "",
+          hospitalName: data.hospital_name || "",
+          emergencyNotes: data.emergency_notes || "",
+          previousPregnancies: data.previous_pregnancies || ""
+        });
+        setIsEditing(true);
+      }
+    } catch (error) {
+      console.error('Error loading pregnancy data:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load pregnancy data.",
+        variant: "destructive"
+      });
+    }
+  };
 
   const validateForm = (): boolean => {
     const newErrors: Partial<PregnancyData> = {};
 
-    // Validate weeks pregnant
     if (!pregnancyData.weeksPregnant || pregnancyData.weeksPregnant < 1 || pregnancyData.weeksPregnant > 42) {
       newErrors.weeksPregnant = pregnancyData.weeksPregnant as any;
     }
 
-    // Validate due date
     if (!pregnancyData.dueDate) {
       newErrors.dueDate = "Due date is required";
     } else {
@@ -87,7 +115,6 @@ const PregnancyDetails = () => {
       }
     }
 
-    // Validate last menstrual period
     if (!pregnancyData.lastMenstrualPeriod) {
       newErrors.lastMenstrualPeriod = "Last menstrual period is required";
     } else {
@@ -117,17 +144,34 @@ const PregnancyDetails = () => {
     setIsLoading(true);
 
     try {
-      // Save to localStorage (in real app, this would go to Supabase)
-      localStorage.setItem(`pregnancy-data-${user.id}`, JSON.stringify(pregnancyData));
-      
-      // Update user context with pregnancy week
-      const savedUser = localStorage.getItem("mamaalert-user");
-      if (savedUser) {
-        const userObj = JSON.parse(savedUser);
-        userObj.pregnancyWeek = pregnancyData.weeksPregnant;
-        userObj.dueDate = pregnancyData.dueDate;
-        userObj.isHighRisk = pregnancyData.isHighRisk;
-        localStorage.setItem("mamaalert-user", JSON.stringify(userObj));
+      const pregnancyPayload = {
+        user_id: user.id,
+        weeks_pregnant: pregnancyData.weeksPregnant,
+        due_date: pregnancyData.dueDate,
+        last_menstrual_period: pregnancyData.lastMenstrualPeriod,
+        is_high_risk: pregnancyData.isHighRisk,
+        medical_conditions: pregnancyData.medicalConditions,
+        allergies: pregnancyData.allergies,
+        current_medications: pregnancyData.currentMedications,
+        doctor_name: pregnancyData.doctorName,
+        hospital_name: pregnancyData.hospitalName,
+        emergency_notes: pregnancyData.emergencyNotes,
+        previous_pregnancies: pregnancyData.previousPregnancies
+      };
+
+      if (isEditing) {
+        const { error } = await supabase
+          .from('pregnancy_data')
+          .update(pregnancyPayload)
+          .eq('user_id', user.id);
+
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('pregnancy_data')
+          .insert([pregnancyPayload]);
+
+        if (error) throw error;
       }
 
       toast({
@@ -137,6 +181,7 @@ const PregnancyDetails = () => {
 
       navigate("/dashboard");
     } catch (error) {
+      console.error('Error saving pregnancy details:', error);
       toast({
         title: "Error",
         description: "Failed to save pregnancy details. Please try again.",
@@ -153,7 +198,6 @@ const PregnancyDetails = () => {
       [field]: value
     }));
 
-    // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({
         ...prev,
@@ -210,7 +254,6 @@ const PregnancyDetails = () => {
                       const weeks = parseInt(e.target.value);
                       handleInputChange("weeksPregnant", weeks);
                       
-                      // Auto-calculate due date if weeks are valid
                       if (weeks >= 1 && weeks <= 42) {
                         const calculatedDueDate = calculateDueDateFromWeeks(weeks);
                         if (calculatedDueDate) {
@@ -226,9 +269,6 @@ const PregnancyDetails = () => {
                       Please enter a valid week (1-42)
                     </p>
                   )}
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Enter how many weeks pregnant you are (1-42 weeks)
-                  </p>
                 </div>
 
                 <div>
@@ -243,9 +283,6 @@ const PregnancyDetails = () => {
                   {typeof errors.dueDate === 'string' && (
                     <p className="text-sm text-red-500 mt-1">{errors.dueDate}</p>
                   )}
-                  <p className="text-xs text-muted-foreground mt-1">
-                    When is your baby due?
-                  </p>
                 </div>
               </div>
 
@@ -261,9 +298,6 @@ const PregnancyDetails = () => {
                 {typeof errors.lastMenstrualPeriod === 'string' && (
                   <p className="text-sm text-red-500 mt-1">{errors.lastMenstrualPeriod}</p>
                 )}
-                <p className="text-xs text-muted-foreground mt-1">
-                  First day of your last menstrual period
-                </p>
               </div>
 
               {/* Risk Assessment */}
@@ -281,9 +315,6 @@ const PregnancyDetails = () => {
                     <SelectItem value="high">High Risk</SelectItem>
                   </SelectContent>
                 </Select>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Has your doctor classified your pregnancy as high-risk?
-                </p>
               </div>
 
               {/* Medical Information */}
@@ -299,9 +330,6 @@ const PregnancyDetails = () => {
                     placeholder="e.g., Diabetes, Hypertension, Asthma..."
                     rows={3}
                   />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    List any medical conditions you had before pregnancy
-                  </p>
                 </div>
 
                 <div>
@@ -313,9 +341,6 @@ const PregnancyDetails = () => {
                     placeholder="e.g., Penicillin, Peanuts, Latex..."
                     rows={2}
                   />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    List any known allergies to medications, foods, or other substances
-                  </p>
                 </div>
 
                 <div>
@@ -327,9 +352,17 @@ const PregnancyDetails = () => {
                     placeholder="e.g., Prenatal vitamins, Iron supplements..."
                     rows={3}
                   />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    List all medications and supplements you're currently taking
-                  </p>
+                </div>
+
+                <div>
+                  <Label htmlFor="previousPregnancies">Previous Pregnancies</Label>
+                  <Textarea
+                    id="previousPregnancies"
+                    value={pregnancyData.previousPregnancies}
+                    onChange={(e) => handleInputChange("previousPregnancies", e.target.value)}
+                    placeholder="Describe any previous pregnancies, complications, etc..."
+                    rows={3}
+                  />
                 </div>
               </div>
 
@@ -370,9 +403,6 @@ const PregnancyDetails = () => {
                   placeholder="Any special instructions for emergency situations..."
                   rows={3}
                 />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Important information for emergency responders or caregivers
-                </p>
               </div>
 
               <div className="flex gap-4 pt-4">

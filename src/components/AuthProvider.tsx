@@ -1,5 +1,7 @@
 
 import { createContext, useContext, useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 interface User {
   id: string;
@@ -16,7 +18,7 @@ interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string, firstName: string, lastName: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   isLoading: boolean;
 }
 
@@ -27,53 +29,122 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check for existing session
-    const savedUser = localStorage.getItem("mamaalert-user");
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-    }
-    setIsLoading(false);
+    // Get initial session
+    const getInitialSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        await loadUserProfile(session.user);
+      }
+      setIsLoading(false);
+    };
+
+    getInitialSession();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        await loadUserProfile(session.user);
+      } else {
+        setUser(null);
+      }
+      setIsLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
+
+  const loadUserProfile = async (supabaseUser: SupabaseUser) => {
+    try {
+      // Get user profile
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', supabaseUser.id)
+        .single();
+
+      // Get pregnancy data
+      const { data: pregnancyData } = await supabase
+        .from('pregnancy_data')
+        .select('*')
+        .eq('user_id', supabaseUser.id)
+        .maybeSingle();
+
+      // Get emergency contacts count
+      const { count: emergencyContactsCount } = await supabase
+        .from('emergency_contacts')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', supabaseUser.id);
+
+      const userProfile: User = {
+        id: supabaseUser.id,
+        email: supabaseUser.email || '',
+        firstName: profile?.first_name || '',
+        lastName: profile?.last_name || '',
+        pregnancyWeek: pregnancyData?.weeks_pregnant || undefined,
+        dueDate: pregnancyData?.due_date || undefined,
+        emergencyContacts: emergencyContactsCount || 0,
+        isHighRisk: pregnancyData?.is_high_risk || false
+      };
+
+      setUser(userProfile);
+    } catch (error) {
+      console.error('Error loading user profile:', error);
+      setUser(null);
+    }
+  };
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
-    // Mock authentication - replace with Supabase auth
-    const mockUser: User = {
-      id: "1",
-      email,
-      firstName: "Fatima",
-      lastName: "Mohammed",
-      pregnancyWeek: 24,
-      dueDate: "2024-06-15",
-      emergencyContacts: 3,
-      isHighRisk: false
-    };
-    setUser(mockUser);
-    localStorage.setItem("mamaalert-user", JSON.stringify(mockUser));
-    setIsLoading(false);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const signup = async (email: string, password: string, firstName: string, lastName: string) => {
     setIsLoading(true);
-    // Mock signup - replace with Supabase auth
-    const mockUser: User = {
-      id: "1",
-      email,
-      firstName,
-      lastName,
-      pregnancyWeek: 12,
-      dueDate: "2024-09-01",
-      emergencyContacts: 0,
-      isHighRisk: false
-    };
-    setUser(mockUser);
-    localStorage.setItem("mamaalert-user", JSON.stringify(mockUser));
-    setIsLoading(false);
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            first_name: firstName,
+            last_name: lastName,
+          }
+        }
+      });
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Signup error:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem("mamaalert-user");
+  const logout = async () => {
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      setUser(null);
+    } catch (error) {
+      console.error('Logout error:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
