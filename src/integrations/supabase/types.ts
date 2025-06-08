@@ -9,186 +9,16 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      emergency_contacts: {
-        Row: {
-          created_at: string | null
-          email: string | null
-          id: string
-          is_primary: boolean | null
-          name: string
-          phone: string
-          relationship: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          email?: string | null
-          id?: string
-          is_primary?: boolean | null
-          name: string
-          phone: string
-          relationship: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          email?: string | null
-          id?: string
-          is_primary?: boolean | null
-          name?: string
-          phone?: string
-          relationship?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      pregnancy_data: {
-        Row: {
-          allergies: string | null
-          created_at: string | null
-          current_medications: string | null
-          doctor_name: string | null
-          due_date: string | null
-          emergency_notes: string | null
-          hospital_name: string | null
-          id: string
-          is_high_risk: boolean | null
-          last_menstrual_period: string | null
-          medical_conditions: string | null
-          previous_pregnancies: string | null
-          updated_at: string | null
-          user_id: string
-          weeks_pregnant: number | null
-        }
-        Insert: {
-          allergies?: string | null
-          created_at?: string | null
-          current_medications?: string | null
-          doctor_name?: string | null
-          due_date?: string | null
-          emergency_notes?: string | null
-          hospital_name?: string | null
-          id?: string
-          is_high_risk?: boolean | null
-          last_menstrual_period?: string | null
-          medical_conditions?: string | null
-          previous_pregnancies?: string | null
-          updated_at?: string | null
-          user_id: string
-          weeks_pregnant?: number | null
-        }
-        Update: {
-          allergies?: string | null
-          created_at?: string | null
-          current_medications?: string | null
-          doctor_name?: string | null
-          due_date?: string | null
-          emergency_notes?: string | null
-          hospital_name?: string | null
-          id?: string
-          is_high_risk?: boolean | null
-          last_menstrual_period?: string | null
-          medical_conditions?: string | null
-          previous_pregnancies?: string | null
-          updated_at?: string | null
-          user_id?: string
-          weeks_pregnant?: number | null
-        }
-        Relationships: []
-      }
-      profiles: {
-        Row: {
-          created_at: string | null
-          first_name: string
-          id: string
-          last_name: string
-          phone: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          first_name: string
-          id: string
-          last_name: string
-          phone?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          first_name?: string
-          id?: string
-          last_name?: string
-          phone?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      symptom_logs: {
-        Row: {
-          created_at: string | null
-          description: string | null
-          id: string
-          severity: number | null
-          symptom_type: string
-          timestamp: string | null
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          severity?: number | null
-          symptom_type: string
-          timestamp?: string | null
-          user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          severity?: number | null
-          symptom_type?: string
-          timestamp?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
-      user_roles: {
-        Row: {
-          created_at: string | null
-          id: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id?: string
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      has_role: {
-        Args: {
-          _user_id: string
-          _role: Database["public"]["Enums"]["app_role"]
-        }
-        Returns: boolean
-      }
+      [_ in never]: never
     }
     Enums: {
-      app_role: "admin" | "user"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -303,8 +133,6 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {
-      app_role: ["admin", "user"],
-    },
+    Enums: {},
   },
 } as const

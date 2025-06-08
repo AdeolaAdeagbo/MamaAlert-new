@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Navigate, Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
-import { supabase } from "@/integrations/supabase/client";
 import { 
   AlertTriangle, 
   Heart, 
@@ -29,27 +28,18 @@ const Dashboard = () => {
   }
 
   useEffect(() => {
-    loadPregnancyData();
-  }, [user.id]);
-
-  const loadPregnancyData = async () => {
-    try {
-      const { data } = await supabase
-        .from('pregnancy_data')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      setPregnancyData(data);
-    } catch (error) {
-      console.error('Error loading pregnancy data:', error);
+    // Load pregnancy data
+    const savedData = localStorage.getItem(`pregnancy-data-${user.id}`);
+    if (savedData) {
+      setPregnancyData(JSON.parse(savedData));
     }
-  };
+  }, [user.id]);
 
   const handleEmergencyAlert = async () => {
     setIsEmergencyActive(true);
     
     try {
+      // Here you would typically send emergency alerts via Supabase edge functions
       console.log("Triggering emergency alert...");
       
       toast({
@@ -58,6 +48,7 @@ const Dashboard = () => {
         variant: "destructive"
       });
 
+      // Reset after 3 seconds
       setTimeout(() => setIsEmergencyActive(false), 3000);
       
     } catch (error) {
@@ -70,10 +61,11 @@ const Dashboard = () => {
     }
   };
 
+  // Mock data for MamaAlert
   const userStats = {
-    pregnancyWeek: pregnancyData?.weeks_pregnant || user.pregnancyWeek || 24,
+    pregnancyWeek: 24,
     nextAppointment: "Jan 22, 2024",
-    emergencyContacts: user.emergencyContacts,
+    emergencyContacts: 3,
     recentSymptoms: 2
   };
 
@@ -194,11 +186,11 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-rose-600">
-                Week {pregnancyData?.weeks_pregnant || userStats.pregnancyWeek}
+                Week {pregnancyData?.weeksPregnant || userStats.pregnancyWeek}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                {(pregnancyData?.weeks_pregnant || userStats.pregnancyWeek) <= 12 ? '1st Trimester' : 
-                 (pregnancyData?.weeks_pregnant || userStats.pregnancyWeek) <= 26 ? '2nd Trimester' : '3rd Trimester'}
+                {pregnancyData?.weeksPregnant <= 12 ? '1st Trimester' : 
+                 pregnancyData?.weeksPregnant <= 26 ? '2nd Trimester' : '3rd Trimester'}
               </p>
             </CardContent>
           </Card>
@@ -370,7 +362,7 @@ const Dashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="p-4 bg-rose-50 rounded-lg">
-                  <h4 className="font-medium text-rose-800 mb-2">Week {userStats.pregnancyWeek} Tip</h4>
+                  <h4 className="font-medium text-rose-800 mb-2">Week 24 Tip</h4>
                   <p className="text-sm text-rose-700">
                     Your baby's hearing is developing! Talk, sing, or play music for your little one. 
                     Stay hydrated and continue taking your prenatal vitamins.
