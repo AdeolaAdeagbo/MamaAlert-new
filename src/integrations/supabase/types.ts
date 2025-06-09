@@ -9,6 +9,69 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      appointments: {
+        Row: {
+          appointment_date: string
+          appointment_time: string
+          created_at: string
+          hospital_name: string
+          id: string
+          notes: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          appointment_date: string
+          appointment_time: string
+          created_at?: string
+          hospital_name: string
+          id?: string
+          notes?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          appointment_date?: string
+          appointment_time?: string
+          created_at?: string
+          hospital_name?: string
+          id?: string
+          notes?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      emergency_alerts: {
+        Row: {
+          alert_type: string
+          id: string
+          location: string | null
+          message: string
+          resolved: boolean | null
+          timestamp: string
+          user_id: string
+        }
+        Insert: {
+          alert_type?: string
+          id?: string
+          location?: string | null
+          message: string
+          resolved?: boolean | null
+          timestamp?: string
+          user_id: string
+        }
+        Update: {
+          alert_type?: string
+          id?: string
+          location?: string | null
+          message?: string
+          resolved?: boolean | null
+          timestamp?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       emergency_contacts: {
         Row: {
           created_at: string | null

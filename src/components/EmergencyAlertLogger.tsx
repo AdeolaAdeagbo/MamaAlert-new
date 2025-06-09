@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { AlertTriangle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface EmergencyAlert {
   id: string;
@@ -29,28 +30,33 @@ export const EmergencyAlertLogger = ({ userId, onAlertSent }: EmergencyAlertLogg
       // Get user's location if available
       let location = "Location not available";
       if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition((position) => {
+        try {
+          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject);
+          });
           location = `${position.coords.latitude}, ${position.coords.longitude}`;
-        });
+        } catch (error) {
+          console.log("Could not get location:", error);
+        }
       }
 
-      const emergencyAlert: EmergencyAlert = {
-        id: `alert-${Date.now()}`,
-        userId,
-        type: "emergency",
+      const alertData = {
+        user_id: userId,
+        alert_type: "emergency",
         message: "Emergency alert triggered by user",
-        timestamp: new Date().toISOString(),
         location
       };
 
-      // Store in localStorage (in a real app, this would go to a database)
-      const existingAlerts = JSON.parse(
-        localStorage.getItem(`emergency-alerts-${userId}`) || "[]"
-      );
-      existingAlerts.unshift(emergencyAlert);
-      localStorage.setItem(`emergency-alerts-${userId}`, JSON.stringify(existingAlerts));
+      // Store in Supabase
+      const { data, error } = await supabase
+        .from('emergency_alerts')
+        .insert(alertData)
+        .select()
+        .single();
 
-      console.log("Triggering emergency alert...", emergencyAlert);
+      if (error) throw error;
+
+      console.log("Emergency alert stored in database:", data);
       
       toast({
         title: "🚨 Emergency Alert Sent!",
@@ -59,11 +65,21 @@ export const EmergencyAlertLogger = ({ userId, onAlertSent }: EmergencyAlertLogg
       });
 
       // Call the callback to update parent component
+      const emergencyAlert: EmergencyAlert = {
+        id: data.id,
+        userId: data.user_id,
+        type: data.alert_type as "emergency",
+        message: data.message,
+        timestamp: data.timestamp,
+        location: data.location || undefined
+      };
+
       onAlertSent(emergencyAlert);
 
       setTimeout(() => setIsEmergencyActive(false), 3000);
       
     } catch (error) {
+      console.error("Error sending emergency alert:", error);
       toast({
         title: "Alert Failed",
         description: "Failed to send emergency alert. Please call emergency services directly.",

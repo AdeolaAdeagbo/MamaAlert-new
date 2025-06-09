@@ -11,6 +11,8 @@ import { AppointmentLogger } from "@/components/AppointmentLogger";
 import { HealthAlerts } from "@/components/HealthAlerts";
 import { WeeklyHealthTips } from "@/components/WeeklyHealthTips";
 import { EmergencyAlertLogger } from "@/components/EmergencyAlertLogger";
+import { WelcomeModal } from "@/components/WelcomeModal";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   Heart, 
   Calendar, 
@@ -23,107 +25,98 @@ import {
 
 interface Appointment {
   id: string;
-  hospitalName: string;
-  date: string;
-  time: string;
+  hospital_name: string;
+  appointment_date: string;
+  appointment_time: string;
   notes: string;
-  createdAt: string;
+  created_at: string;
 }
 
 interface EmergencyAlert {
   id: string;
-  userId: string;
-  type: "emergency" | "urgent" | "medical";
+  user_id: string;
+  alert_type: string;
   message: string;
   timestamp: string;
   location?: string;
 }
 
 const Dashboard = () => {
-  const { user } = useAuth();
+  const { user, refreshUserData } = useAuth();
   const { toast } = useToast();
-  const [pregnancyData, setPregnancyData] = useState<any>(null);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [emergencyAlerts, setEmergencyAlerts] = useState<EmergencyAlert[]>([]);
-  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   if (!user) {
     return <Navigate to="/auth" replace />;
   }
 
   useEffect(() => {
-    // Load pregnancy data
-    const savedData = localStorage.getItem(`pregnancy-data-${user.id}`);
-    if (savedData) {
-      const parsedData = JSON.parse(savedData);
-      setPregnancyData(parsedData);
-    } else {
-      // Show onboarding if no pregnancy data exists
-      setShowOnboarding(true);
+    // Show welcome modal for new users without pregnancy data
+    if (user && !user.hasPregnancyData) {
+      setShowWelcomeModal(true);
     }
-
-    // Load appointments
-    const savedAppointments = localStorage.getItem(`appointments-${user.id}`);
-    if (savedAppointments) {
-      const parsedAppointments = JSON.parse(savedAppointments);
-      // Sort by date and show only upcoming appointments
-      const now = new Date();
-      const upcomingAppointments = parsedAppointments
-        .filter((apt: Appointment) => new Date(apt.date) >= now)
-        .sort((a: Appointment, b: Appointment) => new Date(a.date).getTime() - new Date(b.date).getTime())
-        .slice(0, 3); // Show only next 3 appointments
-      setAppointments(upcomingAppointments);
-    }
-
-    // Load emergency alerts
-    const savedAlerts = localStorage.getItem(`emergency-alerts-${user.id}`);
-    if (savedAlerts) {
-      setEmergencyAlerts(JSON.parse(savedAlerts));
-    }
-  }, [user.id]);
-
-  const calculatePregnancyWeek = () => {
-    if (!pregnancyData?.lastMenstrualPeriod) return 0;
     
-    const lmp = new Date(pregnancyData.lastMenstrualPeriod);
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - lmp.getTime());
-    const diffWeeks = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 7));
+    loadDashboardData();
+  }, [user?.id]);
+
+  const loadDashboardData = async () => {
+    if (!user?.id) return;
     
-    return Math.min(diffWeeks, 42); // Cap at 42 weeks
-  };
+    setLoading(true);
+    try {
+      // Load appointments
+      const { data: appointmentsData } = await supabase
+        .from('appointments')
+        .select('*')
+        .eq('user_id', user.id)
+        .gte('appointment_date', new Date().toISOString().split('T')[0])
+        .order('appointment_date', { ascending: true })
+        .limit(3);
 
-  const handleAppointmentAdded = (newAppointment: Appointment) => {
-    // Refresh appointments list
-    const savedAppointments = localStorage.getItem(`appointments-${user.id}`);
-    if (savedAppointments) {
-      const parsedAppointments = JSON.parse(savedAppointments);
-      const now = new Date();
-      const upcomingAppointments = parsedAppointments
-        .filter((apt: Appointment) => new Date(apt.date) >= now)
-        .sort((a: Appointment, b: Appointment) => new Date(a.date).getTime() - new Date(b.date).getTime())
-        .slice(0, 3);
-      setAppointments(upcomingAppointments);
+      if (appointmentsData) {
+        setAppointments(appointmentsData);
+      }
+
+      // Load emergency alerts
+      const { data: alertsData } = await supabase
+        .from('emergency_alerts')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('timestamp', { ascending: false })
+        .limit(5);
+
+      if (alertsData) {
+        setEmergencyAlerts(alertsData);
+      }
+
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleEmergencyAlert = (alert: EmergencyAlert) => {
-    setEmergencyAlerts(prev => [alert, ...prev.slice(0, 4)]); // Keep last 5 alerts
+  const handleAppointmentAdded = () => {
+    loadDashboardData();
   };
 
-  const getCurrentPregnancyWeek = () => {
-    if (pregnancyData?.weeksPregnant) {
-      return pregnancyData.weeksPregnant;
-    }
-    return calculatePregnancyWeek();
+  const handleEmergencyAlert = (alert: any) => {
+    setEmergencyAlerts(prev => [alert, ...prev.slice(0, 4)]);
+  };
+
+  const handleWelcomeModalClose = () => {
+    setShowWelcomeModal(false);
   };
 
   // Mock data for stats
   const userStats = {
-    pregnancyWeek: getCurrentPregnancyWeek(),
-    nextAppointment: appointments.length > 0 ? new Date(appointments[0].date).toLocaleDateString() : "No upcoming appointments",
-    emergencyContacts: 3,
-    recentSymptoms: 2
+    pregnancyWeek: user.pregnancyWeek || 0,
+    nextAppointment: appointments.length > 0 ? new Date(appointments[0].appointment_date).toLocaleDateString() : "No upcoming appointments",
+    emergencyContacts: user.emergencyContacts,
+    recentSymptoms: 0
   };
 
   const recentActivity = [
@@ -166,6 +159,12 @@ const Dashboard = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       
+      <WelcomeModal 
+        isOpen={showWelcomeModal}
+        onClose={handleWelcomeModalClose}
+        userName={user.firstName || 'there'}
+      />
+      
       <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
@@ -173,7 +172,7 @@ const Dashboard = () => {
             Welcome back, {user.firstName}! 
           </h1>
           <p className="text-muted-foreground">
-            {pregnancyData ? 
+            {user.hasPregnancyData ? 
               `You're at week ${userStats.pregnancyWeek} of your pregnancy journey. Stay safe and healthy! 💕` :
               "Complete your pregnancy profile to get personalized care and tips!"
             }
@@ -181,7 +180,7 @@ const Dashboard = () => {
         </div>
 
         {/* Onboarding Alert */}
-        {(showOnboarding || !pregnancyData) && (
+        {!user.hasPregnancyData && (
           <Card className="mb-8 border-amber-200 bg-gradient-to-r from-amber-50 to-yellow-50">
             <CardContent className="pt-6">
               <div className="text-center">
@@ -191,10 +190,7 @@ const Dashboard = () => {
                   This information will help us send you relevant alerts and track your symptoms better.
                 </p>
                 <Link to="/pregnancy-details">
-                  <Button 
-                    className="bg-amber-600 hover:bg-amber-700 text-white"
-                    onClick={() => setShowOnboarding(false)}
-                  >
+                  <Button className="bg-amber-600 hover:bg-amber-700 text-white">
                     <Heart className="h-4 w-4 mr-2" />
                     Add Pregnancy Details
                   </Button>
@@ -234,7 +230,8 @@ const Dashboard = () => {
                 Week {userStats.pregnancyWeek}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                {userStats.pregnancyWeek <= 12 ? '1st Trimester' : 
+                {userStats.pregnancyWeek === 0 ? 'Add pregnancy details' :
+                 userStats.pregnancyWeek <= 12 ? '1st Trimester' : 
                  userStats.pregnancyWeek <= 26 ? '2nd Trimester' : '3rd Trimester'}
               </p>
             </CardContent>
@@ -252,7 +249,7 @@ const Dashboard = () => {
             <CardContent>
               <div className="text-lg font-bold">{userStats.nextAppointment}</div>
               <p className="text-xs text-muted-foreground mt-1">
-                {appointments.length > 0 ? appointments[0].hospitalName : "No appointments scheduled"}
+                {appointments.length > 0 ? appointments[0].hospital_name : "No appointments scheduled"}
               </p>
             </CardContent>
           </Card>
@@ -309,7 +306,7 @@ const Dashboard = () => {
                     <Button variant="outline" className="w-full h-20 flex flex-col gap-2">
                       <Heart className="h-6 w-6 text-rose-500" />
                       <span className="text-sm">
-                        {pregnancyData ? 'Edit Details' : 'Add Details'}
+                        {user.hasPregnancyData ? 'Edit Details' : 'Add Details'}
                       </span>
                     </Button>
                   </Link>
@@ -360,16 +357,16 @@ const Dashboard = () => {
                       <div key={appointment.id} className="p-4 border rounded-lg">
                         <div className="flex justify-between items-start mb-2">
                           <h4 className="font-medium">Antenatal Appointment</h4>
-                          <Badge variant="outline">{new Date(appointment.date).toLocaleDateString()}</Badge>
+                          <Badge variant="outline">{new Date(appointment.appointment_date).toLocaleDateString()}</Badge>
                         </div>
                         <div className="space-y-1 text-sm text-muted-foreground">
                           <div className="flex items-center gap-2">
                             <Clock className="h-4 w-4" />
-                            <span>{appointment.time}</span>
+                            <span>{appointment.appointment_time}</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <MapPin className="h-4 w-4" />
-                            <span>{appointment.hospitalName}</span>
+                            <span>{appointment.hospital_name}</span>
                           </div>
                           {appointment.notes && (
                             <div className="mt-2 p-2 bg-gray-50 rounded text-xs">
