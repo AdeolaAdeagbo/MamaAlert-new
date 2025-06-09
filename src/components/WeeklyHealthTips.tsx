@@ -146,23 +146,14 @@ export const WeeklyHealthTips = ({ pregnancyWeek }: WeeklyHealthTipsProps) => {
     }
   ];
 
-  const calculateCurrentWeek = () => {
-    // Get current date
-    const now = new Date();
-    const currentWeek = new Date().getWeek(); // We'll implement this based on pregnancy data
-    return pregnancyWeek; // Use the passed pregnancy week for now
-  };
-
   useEffect(() => {
-    const currentPregnancyWeek = calculateCurrentWeek();
-    
     // Find the most relevant tip for current pregnancy week
-    const relevantTip = healthTips.find(tip => tip.week === currentPregnancyWeek) 
+    const relevantTip = healthTips.find(tip => tip.week === pregnancyWeek) 
       || healthTips.reduce((closest, tip) => {
         if (!closest) return tip;
         
-        const currentDiff = Math.abs(currentPregnancyWeek - tip.week);
-        const closestDiff = Math.abs(currentPregnancyWeek - closest.week);
+        const currentDiff = Math.abs(pregnancyWeek - tip.week);
+        const closestDiff = Math.abs(pregnancyWeek - closest.week);
         
         return currentDiff < closestDiff ? tip : closest;
       }, null as HealthTip | null);
