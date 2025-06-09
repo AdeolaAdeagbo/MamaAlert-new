@@ -10,8 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { AppointmentLogger } from "@/components/AppointmentLogger";
 import { HealthAlerts } from "@/components/HealthAlerts";
 import { WeeklyHealthTips } from "@/components/WeeklyHealthTips";
+import { EmergencyAlertLogger } from "@/components/EmergencyAlertLogger";
 import { 
-  AlertTriangle, 
   Heart, 
   Calendar, 
   Shield, 
@@ -30,12 +30,22 @@ interface Appointment {
   createdAt: string;
 }
 
+interface EmergencyAlert {
+  id: string;
+  userId: string;
+  type: "emergency" | "urgent" | "medical";
+  message: string;
+  timestamp: string;
+  location?: string;
+}
+
 const Dashboard = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [isEmergencyActive, setIsEmergencyActive] = useState(false);
   const [pregnancyData, setPregnancyData] = useState<any>(null);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [emergencyAlerts, setEmergencyAlerts] = useState<EmergencyAlert[]>([]);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   if (!user) {
     return <Navigate to="/auth" replace />;
@@ -45,7 +55,11 @@ const Dashboard = () => {
     // Load pregnancy data
     const savedData = localStorage.getItem(`pregnancy-data-${user.id}`);
     if (savedData) {
-      setPregnancyData(JSON.parse(savedData));
+      const parsedData = JSON.parse(savedData);
+      setPregnancyData(parsedData);
+    } else {
+      // Show onboarding if no pregnancy data exists
+      setShowOnboarding(true);
     }
 
     // Load appointments
@@ -60,30 +74,23 @@ const Dashboard = () => {
         .slice(0, 3); // Show only next 3 appointments
       setAppointments(upcomingAppointments);
     }
+
+    // Load emergency alerts
+    const savedAlerts = localStorage.getItem(`emergency-alerts-${user.id}`);
+    if (savedAlerts) {
+      setEmergencyAlerts(JSON.parse(savedAlerts));
+    }
   }, [user.id]);
 
-  const handleEmergencyAlert = async () => {
-    setIsEmergencyActive(true);
+  const calculatePregnancyWeek = () => {
+    if (!pregnancyData?.lastMenstrualPeriod) return 0;
     
-    try {
-      console.log("Triggering emergency alert...");
-      
-      toast({
-        title: "🚨 Emergency Alert Sent!",
-        description: "Your emergency contacts and nearest healthcare center have been notified.",
-        variant: "destructive"
-      });
-
-      setTimeout(() => setIsEmergencyActive(false), 3000);
-      
-    } catch (error) {
-      toast({
-        title: "Alert Failed",
-        description: "Failed to send emergency alert. Please call emergency services directly.",
-        variant: "destructive"
-      });
-      setIsEmergencyActive(false);
-    }
+    const lmp = new Date(pregnancyData.lastMenstrualPeriod);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - lmp.getTime());
+    const diffWeeks = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 7));
+    
+    return Math.min(diffWeeks, 42); // Cap at 42 weeks
   };
 
   const handleAppointmentAdded = (newAppointment: Appointment) => {
@@ -100,9 +107,20 @@ const Dashboard = () => {
     }
   };
 
-  // Mock data for MamaAlert
+  const handleEmergencyAlert = (alert: EmergencyAlert) => {
+    setEmergencyAlerts(prev => [alert, ...prev.slice(0, 4)]); // Keep last 5 alerts
+  };
+
+  const getCurrentPregnancyWeek = () => {
+    if (pregnancyData?.weeksPregnant) {
+      return pregnancyData.weeksPregnant;
+    }
+    return calculatePregnancyWeek();
+  };
+
+  // Mock data for stats
   const userStats = {
-    pregnancyWeek: pregnancyData?.weeksPregnant || 24,
+    pregnancyWeek: getCurrentPregnancyWeek(),
     nextAppointment: appointments.length > 0 ? new Date(appointments[0].date).toLocaleDateString() : "No upcoming appointments",
     emergencyContacts: 3,
     recentSymptoms: 2
@@ -132,6 +150,18 @@ const Dashboard = () => {
     }
   ];
 
+  // Add emergency alerts to recent activity
+  const allActivity = [
+    ...emergencyAlerts.slice(0, 2).map(alert => ({
+      id: alert.id,
+      type: "emergency",
+      title: "Emergency alert sent",
+      time: new Date(alert.timestamp).toLocaleString(),
+      status: "emergency"
+    })),
+    ...recentActivity
+  ].slice(0, 5);
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -143,12 +173,15 @@ const Dashboard = () => {
             Welcome back, {user.firstName}! 
           </h1>
           <p className="text-muted-foreground">
-            You're at week {userStats.pregnancyWeek} of your pregnancy journey. Stay safe and healthy! 💕
+            {pregnancyData ? 
+              `You're at week ${userStats.pregnancyWeek} of your pregnancy journey. Stay safe and healthy! 💕` :
+              "Complete your pregnancy profile to get personalized care and tips!"
+            }
           </p>
         </div>
 
-        {/* Pregnancy Details Alert */}
-        {!pregnancyData && (
+        {/* Onboarding Alert */}
+        {(showOnboarding || !pregnancyData) && (
           <Card className="mb-8 border-amber-200 bg-gradient-to-r from-amber-50 to-yellow-50">
             <CardContent className="pt-6">
               <div className="text-center">
@@ -158,7 +191,10 @@ const Dashboard = () => {
                   This information will help us send you relevant alerts and track your symptoms better.
                 </p>
                 <Link to="/pregnancy-details">
-                  <Button className="bg-amber-600 hover:bg-amber-700 text-white">
+                  <Button 
+                    className="bg-amber-600 hover:bg-amber-700 text-white"
+                    onClick={() => setShowOnboarding(false)}
+                  >
                     <Heart className="h-4 w-4 mr-2" />
                     Add Pregnancy Details
                   </Button>
@@ -177,18 +213,7 @@ const Dashboard = () => {
                 If you're experiencing a medical emergency, press the button below to instantly 
                 notify your emergency contacts and nearest healthcare center.
               </p>
-              <Button 
-                onClick={handleEmergencyAlert}
-                disabled={isEmergencyActive}
-                className={`text-white font-bold py-4 px-8 text-lg ${
-                  isEmergencyActive 
-                    ? 'bg-red-700 emergency-pulse' 
-                    : 'bg-red-600 hover:bg-red-700'
-                }`}
-              >
-                <AlertTriangle className="h-6 w-6 mr-3" />
-                {isEmergencyActive ? "ALERT SENT!" : "EMERGENCY ALERT"}
-              </Button>
+              <EmergencyAlertLogger userId={user.id} onAlertSent={handleEmergencyAlert} />
             </div>
           </CardContent>
         </Card>
@@ -206,11 +231,11 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-rose-600">
-                Week {pregnancyData?.weeksPregnant || userStats.pregnancyWeek}
+                Week {userStats.pregnancyWeek}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                {pregnancyData?.weeksPregnant <= 12 ? '1st Trimester' : 
-                 pregnancyData?.weeksPregnant <= 26 ? '2nd Trimester' : '3rd Trimester'}
+                {userStats.pregnancyWeek <= 12 ? '1st Trimester' : 
+                 userStats.pregnancyWeek <= 26 ? '2nd Trimester' : '3rd Trimester'}
               </p>
             </CardContent>
           </Card>
@@ -257,8 +282,12 @@ const Dashboard = () => {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">Good</div>
-              <p className="text-xs text-muted-foreground mt-1">No alerts</p>
+              <div className="text-2xl font-bold text-green-600">
+                {emergencyAlerts.length > 0 ? "Alert Sent" : "Good"}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {emergencyAlerts.length > 0 ? `${emergencyAlerts.length} recent alerts` : "No alerts"}
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -376,11 +405,17 @@ const Dashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {recentActivity.map((activity) => (
+                  {allActivity.map((activity) => (
                     <div key={activity.id} className="flex items-start gap-3">
-                      <div className="w-2 h-2 bg-rose-500 rounded-full mt-2"></div>
+                      <div className={`w-2 h-2 rounded-full mt-2 ${
+                        activity.status === 'emergency' ? 'bg-red-500' : 'bg-rose-500'
+                      }`}></div>
                       <div className="flex-1">
-                        <p className="text-sm font-medium">{activity.title}</p>
+                        <p className={`text-sm font-medium ${
+                          activity.status === 'emergency' ? 'text-red-600' : ''
+                        }`}>
+                          {activity.title}
+                        </p>
                         <p className="text-xs text-muted-foreground">{activity.time}</p>
                       </div>
                     </div>

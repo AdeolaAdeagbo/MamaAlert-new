@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { Navbar } from "@/components/Navbar";
@@ -8,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Navigate } from "react-router-dom";
 import { MapPin, Phone, Clock, Star, Navigation, Search } from "lucide-react";
+import { GoogleMapsLoader } from "@/components/GoogleMapsLoader";
 
 interface HealthcareCenter {
   id: string;
@@ -17,23 +17,26 @@ interface HealthcareCenter {
   phone: string;
   distance: number;
   rating: number;
-  services: string[];
-  hours: string;
-  emergencyServices: boolean;
-  maternalSpecialty: boolean;
+  services?: string[];
+  hours?: string;
+  emergencyServices?: boolean;
+  maternalSpecialty?: boolean;
+  isOpen?: boolean;
 }
 
 const HealthcareCenters = () => {
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState<"all" | "hospital" | "clinic" | "primary-care">("all");
+  const [nearbyPlaces, setNearbyPlaces] = useState<HealthcareCenter[]>([]);
+  const [showMockData, setShowMockData] = useState(true);
 
   if (!user) {
     return <Navigate to="/auth" replace />;
   }
 
-  // Mock healthcare centers data
-  const healthcareCenters: HealthcareCenter[] = [
+  // Mock healthcare centers data (fallback)
+  const mockHealthcareCenters: HealthcareCenter[] = [
     {
       id: "1",
       name: "Lagos University Teaching Hospital",
@@ -72,36 +75,17 @@ const HealthcareCenters = () => {
       hours: "24/7",
       emergencyServices: true,
       maternalSpecialty: true
-    },
-    {
-      id: "4",
-      name: "Reddington Hospital",
-      type: "hospital",
-      address: "Victoria Island, Lagos",
-      phone: "+234 802 345 6789",
-      distance: 4.7,
-      rating: 4.5,
-      services: ["Maternity Care", "Private Rooms", "NICU", "Emergency Care"],
-      hours: "24/7",
-      emergencyServices: true,
-      maternalSpecialty: true
-    },
-    {
-      id: "5",
-      name: "Ikeja Primary Health Center",
-      type: "primary-care",
-      address: "Ikeja, Lagos State",
-      phone: "+234 808 567 8901",
-      distance: 12.1,
-      rating: 3.5,
-      services: ["Basic Prenatal Care", "Immunization", "Health Education"],
-      hours: "Mon-Fri 8AM-4PM",
-      emergencyServices: false,
-      maternalSpecialty: false
     }
   ];
 
-  const filteredCenters = healthcareCenters.filter(center => {
+  const handleNearbyPlacesLoaded = (places: HealthcareCenter[]) => {
+    setNearbyPlaces(places);
+    setShowMockData(false);
+  };
+
+  const allCenters = showMockData ? mockHealthcareCenters : nearbyPlaces;
+
+  const filteredCenters = allCenters.filter(center => {
     const matchesSearch = center.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          center.address.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = filterType === "all" || center.type === filterType;
@@ -122,7 +106,6 @@ const HealthcareCenters = () => {
   };
 
   const handleGetDirections = (center: HealthcareCenter) => {
-    // In a real app, this would open Google Maps or similar
     window.open(`https://www.google.com/maps/search/${encodeURIComponent(center.address)}`, '_blank');
   };
 
@@ -142,8 +125,11 @@ const HealthcareCenters = () => {
           </p>
         </div>
 
+        {/* Google Maps Integration */}
+        <GoogleMapsLoader onPlacesLoaded={handleNearbyPlacesLoaded} />
+
         {/* Search and Filter */}
-        <div className="mb-6 space-y-4">
+        <div className="mb-6 mt-6 space-y-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -154,6 +140,7 @@ const HealthcareCenters = () => {
             />
           </div>
           
+          {/* Filter badges */}
           <div className="flex gap-2 flex-wrap">
             <Badge 
               variant={filterType === "all" ? "default" : "outline"}
@@ -176,13 +163,6 @@ const HealthcareCenters = () => {
             >
               Clinics
             </Badge>
-            <Badge 
-              variant={filterType === "primary-care" ? "default" : "outline"}
-              className={`cursor-pointer ${filterType === "primary-care" ? "bg-green-500 hover:bg-green-600" : ""}`}
-              onClick={() => setFilterType("primary-care")}
-            >
-              Primary Care
-            </Badge>
           </div>
         </div>
 
@@ -191,9 +171,9 @@ const HealthcareCenters = () => {
           {filteredCenters.map((center) => (
             <Card key={center.id} className="hover:shadow-md transition-shadow">
               <CardHeader>
-                <div className="flex justify-between items-start">
+                <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
                   <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
                       <CardTitle className="text-lg">{center.name}</CardTitle>
                       <Badge className={getTypeColor(center.type)}>
                         {center.type.replace("-", " ")}
@@ -204,9 +184,12 @@ const HealthcareCenters = () => {
                       {center.maternalSpecialty && (
                         <Badge className="bg-rose-500 text-white">Maternal Specialty</Badge>
                       )}
+                      {center.isOpen && (
+                        <Badge className="bg-green-500 text-white">Open Now</Badge>
+                      )}
                     </div>
                     
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                       <div className="flex items-center gap-1">
                         <MapPin className="h-4 w-4" />
                         <span>{center.address}</span>
@@ -245,24 +228,28 @@ const HealthcareCenters = () => {
               
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <h4 className="font-medium text-sm mb-2">Services</h4>
-                    <div className="flex flex-wrap gap-1">
-                      {center.services.map((service, idx) => (
-                        <Badge key={idx} variant="outline" className="text-xs">
-                          {service}
-                        </Badge>
-                      ))}
+                  {center.services && (
+                    <div>
+                      <h4 className="font-medium text-sm mb-2">Services</h4>
+                      <div className="flex flex-wrap gap-1">
+                        {center.services.map((service, idx) => (
+                          <Badge key={idx} variant="outline" className="text-xs">
+                            {service}
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  )}
                   
-                  <div>
-                    <h4 className="font-medium text-sm mb-2">Hours</h4>
-                    <div className="flex items-center gap-1 text-sm">
-                      <Clock className="h-4 w-4" />
-                      <span>{center.hours}</span>
+                  {center.hours && (
+                    <div>
+                      <h4 className="font-medium text-sm mb-2">Hours</h4>
+                      <div className="flex items-center gap-1 text-sm">
+                        <Clock className="h-4 w-4" />
+                        <span>{center.hours}</span>
+                      </div>
                     </div>
-                  </div>
+                  )}
                   
                   <div>
                     <h4 className="font-medium text-sm mb-2">Contact</h4>
@@ -277,13 +264,14 @@ const HealthcareCenters = () => {
           ))}
         </div>
 
+        {/* No results */}
         {filteredCenters.length === 0 && (
           <Card className="text-center py-12">
             <CardContent>
               <MapPin className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
               <h3 className="text-lg font-medium mb-2">No healthcare centers found</h3>
               <p className="text-muted-foreground">
-                Try adjusting your search terms or filter options.
+                Try adjusting your search terms or use the "Find Nearby Centers" feature above.
               </p>
             </CardContent>
           </Card>

@@ -1,3 +1,4 @@
+
 import * as React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { DayPicker } from "react-day-picker";
@@ -13,10 +14,17 @@ function Calendar({
   showOutsideDays = true,
   ...props
 }: CalendarProps) {
+  // Use current year and date
+  const currentDate = new Date();
+  const currentYear = currentDate.getFullYear();
+  
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
       className={cn("p-3", className)}
+      defaultMonth={currentDate}
+      fromYear={currentYear - 1}
+      toYear={currentYear + 1}
       classNames={{
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
         month: "space-y-4",
