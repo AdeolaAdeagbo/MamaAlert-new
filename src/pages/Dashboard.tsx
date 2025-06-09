@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { Navbar } from "@/components/Navbar";
@@ -6,6 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Navigate, Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
+import { AppointmentLogger } from "@/components/AppointmentLogger";
+import { HealthAlerts } from "@/components/HealthAlerts";
+import { WeeklyHealthTips } from "@/components/WeeklyHealthTips";
 import { 
   AlertTriangle, 
   Heart, 
@@ -17,11 +21,21 @@ import {
   Activity
 } from "lucide-react";
 
+interface Appointment {
+  id: string;
+  hospitalName: string;
+  date: string;
+  time: string;
+  notes: string;
+  createdAt: string;
+}
+
 const Dashboard = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isEmergencyActive, setIsEmergencyActive] = useState(false);
   const [pregnancyData, setPregnancyData] = useState<any>(null);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
 
   if (!user) {
     return <Navigate to="/auth" replace />;
@@ -33,13 +47,25 @@ const Dashboard = () => {
     if (savedData) {
       setPregnancyData(JSON.parse(savedData));
     }
+
+    // Load appointments
+    const savedAppointments = localStorage.getItem(`appointments-${user.id}`);
+    if (savedAppointments) {
+      const parsedAppointments = JSON.parse(savedAppointments);
+      // Sort by date and show only upcoming appointments
+      const now = new Date();
+      const upcomingAppointments = parsedAppointments
+        .filter((apt: Appointment) => new Date(apt.date) >= now)
+        .sort((a: Appointment, b: Appointment) => new Date(a.date).getTime() - new Date(b.date).getTime())
+        .slice(0, 3); // Show only next 3 appointments
+      setAppointments(upcomingAppointments);
+    }
   }, [user.id]);
 
   const handleEmergencyAlert = async () => {
     setIsEmergencyActive(true);
     
     try {
-      // Here you would typically send emergency alerts via Supabase edge functions
       console.log("Triggering emergency alert...");
       
       toast({
@@ -48,7 +74,6 @@ const Dashboard = () => {
         variant: "destructive"
       });
 
-      // Reset after 3 seconds
       setTimeout(() => setIsEmergencyActive(false), 3000);
       
     } catch (error) {
@@ -61,10 +86,24 @@ const Dashboard = () => {
     }
   };
 
+  const handleAppointmentAdded = (newAppointment: Appointment) => {
+    // Refresh appointments list
+    const savedAppointments = localStorage.getItem(`appointments-${user.id}`);
+    if (savedAppointments) {
+      const parsedAppointments = JSON.parse(savedAppointments);
+      const now = new Date();
+      const upcomingAppointments = parsedAppointments
+        .filter((apt: Appointment) => new Date(apt.date) >= now)
+        .sort((a: Appointment, b: Appointment) => new Date(a.date).getTime() - new Date(b.date).getTime())
+        .slice(0, 3);
+      setAppointments(upcomingAppointments);
+    }
+  };
+
   // Mock data for MamaAlert
   const userStats = {
-    pregnancyWeek: 24,
-    nextAppointment: "Jan 22, 2024",
+    pregnancyWeek: pregnancyData?.weeksPregnant || 24,
+    nextAppointment: appointments.length > 0 ? new Date(appointments[0].date).toLocaleDateString() : "No upcoming appointments",
     emergencyContacts: 3,
     recentSymptoms: 2
   };
@@ -90,25 +129,6 @@ const Dashboard = () => {
       title: "Added emergency contact",
       time: "3 days ago", 
       status: "normal"
-    }
-  ];
-
-  const upcomingAppointments = [
-    {
-      id: "1",
-      title: "Routine Prenatal Checkup",
-      date: "Jan 22, 2024",
-      time: "10:00 AM",
-      doctor: "Dr. Adebayo",
-      location: "Lagos University Teaching Hospital"
-    },
-    {
-      id: "2",
-      title: "Ultrasound Scan",
-      date: "Feb 5, 2024", 
-      time: "2:30 PM",
-      doctor: "Dr. Okonkwo",
-      location: "First Consultant Medical Centre"
     }
   ];
 
@@ -205,8 +225,10 @@ const Dashboard = () => {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{userStats.nextAppointment}</div>
-              <p className="text-xs text-muted-foreground mt-1">Dr. Adebayo</p>
+              <div className="text-lg font-bold">{userStats.nextAppointment}</div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {appointments.length > 0 ? appointments[0].hospitalName : "No appointments scheduled"}
+              </p>
             </CardContent>
           </Card>
 
@@ -244,10 +266,13 @@ const Dashboard = () => {
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Quick Actions */}
-          <div className="lg:col-span-2">
-            <Card className="mb-6">
+          <div className="lg:col-span-2 space-y-6">
+            <Card>
               <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle>Quick Actions</CardTitle>
+                  <AppointmentLogger userId={user.id} onAppointmentAdded={handleAppointmentAdded} />
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -300,36 +325,48 @@ const Dashboard = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {upcomingAppointments.map((appointment) => (
-                    <div key={appointment.id} className="p-4 border rounded-lg">
-                      <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-medium">{appointment.title}</h4>
-                        <Badge variant="outline">{appointment.date}</Badge>
+                {appointments.length > 0 ? (
+                  <div className="space-y-4">
+                    {appointments.map((appointment) => (
+                      <div key={appointment.id} className="p-4 border rounded-lg">
+                        <div className="flex justify-between items-start mb-2">
+                          <h4 className="font-medium">Antenatal Appointment</h4>
+                          <Badge variant="outline">{new Date(appointment.date).toLocaleDateString()}</Badge>
+                        </div>
+                        <div className="space-y-1 text-sm text-muted-foreground">
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4" />
+                            <span>{appointment.time}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <MapPin className="h-4 w-4" />
+                            <span>{appointment.hospitalName}</span>
+                          </div>
+                          {appointment.notes && (
+                            <div className="mt-2 p-2 bg-gray-50 rounded text-xs">
+                              {appointment.notes}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      <div className="space-y-1 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4" />
-                          <span>{appointment.time}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Heart className="h-4 w-4" />
-                          <span>{appointment.doctor}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <MapPin className="h-4 w-4" />
-                          <span>{appointment.location}</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>No upcoming appointments scheduled.</p>
+                    <p className="text-xs mt-2">Use the "Log Appointment" button to add your next visit.</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
+
+            {/* Health Alerts */}
+            <HealthAlerts userId={user.id} />
           </div>
 
-          {/* Recent Activity */}
-          <div>
+          {/* Recent Activity & Health Tips */}
+          <div className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -352,24 +389,8 @@ const Dashboard = () => {
               </CardContent>
             </Card>
 
-            {/* Health Tips */}
-            <Card className="mt-6">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Heart className="h-5 w-5 text-rose-500" />
-                  Health Tip
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="p-4 bg-rose-50 rounded-lg">
-                  <h4 className="font-medium text-rose-800 mb-2">Week 24 Tip</h4>
-                  <p className="text-sm text-rose-700">
-                    Your baby's hearing is developing! Talk, sing, or play music for your little one. 
-                    Stay hydrated and continue taking your prenatal vitamins.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+            {/* Dynamic Health Tips */}
+            <WeeklyHealthTips pregnancyWeek={userStats.pregnancyWeek} />
           </div>
         </div>
       </div>

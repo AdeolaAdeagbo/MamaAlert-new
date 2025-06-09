@@ -28,8 +28,8 @@ interface PregnancyData {
   currentMedications: string;
   doctorName: string;
   hospitalName: string;
-  emergencyNotes: string
-  previouspregnancy: string;
+  emergencyNotes: string;
+  previouspregnancy: string; // Fixed: added this missing property
 }
 
 const PregnancyDetails = () => {
@@ -49,7 +49,8 @@ const PregnancyDetails = () => {
     currentMedications: "",
     doctorName: "",
     hospitalName: "",
-    emergencyNotes: ""
+    emergencyNotes: "",
+    previouspregnancy: "" // Fixed: added this missing property
   });
 
   const [errors, setErrors] = useState<Partial<PregnancyData>>({});
@@ -78,23 +79,23 @@ const PregnancyDetails = () => {
 
     // Validate due date
     if (!pregnancyData.dueDate) {
-      newErrors.dueDate = "Due date is required";
+      newErrors.dueDate = "Due date is required" as any;
     } else {
       const dueDate = new Date(pregnancyData.dueDate);
       const today = new Date();
       if (dueDate <= today) {
-        newErrors.dueDate = "Due date must be in the future";
+        newErrors.dueDate = "Due date must be in the future" as any;
       }
     }
 
     // Validate last menstrual period
     if (!pregnancyData.lastMenstrualPeriod) {
-      newErrors.lastMenstrualPeriod = "Last menstrual period is required";
+      newErrors.lastMenstrualPeriod = "Last menstrual period is required" as any;
     } else {
       const lmpDate = new Date(pregnancyData.lastMenstrualPeriod);
       const today = new Date();
       if (lmpDate >= today) {
-        newErrors.lastMenstrualPeriod = "Last menstrual period must be in the past";
+        newErrors.lastMenstrualPeriod = "Last menstrual period must be in the past" as any;
       }
     }
 
@@ -329,6 +330,20 @@ const PregnancyDetails = () => {
                   />
                   <p className="text-xs text-muted-foreground mt-1">
                     List all medications and supplements you're currently taking
+                  </p>
+                </div>
+
+                <div>
+                  <Label htmlFor="previouspregnancy">Previous Pregnancies</Label>
+                  <Textarea
+                    id="previouspregnancy"
+                    value={pregnancyData.previouspregnancy}
+                    onChange={(e) => handleInputChange("previouspregnancy", e.target.value)}
+                    placeholder="Please describe any previous pregnancies, complications, or births..."
+                    rows={3}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Include information about previous pregnancies, deliveries, or complications
                   </p>
                 </div>
               </div>
