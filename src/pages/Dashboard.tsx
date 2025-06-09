@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { Navbar } from "@/components/Navbar";
@@ -20,7 +19,8 @@ import {
   Phone, 
   MapPin,
   Clock,
-  Activity
+  Activity,
+  Loader2
 } from "lucide-react";
 
 interface Appointment {
@@ -42,58 +42,97 @@ interface EmergencyAlert {
 }
 
 const Dashboard = () => {
-  const { user, refreshUserData } = useAuth();
+  const { user, refreshUserData, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [emergencyAlerts, setEmergencyAlerts] = useState<EmergencyAlert[]>([]);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [dataLoaded, setDataLoaded] = useState(false);
 
-  if (!user) {
+  // Redirect to auth if no user and not loading
+  if (!user && !authLoading) {
     return <Navigate to="/auth" replace />;
+  }
+
+  // Show loading screen while auth is loading
+  if (authLoading || !user) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+            <p className="text-muted-foreground">Loading your dashboard...</p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   useEffect(() => {
     // Show welcome modal for new users without pregnancy data
-    if (user && !user.hasPregnancyData) {
+    if (user && !user.hasPregnancyData && !dataLoaded) {
       setShowWelcomeModal(true);
     }
     
-    loadDashboardData();
-  }, [user?.id]);
+    if (user?.id && !dataLoaded) {
+      loadDashboardData();
+    }
+  }, [user?.id, dataLoaded]);
 
   const loadDashboardData = async () => {
     if (!user?.id) return;
     
     setLoading(true);
     try {
-      // Load appointments
-      const { data: appointmentsData } = await supabase
-        .from('appointments')
-        .select('*')
-        .eq('user_id', user.id)
-        .gte('appointment_date', new Date().toISOString().split('T')[0])
-        .order('appointment_date', { ascending: true })
-        .limit(3);
+      console.log('Loading dashboard data for user:', user.id);
+      
+      // Load appointments with error handling
+      try {
+        const { data: appointmentsData, error: appointmentsError } = await supabase
+          .from('appointments')
+          .select('*')
+          .eq('user_id', user.id)
+          .gte('appointment_date', new Date().toISOString().split('T')[0])
+          .order('appointment_date', { ascending: true })
+          .limit(3);
 
-      if (appointmentsData) {
-        setAppointments(appointmentsData);
+        if (appointmentsError) {
+          console.error('Error loading appointments:', appointmentsError);
+        } else if (appointmentsData) {
+          setAppointments(appointmentsData);
+        }
+      } catch (error) {
+        console.error('Exception loading appointments:', error);
       }
 
-      // Load emergency alerts
-      const { data: alertsData } = await supabase
-        .from('emergency_alerts')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('timestamp', { ascending: false })
-        .limit(5);
+      // Load emergency alerts with error handling
+      try {
+        const { data: alertsData, error: alertsError } = await supabase
+          .from('emergency_alerts')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('timestamp', { ascending: false })
+          .limit(5);
 
-      if (alertsData) {
-        setEmergencyAlerts(alertsData);
+        if (alertsError) {
+          console.error('Error loading emergency alerts:', alertsError);
+        } else if (alertsData) {
+          setEmergencyAlerts(alertsData);
+        }
+      } catch (error) {
+        console.error('Exception loading emergency alerts:', error);
       }
 
+      setDataLoaded(true);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
+      toast({
+        title: "Loading Error",
+        description: "Some dashboard data couldn't be loaded. Please refresh the page.",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
@@ -101,6 +140,7 @@ const Dashboard = () => {
 
   const handleAppointmentAdded = () => {
     loadDashboardData();
+    refreshUserData();
   };
 
   const handleEmergencyAlert = (alert: any) => {
@@ -111,14 +151,15 @@ const Dashboard = () => {
     setShowWelcomeModal(false);
   };
 
-  // Mock data for stats
+  // Mock data for stats with safe fallbacks
   const userStats = {
-    pregnancyWeek: user.pregnancyWeek || 0,
+    pregnancyWeek: user?.pregnancyWeek || 0,
     nextAppointment: appointments.length > 0 ? new Date(appointments[0].appointment_date).toLocaleDateString() : "No upcoming appointments",
-    emergencyContacts: user.emergencyContacts,
+    emergencyContacts: user?.emergencyContacts || 0,
     recentSymptoms: 0
   };
 
+  // Recent Activity
   const recentActivity = [
     {
       id: "1",
@@ -169,7 +210,7 @@ const Dashboard = () => {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">
-            Welcome back, {user.firstName}! 
+            Welcome back, {user.firstName || 'Mama'}! 
           </h1>
           <p className="text-muted-foreground">
             {user.hasPregnancyData ? 
@@ -351,7 +392,12 @@ const Dashboard = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {appointments.length > 0 ? (
+                {loading ? (
+                  <div className="text-center py-8">
+                    <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+                    <p className="text-muted-foreground">Loading appointments...</p>
+                  </div>
+                ) : appointments.length > 0 ? (
                   <div className="space-y-4">
                     {appointments.map((appointment) => (
                       <div key={appointment.id} className="p-4 border rounded-lg">

@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Navigate, Link } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
-import { Heart } from "lucide-react";
+import { Heart, Loader2 } from "lucide-react";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -16,43 +16,116 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const { user, login, signup } = useAuth();
+  const { user, login, signup, isLoading } = useAuth();
   const { toast } = useToast();
 
-  if (user) {
+  // Redirect if user is already logged in
+  if (user && !isLoading) {
     return <Navigate to="/dashboard" replace />;
   }
 
+  const getErrorMessage = (error: any) => {
+    if (!error) return "An unexpected error occurred.";
+    
+    const message = error.message || error.error_description || error.toString();
+    
+    // Common Supabase auth error messages
+    if (message.includes('Invalid login credentials')) {
+      return "Invalid email or password. Please check your credentials and try again.";
+    }
+    if (message.includes('Email not confirmed')) {
+      return "Please check your email and click the confirmation link before signing in.";
+    }
+    if (message.includes('User already registered')) {
+      return "An account with this email already exists. Please sign in instead.";
+    }
+    if (message.includes('Password should be at least')) {
+      return "Password must be at least 6 characters long.";
+    }
+    if (message.includes('Unable to validate email address')) {
+      return "Please enter a valid email address.";
+    }
+    if (message.includes('signup_disabled')) {
+      return "New user registration is currently disabled.";
+    }
+    
+    return message;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    
+    if (isSubmitting) return;
+    
+    // Basic validation
+    if (!email || !password) {
+      toast({
+        title: "Missing Information",
+        description: "Please enter both email and password.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!isLogin && (!firstName || !lastName)) {
+      toast({
+        title: "Missing Information",
+        description: "Please enter your first and last name.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
 
     try {
+      let result;
+      
       if (isLogin) {
-        await login(email, password);
-        toast({
-          title: "Welcome back, Mama!",
-          description: "Successfully logged in to your MamaAlert account.",
-        });
+        console.log('Attempting login...');
+        result = await login(email, password);
+        
+        if (!result.error) {
+          toast({
+            title: "Welcome back!",
+            description: "Successfully logged in to your MamaAlert account.",
+          });
+        }
       } else {
-        await signup(email, password, firstName, lastName);
+        console.log('Attempting signup...');
+        result = await signup(email, password, firstName, lastName);
+        
+        if (!result.error) {
+          toast({
+            title: "Account Created!",
+            description: "Welcome to MamaAlert! Please check your email for verification if required.",
+          });
+        }
+      }
+
+      if (result.error) {
+        console.error('Auth error:', result.error);
         toast({
-          title: "Welcome to MamaAlert!",
-          description: "Your account has been created. Let's keep you and your baby safe.",
+          title: isLogin ? "Sign In Failed" : "Sign Up Failed",
+          description: getErrorMessage(result.error),
+          variant: "destructive",
         });
       }
     } catch (error) {
+      console.error('Auth exception:', error);
       toast({
-        title: "Error",
-        description: "Something went wrong. Please try again.",
+        title: "Connection Error",
+        description: "Unable to connect to the server. Please check your internet connection and try again.",
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
+
+  const isProcessing = isLoading || isSubmitting;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 to-pink-100">
@@ -65,7 +138,7 @@ const Auth = () => {
               <Heart className="h-12 w-12 text-rose-500" />
             </div>
             <h2 className="text-3xl font-bold text-foreground">
-              {isLogin ? "Welcome Back, Mama" : "Join MamaAlert"}
+              {isLogin ? "Welcome Back" : "Join MamaAlert"}
             </h2>
             <p className="text-muted-foreground mt-2">
               {isLogin 
@@ -93,6 +166,8 @@ const Auth = () => {
                         value={firstName}
                         onChange={(e) => setFirstName(e.target.value)}
                         required={!isLogin}
+                        disabled={isProcessing}
+                        placeholder="Enter your first name"
                       />
                     </div>
                     <div>
@@ -103,6 +178,8 @@ const Auth = () => {
                         value={lastName}
                         onChange={(e) => setLastName(e.target.value)}
                         required={!isLogin}
+                        disabled={isProcessing}
+                        placeholder="Enter your last name"
                       />
                     </div>
                   </div>
@@ -116,6 +193,9 @@ const Auth = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
+                    disabled={isProcessing}
+                    placeholder="Enter your email address"
+                    autoComplete={isLogin ? "email" : "username"}
                   />
                 </div>
 
@@ -127,28 +207,43 @@ const Auth = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    disabled={isProcessing}
+                    placeholder={isLogin ? "Enter your password" : "Create a password (min 6 characters)"}
+                    autoComplete={isLogin ? "current-password" : "new-password"}
                   />
                 </div>
 
                 <Button
                   type="submit"
                   className="w-full bg-rose-500 hover:bg-rose-600"
-                  disabled={isLoading}
+                  disabled={isProcessing}
                 >
-                  {isLoading
-                    ? "Please wait..."
-                    : isLogin
-                    ? "Sign In"
-                    : "Create Account & Get Protected"
-                  }
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      {isLogin ? "Signing in..." : "Creating account..."}
+                    </>
+                  ) : (
+                    <>
+                      {isLogin ? "Sign In" : "Create Account & Get Protected"}
+                    </>
+                  )}
                 </Button>
               </form>
 
               <div className="mt-6 text-center">
                 <button
                   type="button"
-                  onClick={() => setIsLogin(!isLogin)}
+                  onClick={() => {
+                    setIsLogin(!isLogin);
+                    // Clear form when switching
+                    setEmail("");
+                    setPassword("");
+                    setFirstName("");
+                    setLastName("");
+                  }}
                   className="text-sm text-rose-600 hover:underline"
+                  disabled={isProcessing}
                 >
                   {isLogin
                     ? "Don't have an account? Join MamaAlert"

@@ -1,7 +1,7 @@
 
 import { createContext, useContext, useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import type { User } from "@supabase/supabase-js";
+import type { User, Session } from "@supabase/supabase-js";
 
 interface UserProfile {
   id: string;
@@ -17,9 +17,10 @@ interface UserProfile {
 
 interface AuthContextType {
   user: UserProfile | null;
-  login: (email: string, password: string) => Promise<void>;
-  signup: (email: string, password: string, firstName: string, lastName: string) => Promise<void>;
-  logout: () => void;
+  session: Session | null;
+  login: (email: string, password: string) => Promise<{ error?: any }>;
+  signup: (email: string, password: string, firstName: string, lastName: string) => Promise<{ error?: any }>;
+  logout: () => Promise<void>;
   isLoading: boolean;
   refreshUserData: () => Promise<void>;
 }
@@ -28,6 +29,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const refreshUserData = async () => {
@@ -39,25 +41,53 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const loadUserProfile = async (authUser: User) => {
     try {
+      console.log('Loading user profile for:', authUser.id);
+      
       // Get profile data
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', authUser.id)
         .single();
 
+      if (profileError) {
+        console.error('Profile error:', profileError);
+        // If profile doesn't exist, create it
+        if (profileError.code === 'PGRST116') {
+          const { error: insertError } = await supabase
+            .from('profiles')
+            .insert({
+              id: authUser.id,
+              first_name: authUser.user_metadata?.first_name || '',
+              last_name: authUser.user_metadata?.last_name || ''
+            });
+          
+          if (insertError) {
+            console.error('Error creating profile:', insertError);
+          }
+        }
+      }
+
       // Get pregnancy data
-      const { data: pregnancyData } = await supabase
+      const { data: pregnancyData, error: pregnancyError } = await supabase
         .from('pregnancy_data')
         .select('*')
         .eq('user_id', authUser.id)
         .maybeSingle();
 
+      if (pregnancyError && pregnancyError.code !== 'PGRST116') {
+        console.error('Pregnancy data error:', pregnancyError);
+      }
+
       // Count emergency contacts
-      const { count: emergencyContactsCount } = await supabase
+      const { count: emergencyContactsCount, error: contactsError } = await supabase
         .from('emergency_contacts')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', authUser.id);
+
+      if (contactsError) {
+        console.error('Emergency contacts error:', contactsError);
+      }
 
       // Calculate pregnancy week if data exists
       let pregnancyWeek = 0;
@@ -74,8 +104,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const userProfile: UserProfile = {
         id: authUser.id,
         email: authUser.email || '',
-        firstName: profile?.first_name || '',
-        lastName: profile?.last_name || '',
+        firstName: profile?.first_name || authUser.user_metadata?.first_name || '',
+        lastName: profile?.last_name || authUser.user_metadata?.last_name || '',
         pregnancyWeek,
         dueDate: pregnancyData?.due_date || undefined,
         emergencyContacts: emergencyContactsCount || 0,
@@ -83,23 +113,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         hasPregnancyData: !!pregnancyData
       };
 
+      console.log('User profile loaded:', userProfile);
       setUser(userProfile);
     } catch (error) {
       console.error('Error loading user profile:', error);
+      // Don't throw error, just set basic user info
+      const basicProfile: UserProfile = {
+        id: authUser.id,
+        email: authUser.email || '',
+        firstName: authUser.user_metadata?.first_name || '',
+        lastName: authUser.user_metadata?.last_name || '',
+        pregnancyWeek: 0,
+        emergencyContacts: 0,
+        isHighRisk: false,
+        hasPregnancyData: false
+      };
+      setUser(basicProfile);
     }
   };
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        loadUserProfile(session.user);
-      }
-      setIsLoading(false);
-    });
-
-    // Listen for auth changes
+    console.log('AuthProvider initializing...');
+    
+    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state changed:', event, session?.user?.id);
+      setSession(session);
+      
       if (session?.user) {
         await loadUserProfile(session.user);
       } else {
@@ -108,42 +148,116 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.error('Error getting session:', error);
+        setIsLoading(false);
+        return;
+      }
+      
+      console.log('Initial session:', session?.user?.id);
+      setSession(session);
+      
+      if (session?.user) {
+        loadUserProfile(session.user);
+      } else {
+        setIsLoading(false);
+      }
+    });
+
+    return () => {
+      console.log('AuthProvider cleanup');
+      subscription.unsubscribe();
+    };
   }, []);
 
   const login = async (email: string, password: string) => {
+    console.log('Login attempt for:', email);
     setIsLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    if (error) throw error;
-    setIsLoading(false);
+    
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      console.log('Login result:', { user: data.user?.id, error });
+      
+      if (error) {
+        console.error('Login error:', error);
+        setIsLoading(false);
+        return { error };
+      }
+      
+      // Don't set loading to false here - let the auth state change handle it
+      return { error: null };
+    } catch (error) {
+      console.error('Login exception:', error);
+      setIsLoading(false);
+      return { error };
+    }
   };
 
   const signup = async (email: string, password: string, firstName: string, lastName: string) => {
+    console.log('Signup attempt for:', email);
     setIsLoading(true);
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          first_name: firstName,
-          last_name: lastName,
+    
+    try {
+      const redirectUrl = `${window.location.origin}/dashboard`;
+      
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: redirectUrl,
+          data: {
+            first_name: firstName,
+            last_name: lastName,
+          },
         },
-      },
-    });
-    if (error) throw error;
-    setIsLoading(false);
+      });
+      
+      console.log('Signup result:', { user: data.user?.id, error });
+      
+      if (error) {
+        console.error('Signup error:', error);
+        setIsLoading(false);
+        return { error };
+      }
+      
+      // Don't set loading to false here - let the auth state change handle it
+      return { error: null };
+    } catch (error) {
+      console.error('Signup exception:', error);
+      setIsLoading(false);
+      return { error };
+    }
   };
 
   const logout = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
+    console.log('Logout attempt');
+    try {
+      await supabase.auth.signOut();
+      setUser(null);
+      setSession(null);
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
+  const contextValue = {
+    user,
+    session,
+    login,
+    signup,
+    logout,
+    isLoading,
+    refreshUserData
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, signup, logout, isLoading, refreshUserData }}>
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );
