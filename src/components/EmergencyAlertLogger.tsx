@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface EmergencyAlert {
@@ -29,17 +29,35 @@ export const EmergencyAlertLogger = ({ userId, onAlertSent }: EmergencyAlertLogg
     try {
       // Get user's location if available
       let location = "Location not available";
-      if (navigator.geolocation) {
-        try {
+      try {
+        if (navigator.geolocation) {
           const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(resolve, reject);
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+              timeout: 10000,
+              enableHighAccuracy: true
+            });
           });
           location = `${position.coords.latitude}, ${position.coords.longitude}`;
-        } catch (error) {
-          console.log("Could not get location:", error);
         }
+      } catch (error) {
+        console.log("Could not get location:", error);
       }
 
+      // Get user profile and emergency contacts
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('first_name, last_name')
+        .eq('id', userId)
+        .single();
+
+      const { data: emergencyContacts } = await supabase
+        .from('emergency_contacts')
+        .select('name, phone')
+        .eq('user_id', userId);
+
+      const userName = profile ? `${profile.first_name} ${profile.last_name}`.trim() : 'Unknown User';
+
+      // Store alert in database
       const alertData = {
         user_id: userId,
         alert_type: "emergency",
@@ -47,7 +65,6 @@ export const EmergencyAlertLogger = ({ userId, onAlertSent }: EmergencyAlertLogg
         location
       };
 
-      // Store in Supabase
       const { data, error } = await supabase
         .from('emergency_alerts')
         .insert(alertData)
@@ -57,10 +74,37 @@ export const EmergencyAlertLogger = ({ userId, onAlertSent }: EmergencyAlertLogg
       if (error) throw error;
 
       console.log("Emergency alert stored in database:", data);
-      
+
+      // Send SMS to emergency contacts if any exist
+      if (emergencyContacts && emergencyContacts.length > 0) {
+        try {
+          console.log("Sending SMS to emergency contacts:", emergencyContacts);
+          
+          const response = await supabase.functions.invoke('send-emergency-sms', {
+            body: {
+              emergencyContacts: emergencyContacts.filter(contact => contact.phone),
+              userLocation: location,
+              userName
+            }
+          });
+
+          if (response.error) {
+            console.error("SMS function error:", response.error);
+            // Don't throw error - alert was still saved to database
+          } else {
+            console.log("SMS response:", response.data);
+          }
+        } catch (smsError) {
+          console.error("SMS sending failed:", smsError);
+          // Don't throw error - alert was still saved to database
+        }
+      }
+
       toast({
         title: "🚨 Emergency Alert Sent!",
-        description: "Your emergency contacts and nearest healthcare center have been notified.",
+        description: emergencyContacts && emergencyContacts.length > 0 
+          ? `Emergency contacts notified via SMS and nearest healthcare centers have been alerted.`
+          : "Emergency alert logged. Add emergency contacts to receive SMS notifications.",
         variant: "destructive"
       });
 
@@ -99,8 +143,17 @@ export const EmergencyAlertLogger = ({ userId, onAlertSent }: EmergencyAlertLogg
           : 'bg-red-600 hover:bg-red-700'
       }`}
     >
-      <AlertTriangle className="h-6 w-6 mr-3" />
-      {isEmergencyActive ? "ALERT SENT!" : "EMERGENCY ALERT"}
+      {isEmergencyActive ? (
+        <>
+          <Loader2 className="h-6 w-6 mr-3 animate-spin" />
+          SENDING ALERT...
+        </>
+      ) : (
+        <>
+          <AlertTriangle className="h-6 w-6 mr-3" />
+          EMERGENCY ALERT
+        </>
+      )}
     </Button>
   );
 };

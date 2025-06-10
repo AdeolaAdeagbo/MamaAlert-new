@@ -10,7 +10,6 @@ interface GoogleMapsLoaderProps {
 }
 
 export const GoogleMapsLoader = ({ onPlacesLoaded }: GoogleMapsLoaderProps) => {
-  const [apiKey, setApiKey] = useState(localStorage.getItem('google-maps-api-key') || '');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
@@ -32,17 +31,18 @@ export const GoogleMapsLoader = ({ onPlacesLoaded }: GoogleMapsLoaderProps) => {
   };
 
   const findNearbyHealthcare = async () => {
+    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    
     if (!apiKey) {
       toast({
-        title: "API Key Required",
-        description: "Please enter your Google Maps API key to find nearby healthcare centers.",
+        title: "Configuration Error",
+        description: "Google Maps API key not configured. Please contact support.",
         variant: "destructive"
       });
       return;
     }
 
     setIsLoading(true);
-    localStorage.setItem('google-maps-api-key', apiKey);
 
     try {
       await loadGoogleMaps(apiKey);
@@ -106,7 +106,7 @@ export const GoogleMapsLoader = ({ onPlacesLoaded }: GoogleMapsLoaderProps) => {
     } catch (error) {
       toast({
         title: "Maps API Error",
-        description: "Failed to load Google Maps. Please check your API key.",
+        description: "Failed to load Google Maps. Please check your internet connection.",
         variant: "destructive"
       });
       setIsLoading(false);
@@ -130,23 +130,6 @@ export const GoogleMapsLoader = ({ onPlacesLoaded }: GoogleMapsLoaderProps) => {
         <MapPin className="h-5 w-5 text-blue-600" />
         <h3 className="font-medium">Find Nearby Healthcare Centers</h3>
       </div>
-      
-      {!localStorage.getItem('google-maps-api-key') && (
-        <div className="space-y-2">
-          <p className="text-sm text-muted-foreground">
-            Enter your Google Maps API key to find nearby healthcare centers:
-          </p>
-          <Input
-            placeholder="Google Maps API Key"
-            value={apiKey}
-            onChange={(e) => setApiKey(e.target.value)}
-            type="password"
-          />
-          <p className="text-xs text-muted-foreground">
-            Get your API key from <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener noreferrer" className="underline">Google Cloud Console</a>
-          </p>
-        </div>
-      )}
       
       <Button 
         onClick={findNearbyHealthcare}

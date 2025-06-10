@@ -7,20 +7,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar, Plus } from "lucide-react";
-
-interface Appointment {
-  id: string;
-  hospitalName: string;
-  date: string;
-  time: string;
-  notes: string;
-  createdAt: string;
-}
+import { Calendar, Plus, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AppointmentLoggerProps {
   userId: string;
-  onAppointmentAdded: (appointment: Appointment) => void;
+  onAppointmentAdded: () => void;
 }
 
 export const AppointmentLogger = ({ userId, onAppointmentAdded }: AppointmentLoggerProps) => {
@@ -50,24 +42,27 @@ export const AppointmentLogger = ({ userId, onAppointmentAdded }: AppointmentLog
     setIsLoading(true);
 
     try {
-      const newAppointment: Appointment = {
-        id: Date.now().toString(),
-        hospitalName: appointmentData.hospitalName,
-        date: appointmentData.date,
-        time: appointmentData.time,
-        notes: appointmentData.notes,
-        createdAt: new Date().toISOString()
-      };
+      console.log('Creating appointment for user:', userId);
+      
+      const { error } = await supabase
+        .from('appointments')
+        .insert({
+          user_id: userId,
+          hospital_name: appointmentData.hospitalName,
+          appointment_date: appointmentData.date,
+          appointment_time: appointmentData.time,
+          notes: appointmentData.notes || null
+        });
 
-      // Save to localStorage
-      const existingAppointments = JSON.parse(
-        localStorage.getItem(`appointments-${userId}`) || "[]"
-      );
-      existingAppointments.push(newAppointment);
-      localStorage.setItem(`appointments-${userId}`, JSON.stringify(existingAppointments));
+      if (error) {
+        console.error('Error creating appointment:', error);
+        throw error;
+      }
 
-      // Notify parent component
-      onAppointmentAdded(newAppointment);
+      console.log('Appointment created successfully');
+      
+      // Notify parent component to refresh data
+      onAppointmentAdded();
 
       toast({
         title: "Appointment Logged!",
@@ -83,6 +78,7 @@ export const AppointmentLogger = ({ userId, onAppointmentAdded }: AppointmentLog
       });
       setIsOpen(false);
     } catch (error) {
+      console.error('Error saving appointment:', error);
       toast({
         title: "Error",
         description: "Failed to save appointment. Please try again.",
@@ -123,6 +119,7 @@ export const AppointmentLogger = ({ userId, onAppointmentAdded }: AppointmentLog
                   }))}
                   placeholder="Lagos University Teaching Hospital"
                   required
+                  disabled={isLoading}
                 />
               </div>
 
@@ -138,6 +135,8 @@ export const AppointmentLogger = ({ userId, onAppointmentAdded }: AppointmentLog
                       date: e.target.value
                     }))}
                     required
+                    disabled={isLoading}
+                    min={new Date().toISOString().split('T')[0]}
                   />
                 </div>
 
@@ -152,6 +151,7 @@ export const AppointmentLogger = ({ userId, onAppointmentAdded }: AppointmentLog
                       time: e.target.value
                     }))}
                     required
+                    disabled={isLoading}
                   />
                 </div>
               </div>
@@ -167,6 +167,7 @@ export const AppointmentLogger = ({ userId, onAppointmentAdded }: AppointmentLog
                   }))}
                   placeholder="Any special notes about this appointment..."
                   rows={3}
+                  disabled={isLoading}
                 />
               </div>
 
@@ -176,13 +177,21 @@ export const AppointmentLogger = ({ userId, onAppointmentAdded }: AppointmentLog
                   disabled={isLoading}
                   className="bg-blue-500 hover:bg-blue-600 flex-1"
                 >
-                  {isLoading ? "Saving..." : "Save Appointment"}
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    "Save Appointment"
+                  )}
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setIsOpen(false)}
                   className="flex-1"
+                  disabled={isLoading}
                 >
                   Cancel
                 </Button>

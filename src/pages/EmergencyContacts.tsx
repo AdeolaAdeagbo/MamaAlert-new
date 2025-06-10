@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Navigate } from "react-router-dom";
-import { Phone, Plus, Trash2, Edit, UserPlus } from "lucide-react";
+import { Phone, Plus, Trash2, Edit, UserPlus, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface EmergencyContact {
   id: string;
@@ -19,29 +20,14 @@ interface EmergencyContact {
 }
 
 const EmergencyContacts = () => {
-  const { user } = useAuth();
+  const { user, refreshUserData } = useAuth();
   const { toast } = useToast();
   
-  // Mock emergency contacts data
-  const [contacts, setContacts] = useState<EmergencyContact[]>([
-    {
-      id: "1",
-      name: "Dr. Adebayo",
-      relationship: "Primary Doctor",
-      phone: "+234 803 123 4567",
-      email: "dr.adebayo@hospital.com"
-    },
-    {
-      id: "2", 
-      name: "Husband - Michael",
-      relationship: "Spouse",
-      phone: "+234 809 876 5432",
-      email: "michael@email.com"
-    }
-  ]);
-
+  const [contacts, setContacts] = useState<EmergencyContact[]>([]);
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     relationship: "",
@@ -53,34 +39,123 @@ const EmergencyContacts = () => {
     return <Navigate to="/auth" replace />;
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    loadEmergencyContacts();
+  }, [user.id]);
+
+  const loadEmergencyContacts = async () => {
+    try {
+      console.log('Loading emergency contacts for user:', user.id);
+      const { data, error } = await supabase
+        .from('emergency_contacts')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: true });
+
+      if (error) {
+        console.error('Error loading emergency contacts:', error);
+        toast({
+          title: "Error Loading Contacts",
+          description: "Could not load your emergency contacts. Please try again.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      console.log('Loaded emergency contacts:', data);
+      setContacts(data || []);
+    } catch (error) {
+      console.error('Exception loading emergency contacts:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load emergency contacts.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (editingId) {
-      setContacts(contacts.map(contact => 
-        contact.id === editingId 
-          ? { ...contact, ...formData }
-          : contact
-      ));
-      setEditingId(null);
+    if (!formData.name || !formData.relationship || !formData.phone) {
       toast({
-        title: "Contact Updated",
-        description: "Emergency contact has been updated successfully.",
+        title: "Missing Information",
+        description: "Please fill in all required fields.",
+        variant: "destructive"
       });
-    } else {
-      const newContact: EmergencyContact = {
-        id: Date.now().toString(),
-        ...formData
-      };
-      setContacts([...contacts, newContact]);
-      toast({
-        title: "Contact Added",
-        description: "New emergency contact has been added successfully.",
-      });
+      return;
     }
-    
-    setFormData({ name: "", relationship: "", phone: "", email: "" });
-    setIsAdding(false);
+
+    setIsSaving(true);
+
+    try {
+      if (editingId) {
+        // Update existing contact
+        console.log('Updating emergency contact:', editingId);
+        const { error } = await supabase
+          .from('emergency_contacts')
+          .update({
+            name: formData.name,
+            relationship: formData.relationship,
+            phone: formData.phone,
+            email: formData.email || null
+          })
+          .eq('id', editingId)
+          .eq('user_id', user.id);
+
+        if (error) {
+          console.error('Error updating emergency contact:', error);
+          throw error;
+        }
+
+        toast({
+          title: "Contact Updated",
+          description: "Emergency contact has been updated successfully.",
+        });
+      } else {
+        // Create new contact
+        console.log('Creating new emergency contact');
+        const { error } = await supabase
+          .from('emergency_contacts')
+          .insert({
+            user_id: user.id,
+            name: formData.name,
+            relationship: formData.relationship,
+            phone: formData.phone,
+            email: formData.email || null
+          });
+
+        if (error) {
+          console.error('Error creating emergency contact:', error);
+          throw error;
+        }
+
+        toast({
+          title: "Contact Added",
+          description: "New emergency contact has been added successfully.",
+        });
+      }
+
+      // Reload contacts and refresh user data
+      await loadEmergencyContacts();
+      await refreshUserData();
+      
+      // Reset form
+      setFormData({ name: "", relationship: "", phone: "", email: "" });
+      setIsAdding(false);
+      setEditingId(null);
+    } catch (error) {
+      console.error('Error saving emergency contact:', error);
+      toast({
+        title: "Save Failed",
+        description: "Failed to save emergency contact. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleEdit = (contact: EmergencyContact) => {
@@ -94,13 +169,51 @@ const EmergencyContacts = () => {
     setIsAdding(true);
   };
 
-  const handleDelete = (id: string) => {
-    setContacts(contacts.filter(contact => contact.id !== id));
-    toast({
-      title: "Contact Removed",
-      description: "Emergency contact has been removed.",
-    });
+  const handleDelete = async (id: string) => {
+    try {
+      console.log('Deleting emergency contact:', id);
+      const { error } = await supabase
+        .from('emergency_contacts')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error deleting emergency contact:', error);
+        throw error;
+      }
+
+      toast({
+        title: "Contact Removed",
+        description: "Emergency contact has been removed.",
+      });
+
+      // Reload contacts and refresh user data
+      await loadEmergencyContacts();
+      await refreshUserData();
+    } catch (error) {
+      console.error('Error deleting emergency contact:', error);
+      toast({
+        title: "Delete Failed",
+        description: "Failed to delete emergency contact. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+            <p className="text-muted-foreground">Loading emergency contacts...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -144,6 +257,7 @@ const EmergencyContacts = () => {
                       value={formData.name}
                       onChange={(e) => setFormData({...formData, name: e.target.value})}
                       required
+                      disabled={isSaving}
                     />
                   </div>
                   <div>
@@ -154,6 +268,7 @@ const EmergencyContacts = () => {
                       onChange={(e) => setFormData({...formData, relationship: e.target.value})}
                       placeholder="e.g., Husband, Doctor, Sister"
                       required
+                      disabled={isSaving}
                     />
                   </div>
                   <div>
@@ -164,6 +279,7 @@ const EmergencyContacts = () => {
                       onChange={(e) => setFormData({...formData, phone: e.target.value})}
                       placeholder="+234 xxx xxx xxxx"
                       required
+                      disabled={isSaving}
                     />
                   </div>
                   <div>
@@ -173,13 +289,25 @@ const EmergencyContacts = () => {
                       type="email"
                       value={formData.email}
                       onChange={(e) => setFormData({...formData, email: e.target.value})}
+                      disabled={isSaving}
                     />
                   </div>
                 </div>
                 
                 <div className="flex gap-2">
-                  <Button type="submit" className="bg-rose-500 hover:bg-rose-600">
-                    {editingId ? "Update Contact" : "Add Contact"}
+                  <Button 
+                    type="submit" 
+                    className="bg-rose-500 hover:bg-rose-600"
+                    disabled={isSaving}
+                  >
+                    {isSaving ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        {editingId ? "Updating..." : "Adding..."}
+                      </>
+                    ) : (
+                      editingId ? "Update Contact" : "Add Contact"
+                    )}
                   </Button>
                   <Button 
                     type="button" 
@@ -189,6 +317,7 @@ const EmergencyContacts = () => {
                       setEditingId(null);
                       setFormData({ name: "", relationship: "", phone: "", email: "" });
                     }}
+                    disabled={isSaving}
                   >
                     Cancel
                   </Button>
@@ -210,6 +339,7 @@ const EmergencyContacts = () => {
                       variant="ghost"
                       size="sm"
                       onClick={() => handleEdit(contact)}
+                      disabled={isSaving}
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
@@ -218,6 +348,7 @@ const EmergencyContacts = () => {
                       size="sm"
                       onClick={() => handleDelete(contact.id)}
                       className="text-red-600 hover:text-red-700"
+                      disabled={isSaving}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
