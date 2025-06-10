@@ -4,49 +4,76 @@ import { useAuth } from "@/components/AuthProvider";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { WelcomeModal } from "@/components/WelcomeModal";
-import { WeeklyHealthTips } from "@/components/WeeklyHealthTips";
-import { HealthAlerts } from "@/components/HealthAlerts";
-import { Navigate, Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { Navigate, Link } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
+import { AppointmentLogger } from "@/components/AppointmentLogger";
+import { HealthAlerts } from "@/components/HealthAlerts";
+import { WeeklyHealthTips } from "@/components/WeeklyHealthTips";
+import { EmergencyAlertLogger } from "@/components/EmergencyAlertLogger";
+import { WelcomeModal } from "@/components/WelcomeModal";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   Heart, 
-  Phone, 
   Calendar, 
-  MapPin, 
-  AlertTriangle, 
-  Activity,
-  Baby,
-  Stethoscope,
-  Shield,
+  Shield, 
+  Phone, 
+  MapPin,
   Clock,
-  CheckCircle,
+  Activity,
   Loader2
 } from "lucide-react";
 
-const Dashboard = () => {
-  const { user, isLoading: authLoading, refreshUserData } = useAuth();
-  const { toast } = useToast();
-  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
-  const [isEmergencyLoading, setIsEmergencyLoading] = useState(false);
-  const [recentSymptoms, setRecentSymptoms] = useState<any[]>([]);
-  const [upcomingAppointments, setUpcomingAppointments] = useState<any[]>([]);
-  const [emergencyContacts, setEmergencyContacts] = useState<any[]>([]);
+interface Appointment {
+  id: string;
+  hospital_name: string;
+  appointment_date: string;
+  appointment_time: string;
+  notes: string;
+  created_at: string;
+}
 
+interface EmergencyAlert {
+  id: string;
+  user_id: string;
+  alert_type: string;
+  message: string;
+  timestamp: string;
+  location?: string;
+}
+
+interface SymptomLog {
+  id: string;
+  symptom_type: string;
+  severity: number;
+  description: string;
+  timestamp: string;
+}
+
+const Dashboard = () => {
+  const { user, refreshUserData, isLoading: authLoading } = useAuth();
+  const { toast } = useToast();
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [emergencyAlerts, setEmergencyAlerts] = useState<EmergencyAlert[]>([]);
+  const [recentSymptoms, setRecentSymptoms] = useState<SymptomLog[]>([]);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [dataLoaded, setDataLoaded] = useState(false);
+
+  // Redirect to auth if no user and not loading
   if (!user && !authLoading) {
     return <Navigate to="/auth" replace />;
   }
 
-  if (authLoading) {
+  // Show loading screen while auth is loading
+  if (authLoading || !user) {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
         <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
           <div className="text-center">
             <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-            <p className="text-muted-foreground">Loading...</p>
+            <p className="text-muted-foreground">Loading your dashboard...</p>
           </div>
         </div>
       </div>
@@ -54,410 +81,460 @@ const Dashboard = () => {
   }
 
   useEffect(() => {
-    if (user && !user.hasPregnancyData) {
+    // Show welcome modal for new users without pregnancy data
+    if (user && !user.hasPregnancyData && !dataLoaded) {
       setShowWelcomeModal(true);
     }
-  }, [user]);
-
-  useEffect(() => {
-    if (user) {
-      fetchDashboardData();
-    }
-  }, [user]);
-
-  const fetchDashboardData = async () => {
-    if (!user) return;
-
-    try {
-      // Fetch recent symptoms
-      const { data: symptomsData } = await supabase
-        .from('symptom_logs')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(3);
-
-      if (symptomsData) {
-        setRecentSymptoms(symptomsData);
-      }
-
-      // Fetch upcoming appointments
-      const { data: appointmentsData } = await supabase
-        .from('appointments')
-        .select('*')
-        .eq('user_id', user.id)
-        .gte('appointment_date', new Date().toISOString())
-        .order('appointment_date', { ascending: true })
-        .limit(3);
-
-      if (appointmentsData) {
-        setUpcomingAppointments(appointmentsData);
-      }
-
-      // Fetch emergency contacts
-      const { data: contactsData } = await supabase
-        .from('emergency_contacts')
-        .select('*')
-        .eq('user_id', user.id)
-        .limit(3);
-
-      if (contactsData) {
-        setEmergencyContacts(contactsData);
-      }
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-    }
-  };
-
-  const handleEmergencyAlert = async () => {
-    if (!user) return;
-
-    setIsEmergencyLoading(true);
     
+    if (user?.id && !dataLoaded) {
+      loadDashboardData();
+    }
+  }, [user?.id, dataLoaded]);
+
+  const loadDashboardData = async () => {
+    if (!user?.id) return;
+    
+    setLoading(true);
     try {
-      // Get user location
-      const location = await new Promise<GeolocationPosition>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject);
-      });
+      console.log('Loading dashboard data for user:', user.id);
+      
+      // Load appointments with error handling
+      try {
+        const { data: appointmentsData, error: appointmentsError } = await supabase
+          .from('appointments')
+          .select('*')
+          .eq('user_id', user.id)
+          .gte('appointment_date', new Date().toISOString().split('T')[0])
+          .order('appointment_date', { ascending: true })
+          .limit(3);
 
-      const { data, error } = await supabase.functions.invoke('send-emergency-sms', {
-        body: {
-          userId: user.id,
-          userLocation: {
-            latitude: location.coords.latitude,
-            longitude: location.coords.longitude
-          },
-          message: `EMERGENCY: ${user.firstName} ${user.lastName} needs immediate medical assistance. Location: https://maps.google.com/?q=${location.coords.latitude},${location.coords.longitude}`
+        if (appointmentsError) {
+          console.error('Error loading appointments:', appointmentsError);
+        } else if (appointmentsData) {
+          setAppointments(appointmentsData);
         }
-      });
-
-      if (error) {
-        console.error('Emergency alert error:', error);
-        toast({
-          title: "Emergency Alert Failed",
-          description: "Unable to send emergency alert. Please call emergency services directly.",
-          variant: "destructive"
-        });
-      } else {
-        // Log the emergency alert
-        await supabase.from('emergency_alerts').insert([{
-          user_id: user.id,
-          alert_type: 'medical_emergency',
-          location_latitude: location.coords.latitude,
-          location_longitude: location.coords.longitude,
-          status: 'sent'
-        }]);
-
-        toast({
-          title: "Emergency Alert Sent",
-          description: "Your emergency contacts have been notified with your location.",
-        });
+      } catch (error) {
+        console.error('Exception loading appointments:', error);
       }
+
+      // Load emergency alerts with error handling
+      try {
+        const { data: alertsData, error: alertsError } = await supabase
+          .from('emergency_alerts')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('timestamp', { ascending: false })
+          .limit(5);
+
+        if (alertsError) {
+          console.error('Error loading emergency alerts:', alertsError);
+        } else if (alertsData) {
+          setEmergencyAlerts(alertsData);
+        }
+      } catch (error) {
+        console.error('Exception loading emergency alerts:', error);
+      }
+
+      // Load recent symptoms
+      try {
+        const { data: symptomsData, error: symptomsError } = await supabase
+          .from('symptom_logs')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('timestamp', { ascending: false })
+          .limit(10);
+
+        if (symptomsError) {
+          console.error('Error loading symptoms:', symptomsError);
+        } else if (symptomsData) {
+          setRecentSymptoms(symptomsData);
+        }
+      } catch (error) {
+        console.error('Exception loading symptoms:', error);
+      }
+
+      setDataLoaded(true);
     } catch (error) {
-      console.error('Emergency alert error:', error);
+      console.error('Error loading dashboard data:', error);
       toast({
-        title: "Emergency Alert Failed",
-        description: "Unable to send emergency alert. Please call emergency services directly at 199 or 112.",
+        title: "Loading Error",
+        description: "Some dashboard data couldn't be loaded. Please refresh the page.",
         variant: "destructive"
       });
     } finally {
-      setIsEmergencyLoading(false);
+      setLoading(false);
     }
   };
 
+  const handleAppointmentAdded = () => {
+    loadDashboardData();
+    refreshUserData();
+    toast({
+      title: "Appointment Saved",
+      description: "Your appointment has been saved successfully.",
+    });
+  };
+
+  const handleEmergencyAlert = (alert: any) => {
+    setEmergencyAlerts(prev => [alert, ...prev.slice(0, 4)]);
+    toast({
+      title: "Emergency Alert Sent",
+      description: "Your emergency contacts have been notified.",
+    });
+  };
+
+  const handleWelcomeModalClose = () => {
+    setShowWelcomeModal(false);
+  };
+
+  // Calculate dynamic health status
   const getHealthStatus = () => {
-    if (!user?.hasPregnancyData) {
-      return { status: "Setup Required", color: "bg-yellow-500", description: "Complete your pregnancy profile" };
+    if (emergencyAlerts.length > 0) {
+      return { status: "Emergency", color: "text-red-600", description: `${emergencyAlerts.length} recent alerts` };
+    }
+    
+    // Check recent symptoms (last 7 days)
+    const lastWeek = new Date();
+    lastWeek.setDate(lastWeek.getDate() - 7);
+    
+    const recentSevereSymptoms = recentSymptoms.filter(symptom => {
+      const symptomDate = new Date(symptom.timestamp);
+      return symptomDate >= lastWeek && symptom.severity >= 7;
+    });
+    
+    if (recentSevereSymptoms.length > 0) {
+      return { status: "Needs Attention", color: "text-yellow-600", description: `${recentSevereSymptoms.length} severe symptoms logged` };
     }
     
     if (recentSymptoms.length > 0) {
-      const lastSymptom = recentSymptoms[0];
-      if (lastSymptom.severity === 'severe') {
-        return { status: "Needs Attention", color: "bg-red-500", description: "Recent severe symptoms logged" };
-      }
-      if (lastSymptom.severity === 'moderate') {
-        return { status: "Monitor Closely", color: "bg-yellow-500", description: "Recent moderate symptoms" };
-      }
+      return { status: "Monitoring", color: "text-blue-600", description: `${recentSymptoms.length} symptoms tracked` };
     }
     
-    return { status: "Good", color: "bg-green-500", description: "No concerning symptoms recently" };
+    return { status: "Good", color: "text-green-600", description: "No concerning symptoms" };
   };
 
   const healthStatus = getHealthStatus();
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
+  // Mock data for stats with safe fallbacks
+  const userStats = {
+    pregnancyWeek: user?.pregnancyWeek || 0,
+    nextAppointment: appointments.length > 0 ? new Date(appointments[0].appointment_date).toLocaleDateString() : "No upcoming appointments",
+    emergencyContacts: user?.emergencyContacts || 0,
+    recentSymptoms: recentSymptoms.length
   };
+
+  // Recent Activity
+  const recentActivity = [
+    ...emergencyAlerts.slice(0, 2).map(alert => ({
+      id: alert.id,
+      type: "emergency",
+      title: "Emergency alert sent",
+      time: new Date(alert.timestamp).toLocaleString(),
+      status: "emergency"
+    })),
+    ...recentSymptoms.slice(0, 3).map(symptom => ({
+      id: symptom.id,
+      type: "symptom",
+      title: `Logged ${symptom.symptom_type}`,
+      time: new Date(symptom.timestamp).toLocaleString(),
+      status: "normal"
+    })),
+    ...appointments.slice(0, 2).map(appointment => ({
+      id: appointment.id,
+      type: "appointment",
+      title: "Appointment scheduled",
+      time: new Date(appointment.created_at).toLocaleString(),
+      status: "normal"
+    }))
+  ].slice(0, 5);
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       
+      <WelcomeModal 
+        isOpen={showWelcomeModal}
+        onClose={handleWelcomeModalClose}
+        userName={user.firstName || 'there'}
+      />
+      
       <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        {/* Welcome Header */}
+        {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">
-            Welcome back, Mama {user?.firstName}!
+            Welcome back, {user.firstName || 'Mama'}! 
           </h1>
           <p className="text-muted-foreground">
-            Here's your pregnancy dashboard with important updates and quick actions.
+            {user.hasPregnancyData ? 
+              `You're at week ${userStats.pregnancyWeek} of your pregnancy journey. Stay safe and healthy! 💕` :
+              "Complete your pregnancy profile to get personalized care and tips!"
+            }
           </p>
         </div>
 
-        {/* Emergency Alert Section */}
-        <Card className="mb-8 border-red-200 bg-gradient-to-r from-red-50 to-pink-50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-red-700">
-              <AlertTriangle className="h-5 w-5" />
-              Emergency Alert
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-red-600 mb-4">
-              If you're experiencing a medical emergency, press the button below to instantly alert your emergency contacts with your location.
-            </p>
-            <Button 
-              onClick={handleEmergencyAlert}
-              disabled={isEmergencyLoading}
-              className="bg-red-600 hover:bg-red-700 text-white"
-            >
-              {isEmergencyLoading ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Sending Alert...
-                </>
-              ) : (
-                <>
-                  <Phone className="h-4 w-4 mr-2" />
-                  Send Emergency Alert
-                </>
-              )}
-            </Button>
+        {/* Onboarding Alert */}
+        {!user.hasPregnancyData && (
+          <Card className="mb-8 border-amber-200 bg-gradient-to-r from-amber-50 to-yellow-50">
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <h2 className="text-xl font-bold text-amber-800 mb-4">Complete Your Pregnancy Profile</h2>
+                <p className="text-amber-700 mb-6">
+                  Help us provide you with personalized care by sharing your pregnancy details. 
+                  This information will help us send you relevant alerts and track your symptoms better.
+                </p>
+                <Link to="/pregnancy-details">
+                  <Button className="bg-amber-600 hover:bg-amber-700 text-white">
+                    <Heart className="h-4 w-4 mr-2" />
+                    Add Pregnancy Details
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Emergency Alert Button */}
+        <Card className="mb-8 border-red-200 bg-gradient-to-r from-red-50 to-rose-50">
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <h2 className="text-xl font-bold text-red-800 mb-4">Emergency Alert</h2>
+              <p className="text-red-700 mb-6">
+                If you're experiencing a medical emergency, press the button below to instantly 
+                notify your emergency contacts and nearest healthcare center.
+              </p>
+              <EmergencyAlertLogger userId={user.id} onAlertSent={handleEmergencyAlert} />
+            </div>
           </CardContent>
         </Card>
 
-        {/* Health Status & Quick Stats */}
+        {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Health Status</CardTitle>
-              <Activity className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center space-x-2">
-                <div className={`w-3 h-3 rounded-full ${healthStatus.color}`}></div>
-                <div className="text-2xl font-bold">{healthStatus.status}</div>
+          <Card className="border-rose-200">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Pregnancy Week
+                </CardTitle>
+                <Heart className="h-4 w-4 text-rose-500" />
               </div>
-              <p className="text-xs text-muted-foreground">{healthStatus.description}</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pregnancy Week</CardTitle>
-              <Baby className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{user?.pregnancyWeek || 0}</div>
-              <p className="text-xs text-muted-foreground">
-                {user?.hasPregnancyData ? 'weeks along' : 'Complete setup'}
+              <div className="text-2xl font-bold text-rose-600">
+                Week {userStats.pregnancyWeek}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {userStats.pregnancyWeek === 0 ? 'Add pregnancy details' :
+                 userStats.pregnancyWeek <= 12 ? '1st Trimester' : 
+                 userStats.pregnancyWeek <= 26 ? '2nd Trimester' : '3rd Trimester'}
               </p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Emergency Contacts</CardTitle>
-              <Shield className="h-4 w-4 text-muted-foreground" />
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Next Appointment
+                </CardTitle>
+                <Calendar className="h-4 w-4 text-blue-500" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{user?.emergencyContacts || 0}</div>
-              <p className="text-xs text-muted-foreground">contacts saved</p>
+              <div className="text-lg font-bold">{userStats.nextAppointment}</div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {appointments.length > 0 ? appointments[0].hospital_name : "No appointments scheduled"}
+              </p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Next Appointment</CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Emergency Contacts
+                </CardTitle>
+                <Phone className="h-4 w-4 text-green-500" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
-                {upcomingAppointments.length > 0 ? formatDate(upcomingAppointments[0].appointment_date) : 'None'}
+              <div className="text-2xl font-bold">{userStats.emergencyContacts}</div>
+              <p className="text-xs text-muted-foreground mt-1">Ready to help</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Health Status
+                </CardTitle>
+                <Shield className="h-4 w-4 text-green-500" />
               </div>
-              <p className="text-xs text-muted-foreground">scheduled</p>
+            </CardHeader>
+            <CardContent>
+              <div className={`text-2xl font-bold ${healthStatus.color}`}>
+                {healthStatus.status}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {healthStatus.description}
+              </p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Main Dashboard Grid */}
+        {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column */}
+          {/* Quick Actions */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Quick Actions */}
             <Card>
               <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle>Quick Actions</CardTitle>
+                  <AppointmentLogger userId={user.id} onAppointmentAdded={handleAppointmentAdded} />
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <Link to="/symptom-logger">
-                    <Button variant="outline" className="w-full h-20 flex flex-col items-center justify-center space-y-2">
-                      <Stethoscope className="h-6 w-6" />
-                      <span className="text-xs">Log Symptoms</span>
+                  <Link to="/pregnancy-details">
+                    <Button variant="outline" className="w-full h-20 flex flex-col gap-2">
+                      <Heart className="h-6 w-6 text-rose-500" />
+                      <span className="text-sm">
+                        {user.hasPregnancyData ? 'Edit Details' : 'Add Details'}
+                      </span>
                     </Button>
                   </Link>
                   
-                  <Link to="/healthcare-centers">
-                    <Button variant="outline" className="w-full h-20 flex flex-col items-center justify-center space-y-2">
-                      <MapPin className="h-6 w-6" />
-                      <span className="text-xs">Find Care</span>
+                  <Link to="/symptom-logger">
+                    <Button variant="outline" className="w-full h-20 flex flex-col gap-2">
+                      <Heart className="h-6 w-6 text-rose-500" />
+                      <span className="text-sm">Log Symptoms</span>
+                    </Button>
+                  </Link>
+                  
+                  <Link to="/symptom-guide">
+                    <Button variant="outline" className="w-full h-20 flex flex-col gap-2">
+                      <Activity className="h-6 w-6 text-blue-500" />
+                      <span className="text-sm">Symptom Guide</span>
                     </Button>
                   </Link>
                   
                   <Link to="/emergency-contacts">
-                    <Button variant="outline" className="w-full h-20 flex flex-col items-center justify-center space-y-2">
-                      <Phone className="h-6 w-6" />
-                      <span className="text-xs">Contacts</span>
+                    <Button variant="outline" className="w-full h-20 flex flex-col gap-2">
+                      <Phone className="h-6 w-6 text-green-500" />
+                      <span className="text-sm">Contacts</span>
                     </Button>
                   </Link>
                   
-                  <Link to="/pregnancy-details">
-                    <Button variant="outline" className="w-full h-20 flex flex-col items-center justify-center space-y-2">
-                      <Baby className="h-6 w-6" />
-                      <span className="text-xs">Profile</span>
+                  <Link to="/healthcare-centers">
+                    <Button variant="outline" className="w-full h-20 flex flex-col gap-2">
+                      <MapPin className="h-6 w-6 text-purple-500" />
+                      <span className="text-sm">Find Care</span>
                     </Button>
                   </Link>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Recent Symptoms */}
+            {/* Upcoming Appointments */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  Recent Symptoms
-                  <Link to="/symptom-logger">
-                    <Button variant="outline" size="sm">Add New</Button>
-                  </Link>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5 text-blue-500" />
+                  Upcoming Appointments
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {recentSymptoms.length > 0 ? (
-                  <div className="space-y-3">
-                    {recentSymptoms.map((symptom) => (
-                      <div key={symptom.id} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div>
-                          <p className="font-medium">{symptom.symptom_type}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {formatDate(symptom.created_at)}
-                          </p>
+                {loading ? (
+                  <div className="text-center py-8">
+                    <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+                    <p className="text-muted-foreground">Loading appointments...</p>
+                  </div>
+                ) : appointments.length > 0 ? (
+                  <div className="space-y-4">
+                    {appointments.map((appointment) => (
+                      <div key={appointment.id} className="p-4 border rounded-lg">
+                        <div className="flex justify-between items-start mb-2">
+                          <h4 className="font-medium">Antenatal Appointment</h4>
+                          <Badge variant="outline">{new Date(appointment.appointment_date).toLocaleDateString()}</Badge>
                         </div>
-                        <Badge variant={symptom.severity === 'severe' ? 'destructive' : symptom.severity === 'moderate' ? 'default' : 'secondary'}>
-                          {symptom.severity}
-                        </Badge>
+                        <div className="space-y-1 text-sm text-muted-foreground">
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4" />
+                            <span>{appointment.appointment_time}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <MapPin className="h-4 w-4" />
+                            <span>{appointment.hospital_name}</span>
+                          </div>
+                          {appointment.notes && (
+                            <div className="mt-2 p-2 bg-gray-50 rounded text-xs">
+                              {appointment.notes}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-muted-foreground text-center py-4">
-                    No symptoms logged yet. Start tracking your health today.
-                  </p>
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>No upcoming appointments scheduled.</p>
+                    <p className="text-xs mt-2">Use the "Log Appointment" button to add your next visit.</p>
+                  </div>
                 )}
               </CardContent>
             </Card>
 
             {/* Health Alerts */}
-            <HealthAlerts />
+            <HealthAlerts userId={user.id} />
           </div>
 
-          {/* Right Column */}
+          {/* Recent Activity & Health Tips */}
           <div className="space-y-6">
-            {/* Upcoming Appointments */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5" />
-                  Upcoming Appointments
+                  <Activity className="h-5 w-5 text-rose-500" />
+                  Recent Activity
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {upcomingAppointments.length > 0 ? (
-                  <div className="space-y-3">
-                    {upcomingAppointments.map((appointment) => (
-                      <div key={appointment.id} className="p-3 border rounded-lg">
-                        <p className="font-medium">{appointment.appointment_type}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {formatDate(appointment.appointment_date)}
+                <div className="space-y-4">
+                  {recentActivity.length > 0 ? recentActivity.map((activity) => (
+                    <div key={activity.id} className="flex items-start gap-3">
+                      <div className={`w-2 h-2 rounded-full mt-2 ${
+                        activity.status === 'emergency' ? 'bg-red-500' : 'bg-rose-500'
+                      }`}></div>
+                      <div className="flex-1">
+                        <p className={`text-sm font-medium ${
+                          activity.status === 'emergency' ? 'text-red-600' : ''
+                        }`}>
+                          {activity.title}
                         </p>
-                        {appointment.healthcare_provider && (
-                          <p className="text-sm text-muted-foreground">
-                            with {appointment.healthcare_provider}
-                          </p>
-                        )}
+                        <p className="text-xs text-muted-foreground">{activity.time}</p>
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground text-center py-4">
-                    No upcoming appointments scheduled.
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Emergency Contacts */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Phone className="h-5 w-5" />
-                  Emergency Contacts
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {emergencyContacts.length > 0 ? (
-                  <div className="space-y-3">
-                    {emergencyContacts.map((contact) => (
-                      <div key={contact.id} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div>
-                          <p className="font-medium">{contact.name}</p>
-                          <p className="text-sm text-muted-foreground">{contact.relationship}</p>
-                        </div>
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-4">
-                    <p className="text-muted-foreground mb-3">
-                      No emergency contacts added yet.
+                    </div>
+                  )) : (
+                    <p className="text-center text-muted-foreground py-4">
+                      No recent activity. Start by logging symptoms or scheduling appointments!
                     </p>
-                    <Link to="/emergency-contacts">
-                      <Button size="sm">Add Contacts</Button>
-                    </Link>
-                  </div>
-                )}
+                  )}
+                </div>
               </CardContent>
             </Card>
 
-            {/* Weekly Health Tips */}
-            <WeeklyHealthTips />
+            {/* Dynamic Health Tips */}
+            <WeeklyHealthTips pregnancyWeek={userStats.pregnancyWeek} />
           </div>
         </div>
       </div>
 
-      {/* Welcome Modal */}
-      <WelcomeModal 
-        isOpen={showWelcomeModal} 
-        onClose={() => {
-          setShowWelcomeModal(false);
-          refreshUserData();
-        }} 
-      />
+      {/* Footer with correct year */}
+      <footer className="border-t bg-background px-4 py-8 sm:px-6 lg:px-8 mt-16">
+        <div className="max-w-6xl mx-auto text-center text-muted-foreground">
+          <p>&copy; {new Date().getFullYear()} MamaAlert. Protecting Nigerian mothers, one alert at a time.</p>
+        </div>
+      </footer>
     </div>
   );
 };
