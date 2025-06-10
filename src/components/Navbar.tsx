@@ -3,7 +3,7 @@ import { useAuth } from "./AuthProvider";
 import { useTheme } from "./ThemeProvider";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Moon, Sun } from "lucide-react";
+import { Moon, Sun, Heart } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export function Navbar() {
@@ -15,29 +15,27 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <Link to="/" className="flex items-center space-x-2">
-            <img 
-              src="/lovable-uploads/c1d146a9-2b02-45d8-acf9-01d2ff34c105.png" 
-              alt="MamaAlert Logo" 
-              className="h-8 w-8"
-            />
-            <h1 className="text-xl font-bold text-rose-600">MamaAlert</h1>
+            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+              <Heart className="h-5 w-5 text-white" fill="currentColor" />
+            </div>
+            <h1 className="text-xl font-bold text-primary">MamaAlert</h1>
           </Link>
 
           {user && (
             <div className="hidden md:flex items-center space-x-6">
-              <Link to="/dashboard" className="text-sm font-medium hover:text-rose-600 transition-colors">
+              <Link to="/dashboard" className="text-sm font-medium hover:text-primary transition-colors">
                 Dashboard
               </Link>
-              <Link to="/symptom-logger" className="text-sm font-medium hover:text-rose-600 transition-colors">
+              <Link to="/symptom-logger" className="text-sm font-medium hover:text-primary transition-colors">
                 Log Symptoms
               </Link>
-              <Link to="/symptom-guide" className="text-sm font-medium hover:text-rose-600 transition-colors">
+              <Link to="/symptom-guide" className="text-sm font-medium hover:text-primary transition-colors">
                 Symptom Guide
               </Link>
-              <Link to="/emergency-contacts" className="text-sm font-medium hover:text-rose-600 transition-colors">
+              <Link to="/emergency-contacts" className="text-sm font-medium hover:text-primary transition-colors">
                 Emergency Contacts
               </Link>
-              <Link to="/healthcare-centers" className="text-sm font-medium hover:text-rose-600 transition-colors">
+              <Link to="/healthcare-centers" className="text-sm font-medium hover:text-primary transition-colors">
                 Healthcare Centers
               </Link>
             </div>
@@ -59,7 +57,7 @@ export function Navbar() {
             {user ? (
               <div className="flex items-center space-x-3">
                 <Avatar className="h-8 w-8">
-                  <AvatarFallback className="bg-rose-500 text-white text-sm">
+                  <AvatarFallback className="bg-primary text-white text-sm">
                     {user.firstName[0]}{user.lastName[0]}
                   </AvatarFallback>
                 </Avatar>
@@ -69,7 +67,7 @@ export function Navbar() {
               </div>
             ) : (
               <Link to="/auth">
-                <Button variant="default" size="sm" className="bg-rose-500 hover:bg-rose-600">
+                <Button variant="default" size="sm" className="bg-primary hover:bg-primary/90">
                   Sign In
                 </Button>
               </Link>

@@ -78,13 +78,34 @@ const Auth = () => {
       return;
     }
 
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate password length
+    if (password.length < 6) {
+      toast({
+        title: "Password Too Short",
+        description: "Password must be at least 6 characters long.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
       let result;
       
       if (isLogin) {
-        console.log('Attempting login...');
+        console.log('Attempting login for:', email);
         result = await login(email, password);
         
         if (!result.error) {
@@ -92,10 +113,10 @@ const Auth = () => {
             title: "Welcome back!",
             description: "Successfully logged in to your MamaAlert account.",
           });
-          // Don't manually redirect - AuthProvider will handle this
+          // Navigation handled by AuthProvider
         }
       } else {
-        console.log('Attempting signup...');
+        console.log('Attempting signup for:', email);
         result = await signup(email, password, firstName, lastName);
         
         if (!result.error) {
@@ -103,7 +124,7 @@ const Auth = () => {
             title: "Account Created!",
             description: "Welcome to MamaAlert! You can now access your dashboard.",
           });
-          // Don't manually redirect - AuthProvider will handle this
+          // Navigation handled by AuthProvider
         }
       }
 
@@ -127,111 +148,118 @@ const Auth = () => {
     }
   };
 
-  const isProcessing = isSubmitting;
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 to-pink-100">
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted">
       <Navbar />
       
       <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <div className="flex items-center justify-center gap-3 mb-6">
-              <img 
-                src="/lovable-uploads/c1d146a9-2b02-45d8-acf9-01d2ff34c105.png" 
-                alt="MamaAlert Logo" 
-                className="h-12 w-12"
-              />
+              <div className="w-16 h-16 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center shadow-lg">
+                <Heart className="h-8 w-8 text-white" fill="currentColor" />
+              </div>
             </div>
-            <h2 className="text-3xl font-bold text-foreground">
+            <h2 className="text-3xl font-bold text-foreground mb-2">
               {isLogin ? "Welcome Back" : "Join MamaAlert"}
             </h2>
-            <p className="text-muted-foreground mt-2">
+            <p className="text-muted-foreground">
               {isLogin 
                 ? "Sign in to access your maternal health dashboard" 
-                : "Create your account and join thousands of protected mamas"
+                : "Create your account to get started with safe pregnancy monitoring"
               }
             </p>
           </div>
 
-          <Card className="border-rose-200">
-            <CardHeader>
-              <CardTitle className="text-center">
-                {isLogin ? "Sign In" : "Create Your Account"}
+          <Card className="border shadow-xl bg-card">
+            <CardHeader className="space-y-1">
+              <CardTitle className="text-center text-xl">
+                {isLogin ? "Sign In" : "Create Account"}
               </CardTitle>
+              <p className="text-center text-sm text-muted-foreground">
+                {isLogin 
+                  ? "Enter your credentials to continue" 
+                  : "Fill in your details to get started"
+                }
+              </p>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-5">
                 {!isLogin && (
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="firstName">First Name</Label>
+                      <Label htmlFor="firstName" className="text-sm font-medium">First Name</Label>
                       <Input
                         id="firstName"
                         type="text"
                         value={firstName}
                         onChange={(e) => setFirstName(e.target.value)}
                         required={!isLogin}
-                        disabled={isProcessing}
+                        disabled={isSubmitting}
                         placeholder="Enter your first name"
+                        className="mt-1"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="lastName">Last Name</Label>
+                      <Label htmlFor="lastName" className="text-sm font-medium">Last Name</Label>
                       <Input
                         id="lastName"
                         type="text"
                         value={lastName}
                         onChange={(e) => setLastName(e.target.value)}
                         required={!isLogin}
-                        disabled={isProcessing}
+                        disabled={isSubmitting}
                         placeholder="Enter your last name"
+                        className="mt-1"
                       />
                     </div>
                   </div>
                 )}
 
                 <div>
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email" className="text-sm font-medium">Email Address</Label>
                   <Input
                     id="email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    disabled={isProcessing}
+                    disabled={isSubmitting}
                     placeholder="Enter your email address"
                     autoComplete={isLogin ? "email" : "username"}
+                    className="mt-1"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password" className="text-sm font-medium">Password</Label>
                   <Input
                     id="password"
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    disabled={isProcessing}
-                    placeholder={isLogin ? "Enter your password" : "Create a password (min 6 characters)"}
+                    disabled={isSubmitting}
+                    placeholder={isLogin ? "Enter your password" : "Create a secure password (min 6 characters)"}
                     autoComplete={isLogin ? "current-password" : "new-password"}
+                    className="mt-1"
                   />
                 </div>
 
                 <Button
                   type="submit"
-                  className="w-full bg-rose-500 hover:bg-rose-600"
-                  disabled={isProcessing}
+                  className="w-full bg-primary hover:bg-primary/90 text-white font-medium py-3 shadow-lg"
+                  disabled={isSubmitting}
                 >
-                  {isProcessing ? (
+                  {isSubmitting ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                       {isLogin ? "Signing in..." : "Creating account..."}
                     </>
                   ) : (
                     <>
-                      {isLogin ? "Sign In" : "Create Account & Get Protected"}
+                      <Heart className="h-4 w-4 mr-2" />
+                      {isLogin ? "Sign In" : "Create Account"}
                     </>
                   )}
                 </Button>
@@ -248,18 +276,18 @@ const Auth = () => {
                     setFirstName("");
                     setLastName("");
                   }}
-                  className="text-sm text-rose-600 hover:underline"
-                  disabled={isProcessing}
+                  className="text-sm text-primary hover:text-primary/80 hover:underline font-medium"
+                  disabled={isSubmitting}
                 >
                   {isLogin
-                    ? "Don't have an account? Join MamaAlert"
-                    : "Already have an account? Sign in"
+                    ? "Don't have an account? Create one here"
+                    : "Already have an account? Sign in here"
                   }
                 </button>
               </div>
 
               <div className="mt-4 text-center">
-                <Link to="/" className="text-sm text-muted-foreground hover:underline">
+                <Link to="/" className="text-sm text-muted-foreground hover:text-primary hover:underline">
                   ← Back to home
                 </Link>
               </div>
@@ -267,7 +295,7 @@ const Auth = () => {
           </Card>
 
           <div className="mt-6 text-center">
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground max-w-sm mx-auto">
               By creating an account, you agree to receive emergency notifications 
               and health reminders to keep you and your baby safe.
             </p>
