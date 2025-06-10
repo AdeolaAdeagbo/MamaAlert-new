@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { Navbar } from "@/components/Navbar";
@@ -41,11 +42,20 @@ interface EmergencyAlert {
   location?: string;
 }
 
+interface SymptomLog {
+  id: string;
+  symptom_type: string;
+  severity: number;
+  description: string;
+  timestamp: string;
+}
+
 const Dashboard = () => {
   const { user, refreshUserData, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [emergencyAlerts, setEmergencyAlerts] = useState<EmergencyAlert[]>([]);
+  const [recentSymptoms, setRecentSymptoms] = useState<SymptomLog[]>([]);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [dataLoaded, setDataLoaded] = useState(false);
@@ -125,6 +135,24 @@ const Dashboard = () => {
         console.error('Exception loading emergency alerts:', error);
       }
 
+      // Load recent symptoms
+      try {
+        const { data: symptomsData, error: symptomsError } = await supabase
+          .from('symptom_logs')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('timestamp', { ascending: false })
+          .limit(10);
+
+        if (symptomsError) {
+          console.error('Error loading symptoms:', symptomsError);
+        } else if (symptomsData) {
+          setRecentSymptoms(symptomsData);
+        }
+      } catch (error) {
+        console.error('Exception loading symptoms:', error);
+      }
+
       setDataLoaded(true);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
@@ -141,51 +169,62 @@ const Dashboard = () => {
   const handleAppointmentAdded = () => {
     loadDashboardData();
     refreshUserData();
+    toast({
+      title: "Appointment Saved",
+      description: "Your appointment has been saved successfully.",
+    });
   };
 
   const handleEmergencyAlert = (alert: any) => {
     setEmergencyAlerts(prev => [alert, ...prev.slice(0, 4)]);
+    toast({
+      title: "Emergency Alert Sent",
+      description: "Your emergency contacts have been notified.",
+    });
   };
 
   const handleWelcomeModalClose = () => {
     setShowWelcomeModal(false);
   };
 
+  // Calculate dynamic health status
+  const getHealthStatus = () => {
+    if (emergencyAlerts.length > 0) {
+      return { status: "Emergency", color: "text-red-600", description: `${emergencyAlerts.length} recent alerts` };
+    }
+    
+    // Check recent symptoms (last 7 days)
+    const lastWeek = new Date();
+    lastWeek.setDate(lastWeek.getDate() - 7);
+    
+    const recentSevereSymptoms = recentSymptoms.filter(symptom => {
+      const symptomDate = new Date(symptom.timestamp);
+      return symptomDate >= lastWeek && symptom.severity >= 7;
+    });
+    
+    if (recentSevereSymptoms.length > 0) {
+      return { status: "Needs Attention", color: "text-yellow-600", description: `${recentSevereSymptoms.length} severe symptoms logged` };
+    }
+    
+    if (recentSymptoms.length > 0) {
+      return { status: "Monitoring", color: "text-blue-600", description: `${recentSymptoms.length} symptoms tracked` };
+    }
+    
+    return { status: "Good", color: "text-green-600", description: "No concerning symptoms" };
+  };
+
+  const healthStatus = getHealthStatus();
+
   // Mock data for stats with safe fallbacks
   const userStats = {
     pregnancyWeek: user?.pregnancyWeek || 0,
     nextAppointment: appointments.length > 0 ? new Date(appointments[0].appointment_date).toLocaleDateString() : "No upcoming appointments",
     emergencyContacts: user?.emergencyContacts || 0,
-    recentSymptoms: 0
+    recentSymptoms: recentSymptoms.length
   };
 
   // Recent Activity
   const recentActivity = [
-    {
-      id: "1",
-      type: "symptom",
-      title: "Logged morning sickness",
-      time: "2 hours ago",
-      status: "normal"
-    },
-    {
-      id: "2", 
-      type: "appointment",
-      title: "Appointment reminder set",
-      time: "1 day ago",
-      status: "normal"
-    },
-    {
-      id: "3",
-      type: "contact",
-      title: "Added emergency contact",
-      time: "3 days ago", 
-      status: "normal"
-    }
-  ];
-
-  // Add emergency alerts to recent activity
-  const allActivity = [
     ...emergencyAlerts.slice(0, 2).map(alert => ({
       id: alert.id,
       type: "emergency",
@@ -193,24 +232,37 @@ const Dashboard = () => {
       time: new Date(alert.timestamp).toLocaleString(),
       status: "emergency"
     })),
-    ...recentActivity
+    ...recentSymptoms.slice(0, 3).map(symptom => ({
+      id: symptom.id,
+      type: "symptom",
+      title: `Logged ${symptom.symptom_type}`,
+      time: new Date(symptom.timestamp).toLocaleString(),
+      status: "normal"
+    })),
+    ...appointments.slice(0, 2).map(appointment => ({
+      id: appointment.id,
+      type: "appointment",
+      title: "Appointment scheduled",
+      time: new Date(appointment.created_at).toLocaleString(),
+      status: "normal"
+    }))
   ].slice(0, 5);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50">
       <Navbar />
       
       <WelcomeModal 
         isOpen={showWelcomeModal}
         onClose={handleWelcomeModalClose}
-        userName={user.firstName || 'there'}
+        userName={user.firstName || 'Mama'}
       />
       
       <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">
-            Welcome back, {user.firstName || 'Mama'}! 
+            Welcome back, {user.firstName || 'Mama'}! 💕
           </h1>
           <p className="text-muted-foreground">
             {user.hasPregnancyData ? 
@@ -222,16 +274,16 @@ const Dashboard = () => {
 
         {/* Onboarding Alert */}
         {!user.hasPregnancyData && (
-          <Card className="mb-8 border-amber-200 bg-gradient-to-r from-amber-50 to-yellow-50">
+          <Card className="mb-8 border-amber-200 bg-gradient-to-r from-amber-50 to-yellow-50 shadow-lg">
             <CardContent className="pt-6">
               <div className="text-center">
-                <h2 className="text-xl font-bold text-amber-800 mb-4">Complete Your Pregnancy Profile</h2>
+                <h2 className="text-xl font-bold text-amber-800 mb-4">Complete Your Pregnancy Profile 🤱</h2>
                 <p className="text-amber-700 mb-6">
                   Help us provide you with personalized care by sharing your pregnancy details. 
                   This information will help us send you relevant alerts and track your symptoms better.
                 </p>
                 <Link to="/pregnancy-details">
-                  <Button className="bg-amber-600 hover:bg-amber-700 text-white">
+                  <Button className="bg-amber-600 hover:bg-amber-700 text-white shadow-lg">
                     <Heart className="h-4 w-4 mr-2" />
                     Add Pregnancy Details
                   </Button>
@@ -242,10 +294,10 @@ const Dashboard = () => {
         )}
 
         {/* Emergency Alert Button */}
-        <Card className="mb-8 border-red-200 bg-gradient-to-r from-red-50 to-rose-50">
+        <Card className="mb-8 border-red-200 bg-gradient-to-r from-red-50 to-rose-50 shadow-lg">
           <CardContent className="pt-6">
             <div className="text-center">
-              <h2 className="text-xl font-bold text-red-800 mb-4">Emergency Alert</h2>
+              <h2 className="text-xl font-bold text-red-800 mb-4">Emergency Alert 🚨</h2>
               <p className="text-red-700 mb-6">
                 If you're experiencing a medical emergency, press the button below to instantly 
                 notify your emergency contacts and nearest healthcare center.
@@ -257,7 +309,7 @@ const Dashboard = () => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="border-rose-200">
+          <Card className="border-rose-200 bg-white/80 backdrop-blur-sm shadow-lg">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -278,7 +330,7 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-white/80 backdrop-blur-sm shadow-lg">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -295,7 +347,7 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-white/80 backdrop-blur-sm shadow-lg">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -310,7 +362,7 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-white/80 backdrop-blur-sm shadow-lg">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -320,11 +372,11 @@ const Dashboard = () => {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">
-                {emergencyAlerts.length > 0 ? "Alert Sent" : "Good"}
+              <div className={`text-2xl font-bold ${healthStatus.color}`}>
+                {healthStatus.status}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                {emergencyAlerts.length > 0 ? `${emergencyAlerts.length} recent alerts` : "No alerts"}
+                {healthStatus.description}
               </p>
             </CardContent>
           </Card>
@@ -334,7 +386,7 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Quick Actions */}
           <div className="lg:col-span-2 space-y-6">
-            <Card>
+            <Card className="bg-white/80 backdrop-blur-sm shadow-lg">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle>Quick Actions</CardTitle>
@@ -344,7 +396,7 @@ const Dashboard = () => {
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <Link to="/pregnancy-details">
-                    <Button variant="outline" className="w-full h-20 flex flex-col gap-2">
+                    <Button variant="outline" className="w-full h-20 flex flex-col gap-2 hover:shadow-md transition-shadow">
                       <Heart className="h-6 w-6 text-rose-500" />
                       <span className="text-sm">
                         {user.hasPregnancyData ? 'Edit Details' : 'Add Details'}
@@ -353,28 +405,28 @@ const Dashboard = () => {
                   </Link>
                   
                   <Link to="/symptom-logger">
-                    <Button variant="outline" className="w-full h-20 flex flex-col gap-2">
+                    <Button variant="outline" className="w-full h-20 flex flex-col gap-2 hover:shadow-md transition-shadow">
                       <Heart className="h-6 w-6 text-rose-500" />
                       <span className="text-sm">Log Symptoms</span>
                     </Button>
                   </Link>
                   
                   <Link to="/symptom-guide">
-                    <Button variant="outline" className="w-full h-20 flex flex-col gap-2">
+                    <Button variant="outline" className="w-full h-20 flex flex-col gap-2 hover:shadow-md transition-shadow">
                       <Activity className="h-6 w-6 text-blue-500" />
                       <span className="text-sm">Symptom Guide</span>
                     </Button>
                   </Link>
                   
                   <Link to="/emergency-contacts">
-                    <Button variant="outline" className="w-full h-20 flex flex-col gap-2">
+                    <Button variant="outline" className="w-full h-20 flex flex-col gap-2 hover:shadow-md transition-shadow">
                       <Phone className="h-6 w-6 text-green-500" />
                       <span className="text-sm">Contacts</span>
                     </Button>
                   </Link>
                   
                   <Link to="/healthcare-centers">
-                    <Button variant="outline" className="w-full h-20 flex flex-col gap-2">
+                    <Button variant="outline" className="w-full h-20 flex flex-col gap-2 hover:shadow-md transition-shadow">
                       <MapPin className="h-6 w-6 text-purple-500" />
                       <span className="text-sm">Find Care</span>
                     </Button>
@@ -384,7 +436,7 @@ const Dashboard = () => {
             </Card>
 
             {/* Upcoming Appointments */}
-            <Card>
+            <Card className="bg-white/80 backdrop-blur-sm shadow-lg">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Calendar className="h-5 w-5 text-blue-500" />
@@ -400,10 +452,10 @@ const Dashboard = () => {
                 ) : appointments.length > 0 ? (
                   <div className="space-y-4">
                     {appointments.map((appointment) => (
-                      <div key={appointment.id} className="p-4 border rounded-lg">
+                      <div key={appointment.id} className="p-4 border rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50">
                         <div className="flex justify-between items-start mb-2">
                           <h4 className="font-medium">Antenatal Appointment</h4>
-                          <Badge variant="outline">{new Date(appointment.appointment_date).toLocaleDateString()}</Badge>
+                          <Badge variant="outline" className="bg-white">{new Date(appointment.appointment_date).toLocaleDateString()}</Badge>
                         </div>
                         <div className="space-y-1 text-sm text-muted-foreground">
                           <div className="flex items-center gap-2">
@@ -415,7 +467,7 @@ const Dashboard = () => {
                             <span>{appointment.hospital_name}</span>
                           </div>
                           {appointment.notes && (
-                            <div className="mt-2 p-2 bg-gray-50 rounded text-xs">
+                            <div className="mt-2 p-2 bg-white rounded text-xs">
                               {appointment.notes}
                             </div>
                           )}
@@ -439,7 +491,7 @@ const Dashboard = () => {
 
           {/* Recent Activity & Health Tips */}
           <div className="space-y-6">
-            <Card>
+            <Card className="bg-white/80 backdrop-blur-sm shadow-lg">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Activity className="h-5 w-5 text-rose-500" />
@@ -448,7 +500,7 @@ const Dashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {allActivity.map((activity) => (
+                  {recentActivity.length > 0 ? recentActivity.map((activity) => (
                     <div key={activity.id} className="flex items-start gap-3">
                       <div className={`w-2 h-2 rounded-full mt-2 ${
                         activity.status === 'emergency' ? 'bg-red-500' : 'bg-rose-500'
@@ -462,7 +514,11 @@ const Dashboard = () => {
                         <p className="text-xs text-muted-foreground">{activity.time}</p>
                       </div>
                     </div>
-                  ))}
+                  )) : (
+                    <p className="text-center text-muted-foreground py-4">
+                      No recent activity. Start by logging symptoms or scheduling appointments! 💕
+                    </p>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -472,6 +528,13 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* Footer with correct year */}
+      <footer className="border-t bg-background/80 backdrop-blur-sm px-4 py-8 sm:px-6 lg:px-8 mt-16">
+        <div className="max-w-6xl mx-auto text-center text-muted-foreground">
+          <p>&copy; {new Date().getFullYear()} MamaAlert. Protecting Nigerian mothers, one alert at a time. 💕</p>
+        </div>
+      </footer>
     </div>
   );
 };

@@ -4,145 +4,204 @@ import { useAuth } from "@/components/AuthProvider";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Navigate } from "react-router-dom";
-import { MapPin, Phone, Clock, Navigation, Loader2, Star } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { GoogleMapsLoader } from "@/components/GoogleMapsLoader";
+import { MapPin, Phone, Clock, Star, Navigation, Loader2 } from "lucide-react";
 
 interface HealthcareCenter {
   id: string;
   name: string;
   address: string;
-  phone: string;
-  rating: number;
-  distance: number;
-  type: string;
-  isOpen: boolean;
+  phone?: string;
+  rating?: number;
+  isOpen?: boolean;
+  distance?: string;
+  specialty?: string;
+  placeId?: string;
 }
 
 const HealthcareCenters = () => {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
   const [centers, setCenters] = useState<HealthcareCenter[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [searchLocation, setSearchLocation] = useState("");
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [map, setMap] = useState<google.maps.Map | null>(null);
+  const [placesService, setPlacesService] = useState<google.maps.places.PlacesService | null>(null);
 
-  if (!user) {
+  if (!user && !authLoading) {
     return <Navigate to="/auth" replace />;
   }
 
-  const loadGoogleMaps = () => {
-    return new Promise((resolve, reject) => {
-      if (window.google && window.google.maps) {
-        resolve(window.google);
-        return;
-      }
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+            <p className="text-muted-foreground">Loading...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-      const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-      if (!apiKey) {
-        reject(new Error('Google Maps API key not configured'));
-        return;
-      }
+  const onMapLoad = (mapInstance: google.maps.Map) => {
+    setMap(mapInstance);
+    const service = new google.maps.places.PlacesService(mapInstance);
+    setPlacesService(service);
+  };
 
-      const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
-      script.async = true;
-      script.defer = true;
-      script.onload = () => resolve(window.google);
-      script.onerror = () => reject(new Error('Failed to load Google Maps'));
-      document.head.appendChild(script);
+  const getCurrentLocation = () => {
+    setLoading(true);
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const location = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          };
+          setUserLocation(location);
+          searchNearbyHospitals(location);
+        },
+        (error) => {
+          console.error("Geolocation error:", error);
+          toast({
+            title: "Location Error",
+            description: "Unable to get your location. Please enter a location manually.",
+            variant: "destructive"
+          });
+          setLoading(false);
+        }
+      );
+    } else {
+      toast({
+        title: "Geolocation Not Supported",
+        description: "Please enter a location manually to search for healthcare centers.",
+        variant: "destructive"
+      });
+      setLoading(false);
+    }
+  };
+
+  const searchByLocation = () => {
+    if (!searchLocation.trim()) {
+      toast({
+        title: "Location Required",
+        description: "Please enter a location to search for healthcare centers.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!window.google?.maps?.Geocoder) {
+      toast({
+        title: "Maps Not Ready",
+        description: "Google Maps is still loading. Please try again in a moment.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setLoading(true);
+    const geocoder = new google.maps.Geocoder();
+    
+    geocoder.geocode({ address: searchLocation }, (results, status) => {
+      if (status === 'OK' && results && results[0]?.geometry?.location) {
+        const location = {
+          lat: results[0].geometry.location.lat(),
+          lng: results[0].geometry.location.lng()
+        };
+        setUserLocation(location);
+        searchNearbyHospitals(location);
+      } else {
+        console.error("Geocoding failed:", status);
+        toast({
+          title: "Location Not Found",
+          description: "Could not find the specified location. Please try a different search term.",
+          variant: "destructive"
+        });
+        setLoading(false);
+      }
     });
   };
 
-  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-    const R = 6371; // Earth's radius in km
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-              Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return Math.round(R * c * 10) / 10; // Round to 1 decimal place
-  };
-
-  const findNearbyHealthcare = async () => {
-    setIsLoading(true);
-    try {
-      await loadGoogleMaps();
-      
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const { latitude, longitude } = position.coords;
-          setUserLocation({ lat: latitude, lng: longitude });
-          
-          const map = new google.maps.Map(document.createElement('div'), {
-            center: new google.maps.LatLng(latitude, longitude),
-            zoom: 15
-          });
-
-          const service = new google.maps.places.PlacesService(map);
-          
-          const request = {
-            location: new google.maps.LatLng(latitude, longitude),
-            radius: 15000, // 15km radius for more results
-            type: 'hospital'
-          };
-
-          service.nearbySearch(request, (results, status) => {
-            if (status === google.maps.places.PlacesServiceStatus.OK && results) {
-              const healthcareCenters = results.slice(0, 10).map(place => ({
-                id: place.place_id || Math.random().toString(),
-                name: place.name || 'Unknown Healthcare Center',
-                address: place.vicinity || 'Address not available',
-                phone: place.formatted_phone_number || 'Phone not available',
-                rating: place.rating || 0,
-                distance: place.geometry?.location ? 
-                  calculateDistance(
-                    latitude, 
-                    longitude, 
-                    place.geometry.location.lat(), 
-                    place.geometry.location.lng()
-                  ) : 0,
-                type: place.types?.includes('hospital') ? 'Hospital' : 'Clinic',
-                isOpen: place.opening_hours?.open_now || false
-              }));
-              
-              // Sort by distance
-              healthcareCenters.sort((a, b) => a.distance - b.distance);
-              setCenters(healthcareCenters);
-              
-              toast({
-                title: "Healthcare Centers Found",
-                description: `Found ${healthcareCenters.length} nearby healthcare centers.`
-              });
-            } else {
-              toast({
-                title: "Search Failed", 
-                description: "Could not find nearby healthcare centers. Please try again.",
-                variant: "destructive"
-              });
-            }
-            setIsLoading(false);
-          });
-        },
-        (error) => {
-          console.error('Geolocation error:', error);
-          toast({
-            title: "Location Access Required",
-            description: "Please enable location access to find nearby healthcare centers.",
-            variant: "destructive"
-          });
-          setIsLoading(false);
-        }
-      );
-    } catch (error) {
-      console.error('Maps loading error:', error);
+  const searchNearbyHospitals = (location: { lat: number; lng: number }) => {
+    if (!placesService) {
       toast({
-        title: "Maps Loading Error",
-        description: "Failed to load Google Maps. Please check your internet connection.",
+        title: "Service Not Ready",
+        description: "Maps service is not ready. Please try again.",
         variant: "destructive"
       });
-      setIsLoading(false);
+      setLoading(false);
+      return;
+    }
+
+    const request: google.maps.places.PlaceSearchRequest = {
+      location: new google.maps.LatLng(location.lat, location.lng),
+      radius: 10000, // 10km radius
+      type: 'hospital',
+      keyword: 'maternal health maternity hospital clinic'
+    };
+
+    placesService.nearbySearch(request, (results, status) => {
+      console.log("Places search results:", results, status);
+      
+      if (status === google.maps.places.PlacesServiceStatus.OK && results) {
+        const healthcareCenters: HealthcareCenter[] = results.slice(0, 10).map((place, index) => {
+          // Use place.vicinity or place.name as fallback for address
+          const address = place.vicinity || place.name || "Address not available";
+          
+          return {
+            id: place.place_id || `center-${index}`,
+            name: place.name || "Healthcare Center",
+            address: address,
+            phone: "Contact for details",
+            rating: place.rating,
+            isOpen: place.opening_hours?.open_now,
+            specialty: "Maternal Health",
+            placeId: place.place_id
+          };
+        });
+        
+        setCenters(healthcareCenters);
+        
+        if (healthcareCenters.length === 0) {
+          toast({
+            title: "No Results",
+            description: "No healthcare centers found in this area. Try searching a different location.",
+            variant: "destructive"
+          });
+        } else {
+          toast({
+            title: "Search Complete",
+            description: `Found ${healthcareCenters.length} healthcare centers near you.`,
+          });
+        }
+      } else {
+        console.error("Places search failed:", status);
+        toast({
+          title: "Search Failed",
+          description: "Unable to find healthcare centers. Please try again or search a different location.",
+          variant: "destructive"
+        });
+      }
+      setLoading(false);
+    });
+  };
+
+  const getDirections = (address: string) => {
+    if (userLocation) {
+      const url = `https://www.google.com/maps/dir/${userLocation.lat},${userLocation.lng}/${encodeURIComponent(address)}`;
+      window.open(url, '_blank');
+    } else {
+      const url = `https://www.google.com/maps/search/${encodeURIComponent(address)}`;
+      window.open(url, '_blank');
     }
   };
 
@@ -150,118 +209,144 @@ const HealthcareCenters = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       
-      <div className="max-w-6xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Find Healthcare Centers</h1>
+          <h1 className="text-3xl font-bold text-foreground mb-2">
+            Find Healthcare Centers
+          </h1>
           <p className="text-muted-foreground">
-            Locate nearby hospitals and clinics for your maternal care needs.
+            Locate maternal health centers and hospitals near you for immediate care.
           </p>
         </div>
 
-        {/* Search Button */}
+        {/* Search Section */}
         <Card className="mb-8">
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-2 mb-4">
-                <MapPin className="h-5 w-5 text-blue-600" />
-                <h3 className="font-medium">Find Nearby Healthcare Centers</h3>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <MapPin className="h-5 w-5 text-rose-500" />
+              Search for Healthcare Centers
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1">
+                <Input
+                  placeholder="Enter city, state, or address..."
+                  value={searchLocation}
+                  onChange={(e) => setSearchLocation(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && searchByLocation()}
+                />
               </div>
-              <p className="text-sm text-muted-foreground mb-4">
-                We'll use your location to find the closest hospitals and clinics.
-              </p>
-              <Button 
-                onClick={findNearbyHealthcare}
-                disabled={isLoading}
-                className="bg-blue-500 hover:bg-blue-600"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Finding Healthcare Centers...
-                  </>
-                ) : (
-                  <>
-                    <Navigation className="h-4 w-4 mr-2" />
-                    Find Nearby Centers
-                  </>
-                )}
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={searchByLocation}
+                  disabled={loading || !searchLocation.trim()}
+                  className="bg-rose-500 hover:bg-rose-600"
+                >
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <MapPin className="h-4 w-4 mr-2" />}
+                  Search Location
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={getCurrentLocation}
+                  disabled={loading}
+                >
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Navigation className="h-4 w-4 mr-2" />}
+                  Use My Location
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
 
+        {/* Google Maps */}
+        <div className="mb-8">
+          <GoogleMapsLoader onMapLoad={onMapLoad} />
+        </div>
+
         {/* Results */}
-        {centers.length > 0 && (
+        {loading && (
+          <Card>
+            <CardContent className="py-8">
+              <div className="text-center">
+                <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+                <p className="text-muted-foreground">Searching for healthcare centers...</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {!loading && centers.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {centers.map((center) => (
-              <Card key={center.id} className="border-blue-200">
-                <CardHeader className="pb-3">
+              <Card key={center.id} className="hover:shadow-lg transition-shadow">
+                <CardHeader>
                   <div className="flex justify-between items-start">
-                    <CardTitle className="text-lg leading-tight">{center.name}</CardTitle>
-                    <Badge variant={center.isOpen ? "default" : "secondary"}>
-                      {center.isOpen ? "Open" : "Closed"}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline">{center.type}</Badge>
-                    {center.rating > 0 && (
-                      <div className="flex items-center gap-1">
-                        <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                        <span className="text-sm">{center.rating}</span>
-                      </div>
+                    <CardTitle className="text-lg">{center.name}</CardTitle>
+                    {center.isOpen !== undefined && (
+                      <Badge variant={center.isOpen ? "default" : "secondary"}>
+                        {center.isOpen ? "Open" : "Closed"}
+                      </Badge>
                     )}
                   </div>
+                  {center.specialty && (
+                    <Badge variant="outline" className="w-fit">
+                      {center.specialty}
+                    </Badge>
+                  )}
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex items-start gap-2">
-                      <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                      <span className="text-sm">{center.address}</span>
-                    </div>
-                    
+                <CardContent className="space-y-4">
+                  <div className="flex items-start gap-2">
+                    <MapPin className="h-4 w-4 text-muted-foreground mt-1 flex-shrink-0" />
+                    <span className="text-sm text-muted-foreground">{center.address}</span>
+                  </div>
+                  
+                  {center.phone && (
                     <div className="flex items-center gap-2">
                       <Phone className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">{center.phone}</span>
+                      <span className="text-sm text-muted-foreground">{center.phone}</span>
                     </div>
-                    
+                  )}
+                  
+                  {center.rating && (
                     <div className="flex items-center gap-2">
-                      <Navigation className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm font-medium">{center.distance} km away</span>
+                      <Star className="h-4 w-4 text-yellow-500" />
+                      <span className="text-sm">{center.rating}/5</span>
                     </div>
-                    
-                    <div className="pt-3">
-                      <Button 
-                        variant="outline" 
-                        className="w-full"
-                        onClick={() => {
-                          if (userLocation) {
-                            const url = `https://www.google.com/maps/dir/${userLocation.lat},${userLocation.lng}/${center.address}`;
-                            window.open(url, '_blank');
-                          }
-                        }}
-                      >
-                        Get Directions
-                      </Button>
-                    </div>
-                  </div>
+                  )}
+                  
+                  <Button 
+                    onClick={() => getDirections(center.address)} 
+                    className="w-full bg-rose-500 hover:bg-rose-600"
+                  >
+                    <Navigation className="h-4 w-4 mr-2" />
+                    Get Directions
+                  </Button>
                 </CardContent>
               </Card>
             ))}
           </div>
         )}
 
-        {centers.length === 0 && !isLoading && (
-          <Card className="text-center py-12">
-            <CardContent>
-              <MapPin className="h-12 w-12 mx-auto mb-4 text-blue-500 opacity-50" />
-              <h3 className="text-lg font-medium mb-2">No Results Yet</h3>
-              <p className="text-muted-foreground">
-                Click "Find Nearby Centers" to discover healthcare facilities in your area.
-              </p>
+        {!loading && centers.length === 0 && searchLocation && (
+          <Card>
+            <CardContent className="py-8">
+              <div className="text-center">
+                <MapPin className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+                <p className="text-muted-foreground">
+                  No healthcare centers found. Try searching for a different location.
+                </p>
+              </div>
             </CardContent>
           </Card>
         )}
       </div>
+
+      <footer className="border-t bg-background px-4 py-8 sm:px-6 lg:px-8 mt-16">
+        <div className="max-w-6xl mx-auto text-center text-muted-foreground">
+          <p>&copy; {new Date().getFullYear()} MamaAlert. Protecting Nigerian mothers, one alert at a time.</p>
+        </div>
+      </footer>
     </div>
   );
 };
