@@ -249,20 +249,20 @@ const Dashboard = () => {
   ].slice(0, 5);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50">
       <Navbar />
       
       <WelcomeModal 
         isOpen={showWelcomeModal}
         onClose={handleWelcomeModalClose}
-        userName={user.firstName || 'there'}
+        userName={user.firstName || 'Mama'}
       />
       
       <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">
-            Welcome back, {user.firstName || 'Mama'}! 
+            Welcome back, {user.firstName || 'Mama'}! 💕
           </h1>
           <p className="text-muted-foreground">
             {user.hasPregnancyData ? 
@@ -274,16 +274,16 @@ const Dashboard = () => {
 
         {/* Onboarding Alert */}
         {!user.hasPregnancyData && (
-          <Card className="mb-8 border-amber-200 bg-gradient-to-r from-amber-50 to-yellow-50">
+          <Card className="mb-8 border-amber-200 bg-gradient-to-r from-amber-50 to-yellow-50 shadow-lg">
             <CardContent className="pt-6">
               <div className="text-center">
-                <h2 className="text-xl font-bold text-amber-800 mb-4">Complete Your Pregnancy Profile</h2>
+                <h2 className="text-xl font-bold text-amber-800 mb-4">Complete Your Pregnancy Profile 🤱</h2>
                 <p className="text-amber-700 mb-6">
                   Help us provide you with personalized care by sharing your pregnancy details. 
                   This information will help us send you relevant alerts and track your symptoms better.
                 </p>
                 <Link to="/pregnancy-details">
-                  <Button className="bg-amber-600 hover:bg-amber-700 text-white">
+                  <Button className="bg-amber-600 hover:bg-amber-700 text-white shadow-lg">
                     <Heart className="h-4 w-4 mr-2" />
                     Add Pregnancy Details
                   </Button>
@@ -294,10 +294,10 @@ const Dashboard = () => {
         )}
 
         {/* Emergency Alert Button */}
-        <Card className="mb-8 border-red-200 bg-gradient-to-r from-red-50 to-rose-50">
+        <Card className="mb-8 border-red-200 bg-gradient-to-r from-red-50 to-rose-50 shadow-lg">
           <CardContent className="pt-6">
             <div className="text-center">
-              <h2 className="text-xl font-bold text-red-800 mb-4">Emergency Alert</h2>
+              <h2 className="text-xl font-bold text-red-800 mb-4">Emergency Alert 🚨</h2>
               <p className="text-red-700 mb-6">
                 If you're experiencing a medical emergency, press the button below to instantly 
                 notify your emergency contacts and nearest healthcare center.
@@ -309,7 +309,7 @@ const Dashboard = () => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="border-rose-200">
+          <Card className="border-rose-200 bg-white/80 backdrop-blur-sm shadow-lg">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -330,7 +330,7 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-white/80 backdrop-blur-sm shadow-lg">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -347,7 +347,7 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-white/80 backdrop-blur-sm shadow-lg">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -362,7 +362,7 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-white/80 backdrop-blur-sm shadow-lg">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -386,7 +386,7 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Quick Actions */}
           <div className="lg:col-span-2 space-y-6">
-            <Card>
+            <Card className="bg-white/80 backdrop-blur-sm shadow-lg">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle>Quick Actions</CardTitle>
@@ -396,7 +396,7 @@ const Dashboard = () => {
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <Link to="/pregnancy-details">
-                    <Button variant="outline" className="w-full h-20 flex flex-col gap-2">
+                    <Button variant="outline" className="w-full h-20 flex flex-col gap-2 hover:shadow-md transition-shadow">
                       <Heart className="h-6 w-6 text-rose-500" />
                       <span className="text-sm">
                         {user.hasPregnancyData ? 'Edit Details' : 'Add Details'}
@@ -405,28 +405,28 @@ const Dashboard = () => {
                   </Link>
                   
                   <Link to="/symptom-logger">
-                    <Button variant="outline" className="w-full h-20 flex flex-col gap-2">
+                    <Button variant="outline" className="w-full h-20 flex flex-col gap-2 hover:shadow-md transition-shadow">
                       <Heart className="h-6 w-6 text-rose-500" />
                       <span className="text-sm">Log Symptoms</span>
                     </Button>
                   </Link>
                   
                   <Link to="/symptom-guide">
-                    <Button variant="outline" className="w-full h-20 flex flex-col gap-2">
+                    <Button variant="outline" className="w-full h-20 flex flex-col gap-2 hover:shadow-md transition-shadow">
                       <Activity className="h-6 w-6 text-blue-500" />
                       <span className="text-sm">Symptom Guide</span>
                     </Button>
                   </Link>
                   
                   <Link to="/emergency-contacts">
-                    <Button variant="outline" className="w-full h-20 flex flex-col gap-2">
+                    <Button variant="outline" className="w-full h-20 flex flex-col gap-2 hover:shadow-md transition-shadow">
                       <Phone className="h-6 w-6 text-green-500" />
                       <span className="text-sm">Contacts</span>
                     </Button>
                   </Link>
                   
                   <Link to="/healthcare-centers">
-                    <Button variant="outline" className="w-full h-20 flex flex-col gap-2">
+                    <Button variant="outline" className="w-full h-20 flex flex-col gap-2 hover:shadow-md transition-shadow">
                       <MapPin className="h-6 w-6 text-purple-500" />
                       <span className="text-sm">Find Care</span>
                     </Button>
@@ -436,7 +436,7 @@ const Dashboard = () => {
             </Card>
 
             {/* Upcoming Appointments */}
-            <Card>
+            <Card className="bg-white/80 backdrop-blur-sm shadow-lg">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Calendar className="h-5 w-5 text-blue-500" />
@@ -452,10 +452,10 @@ const Dashboard = () => {
                 ) : appointments.length > 0 ? (
                   <div className="space-y-4">
                     {appointments.map((appointment) => (
-                      <div key={appointment.id} className="p-4 border rounded-lg">
+                      <div key={appointment.id} className="p-4 border rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50">
                         <div className="flex justify-between items-start mb-2">
                           <h4 className="font-medium">Antenatal Appointment</h4>
-                          <Badge variant="outline">{new Date(appointment.appointment_date).toLocaleDateString()}</Badge>
+                          <Badge variant="outline" className="bg-white">{new Date(appointment.appointment_date).toLocaleDateString()}</Badge>
                         </div>
                         <div className="space-y-1 text-sm text-muted-foreground">
                           <div className="flex items-center gap-2">
@@ -467,7 +467,7 @@ const Dashboard = () => {
                             <span>{appointment.hospital_name}</span>
                           </div>
                           {appointment.notes && (
-                            <div className="mt-2 p-2 bg-gray-50 rounded text-xs">
+                            <div className="mt-2 p-2 bg-white rounded text-xs">
                               {appointment.notes}
                             </div>
                           )}
@@ -491,7 +491,7 @@ const Dashboard = () => {
 
           {/* Recent Activity & Health Tips */}
           <div className="space-y-6">
-            <Card>
+            <Card className="bg-white/80 backdrop-blur-sm shadow-lg">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Activity className="h-5 w-5 text-rose-500" />
@@ -516,7 +516,7 @@ const Dashboard = () => {
                     </div>
                   )) : (
                     <p className="text-center text-muted-foreground py-4">
-                      No recent activity. Start by logging symptoms or scheduling appointments!
+                      No recent activity. Start by logging symptoms or scheduling appointments! 💕
                     </p>
                   )}
                 </div>
@@ -530,9 +530,9 @@ const Dashboard = () => {
       </div>
 
       {/* Footer with correct year */}
-      <footer className="border-t bg-background px-4 py-8 sm:px-6 lg:px-8 mt-16">
+      <footer className="border-t bg-background/80 backdrop-blur-sm px-4 py-8 sm:px-6 lg:px-8 mt-16">
         <div className="max-w-6xl mx-auto text-center text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} MamaAlert. Protecting Nigerian mothers, one alert at a time.</p>
+          <p>&copy; {new Date().getFullYear()} MamaAlert. Protecting Nigerian mothers, one alert at a time. 💕</p>
         </div>
       </footer>
     </div>
