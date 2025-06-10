@@ -1,3 +1,4 @@
+
 import { useAuth } from "@/components/AuthProvider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,13 +13,6 @@ const Index = () => {
     return <Navigate to="/dashboard" replace />;
   }
 
-  const scrollToFeatures = () => {
-    const featuresSection = document.getElementById('features-section');
-    if (featuresSection) {
-      featuresSection.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -27,16 +21,9 @@ const Index = () => {
       <section className="relative px-4 pt-20 pb-16 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
           <div className="mb-8">
-            <div className="flex items-center justify-center mb-6">
-              <img 
-                src="/lovable-uploads/c1d146a9-2b02-45d8-acf9-01d2ff34c105.png" 
-                alt="MamaAlert Logo" 
-                className="h-16 w-auto mr-4"
-              />
-              <h1 className="text-4xl sm:text-6xl font-bold text-foreground">
-                MamaAlert
-              </h1>
-            </div>
+            <h1 className="text-4xl sm:text-6xl font-bold text-foreground mb-6">
+              MamaAlert
+            </h1>
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
               Your trusted companion during pregnancy. Get instant emergency support, 
               track symptoms, and stay connected with healthcare providers across Nigeria.
@@ -49,12 +36,7 @@ const Index = () => {
                 Join MamaAlert Today
               </Button>
             </Link>
-            <Button 
-              variant="outline" 
-              size="lg" 
-              className="w-full sm:w-auto text-lg px-8 py-6 border-rose-200"
-              onClick={scrollToFeatures}
-            >
+            <Button variant="outline" size="lg" className="w-full sm:w-auto text-lg px-8 py-6 border-rose-200">
               Learn More
             </Button>
           </div>
@@ -78,7 +60,7 @@ const Index = () => {
       </section>
 
       {/* Features Section */}
-      <section id="features-section" className="px-4 py-16 sm:px-6 lg:px-8 bg-rose-50/30">
+      <section className="px-4 py-16 sm:px-6 lg:px-8 bg-rose-50/30">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-foreground mb-4">
@@ -198,7 +180,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="border-t bg-background px-4 py-8 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto text-center text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} MamaAlert. Protecting Nigerian mothers, one alert at a time.</p>
+          <p>&copy; 2024 MamaAlert. Protecting Nigerian mothers, one alert at a time.</p>
         </div>
       </footer>
     </div>

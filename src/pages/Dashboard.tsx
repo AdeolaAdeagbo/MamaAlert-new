@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { Navbar } from "@/components/Navbar";
@@ -42,20 +41,11 @@ interface EmergencyAlert {
   location?: string;
 }
 
-interface SymptomLog {
-  id: string;
-  symptom_type: string;
-  severity: number;
-  description: string;
-  timestamp: string;
-}
-
 const Dashboard = () => {
   const { user, refreshUserData, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [emergencyAlerts, setEmergencyAlerts] = useState<EmergencyAlert[]>([]);
-  const [recentSymptoms, setRecentSymptoms] = useState<SymptomLog[]>([]);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [dataLoaded, setDataLoaded] = useState(false);
@@ -135,24 +125,6 @@ const Dashboard = () => {
         console.error('Exception loading emergency alerts:', error);
       }
 
-      // Load recent symptoms
-      try {
-        const { data: symptomsData, error: symptomsError } = await supabase
-          .from('symptom_logs')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('timestamp', { ascending: false })
-          .limit(10);
-
-        if (symptomsError) {
-          console.error('Error loading symptoms:', symptomsError);
-        } else if (symptomsData) {
-          setRecentSymptoms(symptomsData);
-        }
-      } catch (error) {
-        console.error('Exception loading symptoms:', error);
-      }
-
       setDataLoaded(true);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
@@ -169,62 +141,51 @@ const Dashboard = () => {
   const handleAppointmentAdded = () => {
     loadDashboardData();
     refreshUserData();
-    toast({
-      title: "Appointment Saved",
-      description: "Your appointment has been saved successfully.",
-    });
   };
 
   const handleEmergencyAlert = (alert: any) => {
     setEmergencyAlerts(prev => [alert, ...prev.slice(0, 4)]);
-    toast({
-      title: "Emergency Alert Sent",
-      description: "Your emergency contacts have been notified.",
-    });
   };
 
   const handleWelcomeModalClose = () => {
     setShowWelcomeModal(false);
   };
 
-  // Calculate dynamic health status
-  const getHealthStatus = () => {
-    if (emergencyAlerts.length > 0) {
-      return { status: "Emergency", color: "text-red-600", description: `${emergencyAlerts.length} recent alerts` };
-    }
-    
-    // Check recent symptoms (last 7 days)
-    const lastWeek = new Date();
-    lastWeek.setDate(lastWeek.getDate() - 7);
-    
-    const recentSevereSymptoms = recentSymptoms.filter(symptom => {
-      const symptomDate = new Date(symptom.timestamp);
-      return symptomDate >= lastWeek && symptom.severity >= 7;
-    });
-    
-    if (recentSevereSymptoms.length > 0) {
-      return { status: "Needs Attention", color: "text-yellow-600", description: `${recentSevereSymptoms.length} severe symptoms logged` };
-    }
-    
-    if (recentSymptoms.length > 0) {
-      return { status: "Monitoring", color: "text-blue-600", description: `${recentSymptoms.length} symptoms tracked` };
-    }
-    
-    return { status: "Good", color: "text-green-600", description: "No concerning symptoms" };
-  };
-
-  const healthStatus = getHealthStatus();
-
   // Mock data for stats with safe fallbacks
   const userStats = {
     pregnancyWeek: user?.pregnancyWeek || 0,
     nextAppointment: appointments.length > 0 ? new Date(appointments[0].appointment_date).toLocaleDateString() : "No upcoming appointments",
     emergencyContacts: user?.emergencyContacts || 0,
-    recentSymptoms: recentSymptoms.length
+    recentSymptoms: 0
   };
 
   // Recent Activity
   const recentActivity = [
+    {
+      id: "1",
+      type: "symptom",
+      title: "Logged morning sickness",
+      time: "2 hours ago",
+      status: "normal"
+    },
+    {
+      id: "2", 
+      type: "appointment",
+      title: "Appointment reminder set",
+      time: "1 day ago",
+      status: "normal"
+    },
+    {
+      id: "3",
+      type: "contact",
+      title: "Added emergency contact",
+      time: "3 days ago", 
+      status: "normal"
+    }
+  ];
+
+  // Add emergency alerts to recent activity
+  const allActivity = [
     ...emergencyAlerts.slice(0, 2).map(alert => ({
       id: alert.id,
       type: "emergency",
@@ -232,20 +193,7 @@ const Dashboard = () => {
       time: new Date(alert.timestamp).toLocaleString(),
       status: "emergency"
     })),
-    ...recentSymptoms.slice(0, 3).map(symptom => ({
-      id: symptom.id,
-      type: "symptom",
-      title: `Logged ${symptom.symptom_type}`,
-      time: new Date(symptom.timestamp).toLocaleString(),
-      status: "normal"
-    })),
-    ...appointments.slice(0, 2).map(appointment => ({
-      id: appointment.id,
-      type: "appointment",
-      title: "Appointment scheduled",
-      time: new Date(appointment.created_at).toLocaleString(),
-      status: "normal"
-    }))
+    ...recentActivity
   ].slice(0, 5);
 
   return (
@@ -372,11 +320,11 @@ const Dashboard = () => {
               </div>
             </CardHeader>
             <CardContent>
-              <div className={`text-2xl font-bold ${healthStatus.color}`}>
-                {healthStatus.status}
+              <div className="text-2xl font-bold text-green-600">
+                {emergencyAlerts.length > 0 ? "Alert Sent" : "Good"}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                {healthStatus.description}
+                {emergencyAlerts.length > 0 ? `${emergencyAlerts.length} recent alerts` : "No alerts"}
               </p>
             </CardContent>
           </Card>
@@ -500,7 +448,7 @@ const Dashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {recentActivity.length > 0 ? recentActivity.map((activity) => (
+                  {allActivity.map((activity) => (
                     <div key={activity.id} className="flex items-start gap-3">
                       <div className={`w-2 h-2 rounded-full mt-2 ${
                         activity.status === 'emergency' ? 'bg-red-500' : 'bg-rose-500'
@@ -514,11 +462,7 @@ const Dashboard = () => {
                         <p className="text-xs text-muted-foreground">{activity.time}</p>
                       </div>
                     </div>
-                  )) : (
-                    <p className="text-center text-muted-foreground py-4">
-                      No recent activity. Start by logging symptoms or scheduling appointments!
-                    </p>
-                  )}
+                  ))}
                 </div>
               </CardContent>
             </Card>
@@ -528,13 +472,6 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
-
-      {/* Footer with correct year */}
-      <footer className="border-t bg-background px-4 py-8 sm:px-6 lg:px-8 mt-16">
-        <div className="max-w-6xl mx-auto text-center text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} MamaAlert. Protecting Nigerian mothers, one alert at a time.</p>
-        </div>
-      </footer>
     </div>
   );
 };

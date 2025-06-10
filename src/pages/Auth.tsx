@@ -92,7 +92,6 @@ const Auth = () => {
             title: "Welcome back!",
             description: "Successfully logged in to your MamaAlert account.",
           });
-          // Don't manually redirect - AuthProvider will handle this
         }
       } else {
         console.log('Attempting signup...');
@@ -101,9 +100,8 @@ const Auth = () => {
         if (!result.error) {
           toast({
             title: "Account Created!",
-            description: "Welcome to MamaAlert! You can now access your dashboard.",
+            description: "Welcome to MamaAlert! Please check your email for verification if required.",
           });
-          // Don't manually redirect - AuthProvider will handle this
         }
       }
 
@@ -127,7 +125,7 @@ const Auth = () => {
     }
   };
 
-  const isProcessing = isSubmitting;
+  const isProcessing = isLoading || isSubmitting;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 to-pink-100">
@@ -137,11 +135,7 @@ const Auth = () => {
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <div className="flex items-center justify-center gap-3 mb-6">
-              <img 
-                src="/lovable-uploads/c1d146a9-2b02-45d8-acf9-01d2ff34c105.png" 
-                alt="MamaAlert Logo" 
-                className="h-12 w-12"
-              />
+              <Heart className="h-12 w-12 text-rose-500" />
             </div>
             <h2 className="text-3xl font-bold text-foreground">
               {isLogin ? "Welcome Back" : "Join MamaAlert"}
