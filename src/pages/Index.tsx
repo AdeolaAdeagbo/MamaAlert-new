@@ -13,6 +13,13 @@ const Index = () => {
     return <Navigate to="/dashboard" replace />;
   }
 
+  const scrollToFeatures = () => {
+    const featuresSection = document.getElementById('features-section');
+    if (featuresSection) {
+      featuresSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -21,9 +28,16 @@ const Index = () => {
       <section className="relative px-4 pt-20 pb-16 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
           <div className="mb-8">
-            <h1 className="text-4xl sm:text-6xl font-bold text-foreground mb-6">
-              MamaAlert
-            </h1>
+            <div className="flex items-center justify-center mb-6">
+              <img 
+                src="/lovable-uploads/c1d146a9-2b02-45d8-acf9-01d2ff34c105.png" 
+                alt="MamaAlert Logo" 
+                className="h-16 w-auto mr-4"
+              />
+              <h1 className="text-4xl sm:text-6xl font-bold text-foreground">
+                MamaAlert
+              </h1>
+            </div>
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
               Your trusted companion during pregnancy. Get instant emergency support, 
               track symptoms, and stay connected with healthcare providers across Nigeria.
@@ -36,7 +50,12 @@ const Index = () => {
                 Join MamaAlert Today
               </Button>
             </Link>
-            <Button variant="outline" size="lg" className="w-full sm:w-auto text-lg px-8 py-6 border-rose-200">
+            <Button 
+              variant="outline" 
+              size="lg" 
+              className="w-full sm:w-auto text-lg px-8 py-6 border-rose-200"
+              onClick={scrollToFeatures}
+            >
               Learn More
             </Button>
           </div>
@@ -60,7 +79,7 @@ const Index = () => {
       </section>
 
       {/* Features Section */}
-      <section className="px-4 py-16 sm:px-6 lg:px-8 bg-rose-50/30">
+      <section id="features-section" className="px-4 py-16 sm:px-6 lg:px-8 bg-rose-50/30">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-foreground mb-4">

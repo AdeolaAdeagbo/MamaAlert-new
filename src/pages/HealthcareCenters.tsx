@@ -76,14 +76,14 @@ const HealthcareCenters = () => {
           setUserLocation({ lat: latitude, lng: longitude });
           
           const map = new google.maps.Map(document.createElement('div'), {
-            center: new google.maps.LatLng(latitude, longitude),
+            center: { lat: latitude, lng: longitude },
             zoom: 15
           });
 
           const service = new google.maps.places.PlacesService(map);
           
           const request = {
-            location: new google.maps.LatLng(latitude, longitude),
+            location: { lat: latitude, lng: longitude },
             radius: 15000, // 15km radius for more results
             type: 'hospital'
           };
