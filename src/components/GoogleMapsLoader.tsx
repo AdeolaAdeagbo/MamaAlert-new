@@ -1,37 +1,36 @@
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { MapPin, Loader2 } from "lucide-react";
+import { MapPin, Navigation } from "lucide-react";
 
 interface GoogleMapsLoaderProps {
-  onMapLoad: (mapInstance: google.maps.Map) => void;
+  onPlacesLoaded: (places: any[]) => void;
 }
 
-export const GoogleMapsLoader = ({ onMapLoad }: GoogleMapsLoaderProps) => {
+export const GoogleMapsLoader = ({ onPlacesLoaded }: GoogleMapsLoaderProps) => {
   const [isLoading, setIsLoading] = useState(false);
-  const [mapContainer, setMapContainer] = useState<HTMLDivElement | null>(null);
   const { toast } = useToast();
 
-  useEffect(() => {
-    if (mapContainer && window.google?.maps) {
-      const map = new google.maps.Map(mapContainer, {
-        center: { lat: 9.0820, lng: 8.6753 }, // Nigeria center
-        zoom: 6,
-        styles: [
-          {
-            featureType: "poi.medical",
-            elementType: "geometry",
-            stylers: [{ color: "#ff6b6b" }]
-          }
-        ]
-      });
-      onMapLoad(map);
-    }
-  }, [mapContainer, onMapLoad]);
+  const loadGoogleMaps = (key: string) => {
+    return new Promise((resolve, reject) => {
+      if (window.google) {
+        resolve(window.google);
+        return;
+      }
 
-  const loadGoogleMaps = () => {
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=places`;
+      script.async = true;
+      script.defer = true;
+      script.onload = () => resolve(window.google);
+      script.onerror = reject;
+      document.head.appendChild(script);
+    });
+  };
+
+  const findNearbyHealthcare = async () => {
     const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
     
     if (!apiKey) {
@@ -43,58 +42,103 @@ export const GoogleMapsLoader = ({ onMapLoad }: GoogleMapsLoaderProps) => {
       return;
     }
 
-    if (window.google?.maps) {
-      return;
-    }
-
     setIsLoading(true);
-    const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
-    script.async = true;
-    script.defer = true;
-    script.onload = () => {
-      setIsLoading(false);
+
+    try {
+      await loadGoogleMaps(apiKey);
+      
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          
+          const map = new google.maps.Map(document.createElement('div'), {
+            center: { lat: latitude, lng: longitude },
+            zoom: 15
+          });
+
+          const service = new google.maps.places.PlacesService(map);
+          
+          const request = {
+            location: { lat: latitude, lng: longitude },
+            radius: 10000, // 10km radius
+            type: 'hospital'
+          };
+
+          service.nearbySearch(request, (results, status) => {
+            if (status === google.maps.places.PlacesServiceStatus.OK && results) {
+              const healthcareCenters = results.map(place => ({
+                id: place.place_id,
+                name: place.name,
+                address: place.vicinity,
+                rating: place.rating || 0,
+                distance: calculateDistance(latitude, longitude, 
+                  place.geometry?.location?.lat() || 0, 
+                  place.geometry?.location?.lng() || 0),
+                type: place.types?.includes('hospital') ? 'hospital' : 'clinic',
+                phone: place.formatted_phone_number || 'Not available',
+                isOpen: place.opening_hours?.open_now || false
+              }));
+              
+              onPlacesLoaded(healthcareCenters);
+              toast({
+                title: "Healthcare Centers Found",
+                description: `Found ${healthcareCenters.length} nearby healthcare centers.`
+              });
+            } else {
+              toast({
+                title: "Search Failed",
+                description: "Could not find nearby healthcare centers. Please try again.",
+                variant: "destructive"
+              });
+            }
+            setIsLoading(false);
+          });
+        },
+        (error) => {
+          toast({
+            title: "Location Access Denied",
+            description: "Please enable location access to find nearby healthcare centers.",
+            variant: "destructive"
+          });
+          setIsLoading(false);
+        }
+      );
+    } catch (error) {
       toast({
-        title: "Maps Loaded",
-        description: "Google Maps is ready to use.",
-      });
-    };
-    script.onerror = () => {
-      setIsLoading(false);
-      toast({
-        title: "Maps Error",
+        title: "Maps API Error",
         description: "Failed to load Google Maps. Please check your internet connection.",
         variant: "destructive"
       });
-    };
-    document.head.appendChild(script);
+      setIsLoading(false);
+    }
   };
 
-  useEffect(() => {
-    loadGoogleMaps();
-  }, []);
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const R = 6371; // Earth's radius in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return Math.round(R * c * 10) / 10; // Round to 1 decimal place
+  };
 
   return (
-    <Card className="mb-6">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <MapPin className="h-5 w-5 text-primary" />
-          Map View
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {isLoading && (
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-6 w-6 animate-spin mr-2" />
-            <span>Loading maps...</span>
-          </div>
-        )}
-        <div 
-          ref={setMapContainer}
-          className="w-full h-64 bg-muted rounded-lg"
-          style={{ minHeight: '256px' }}
-        />
-      </CardContent>
-    </Card>
+    <div className="space-y-4 p-4 border rounded-lg bg-blue-50">
+      <div className="flex items-center gap-2">
+        <MapPin className="h-5 w-5 text-blue-600" />
+        <h3 className="font-medium">Find Nearby Healthcare Centers</h3>
+      </div>
+      
+      <Button 
+        onClick={findNearbyHealthcare}
+        disabled={isLoading}
+        className="w-full"
+      >
+        <Navigation className="h-4 w-4 mr-2" />
+        {isLoading ? 'Finding Healthcare Centers...' : 'Find Nearby Centers'}
+      </Button>
+    </div>
   );
 };
