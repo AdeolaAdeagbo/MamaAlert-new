@@ -1,4 +1,3 @@
-
 import { useAuth } from "@/components/AuthProvider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -199,7 +198,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="border-t bg-background px-4 py-8 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto text-center text-muted-foreground">
-          <p>&copy; 2024 MamaAlert. Protecting Nigerian mothers, one alert at a time.</p>
+          <p>&copy; {new Date().getFullYear()} MamaAlert. Protecting Nigerian mothers, one alert at a time.</p>
         </div>
       </footer>
     </div>

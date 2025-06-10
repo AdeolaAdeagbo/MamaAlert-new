@@ -3,7 +3,7 @@ import { useAuth } from "./AuthProvider";
 import { useTheme } from "./ThemeProvider";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Moon, Sun, Heart } from "lucide-react";
+import { Moon, Sun } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export function Navbar() {
@@ -15,7 +15,11 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <Link to="/" className="flex items-center space-x-2">
-            <Heart className="h-6 w-6 text-rose-500" />
+            <img 
+              src="/lovable-uploads/c1d146a9-2b02-45d8-acf9-01d2ff34c105.png" 
+              alt="MamaAlert Logo" 
+              className="h-8 w-8"
+            />
             <h1 className="text-xl font-bold text-rose-600">MamaAlert</h1>
           </Link>
 
