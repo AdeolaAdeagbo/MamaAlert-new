@@ -109,7 +109,7 @@ const HealthcareCenters = () => {
     }
 
     setLoading(true);
-    const geocoder = new google.maps.Geocoder();
+    const geocoder = new window.google.maps.Geocoder();
     
     geocoder.geocode({ address: searchLocation }, (results, status) => {
       if (status === 'OK' && results && results[0]?.geometry?.location) {
@@ -143,10 +143,9 @@ const HealthcareCenters = () => {
     }
 
     const request: google.maps.places.PlaceSearchRequest = {
-      location: new google.maps.LatLng(location.lat, location.lng),
-      radius: 10000, // 10km radius
-      type: 'hospital',
-      keyword: 'maternal health maternity hospital clinic'
+      location: new window.google.maps.LatLng(location.lat, location.lng),
+      radius: 10000,
+      type: 'hospital'
     };
 
     placesService.nearbySearch(request, (results, status) => {
@@ -154,7 +153,6 @@ const HealthcareCenters = () => {
       
       if (status === google.maps.places.PlacesServiceStatus.OK && results) {
         const healthcareCenters: HealthcareCenter[] = results.slice(0, 10).map((place, index) => {
-          // Use place.vicinity or place.name as fallback for address
           const address = place.vicinity || place.name || "Address not available";
           
           return {
@@ -223,7 +221,7 @@ const HealthcareCenters = () => {
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <MapPin className="h-5 w-5 text-rose-500" />
+              <MapPin className="h-5 w-5 text-primary" />
               Search for Healthcare Centers
             </CardTitle>
           </CardHeader>
@@ -241,7 +239,7 @@ const HealthcareCenters = () => {
                 <Button 
                   onClick={searchByLocation}
                   disabled={loading || !searchLocation.trim()}
-                  className="bg-rose-500 hover:bg-rose-600"
+                  className="bg-primary hover:bg-primary/90"
                 >
                   {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <MapPin className="h-4 w-4 mr-2" />}
                   Search Location
@@ -260,9 +258,7 @@ const HealthcareCenters = () => {
         </Card>
 
         {/* Google Maps */}
-        <div className="mb-8">
-          <GoogleMapsLoader onMapLoad={onMapLoad} />
-        </div>
+        <GoogleMapsLoader onMapLoad={onMapLoad} />
 
         {/* Results */}
         {loading && (
@@ -317,7 +313,7 @@ const HealthcareCenters = () => {
                   
                   <Button 
                     onClick={() => getDirections(center.address)} 
-                    className="w-full bg-rose-500 hover:bg-rose-600"
+                    className="w-full bg-primary hover:bg-primary/90"
                   >
                     <Navigation className="h-4 w-4 mr-2" />
                     Get Directions

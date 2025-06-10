@@ -149,32 +149,32 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted">
       <Navbar />
       
       <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <div className="flex items-center justify-center gap-3 mb-6">
-              <div className="w-16 h-16 bg-gradient-to-br from-rose-500 to-pink-600 rounded-full flex items-center justify-center shadow-lg">
+              <div className="w-16 h-16 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center shadow-lg">
                 <Heart className="h-8 w-8 text-white" fill="currentColor" />
               </div>
             </div>
             <h2 className="text-3xl font-bold text-foreground mb-2">
-              {isLogin ? "Welcome Back, Mama! 💕" : "Join MamaAlert Family"}
+              {isLogin ? "Welcome Back" : "Join MamaAlert"}
             </h2>
             <p className="text-muted-foreground">
               {isLogin 
-                ? "Sign in to access your maternal health dashboard and continue your safe pregnancy journey" 
-                : "Create your account and join thousands of protected mamas across Nigeria"
+                ? "Sign in to access your maternal health dashboard" 
+                : "Create your account to get started with safe pregnancy monitoring"
               }
             </p>
           </div>
 
-          <Card className="border-rose-200 shadow-xl bg-white/80 backdrop-blur-sm">
+          <Card className="border shadow-xl bg-card">
             <CardHeader className="space-y-1">
               <CardTitle className="text-center text-xl">
-                {isLogin ? "Sign In to Your Account" : "Create Your Safe Space"}
+                {isLogin ? "Sign In" : "Create Account"}
               </CardTitle>
               <p className="text-center text-sm text-muted-foreground">
                 {isLogin 
@@ -248,7 +248,7 @@ const Auth = () => {
 
                 <Button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white font-medium py-3 shadow-lg"
+                  className="w-full bg-primary hover:bg-primary/90 text-white font-medium py-3 shadow-lg"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? (
@@ -259,7 +259,7 @@ const Auth = () => {
                   ) : (
                     <>
                       <Heart className="h-4 w-4 mr-2" />
-                      {isLogin ? "Sign In" : "Create Account & Get Protected"}
+                      {isLogin ? "Sign In" : "Create Account"}
                     </>
                   )}
                 </Button>
@@ -276,18 +276,18 @@ const Auth = () => {
                     setFirstName("");
                     setLastName("");
                   }}
-                  className="text-sm text-rose-600 hover:text-rose-700 hover:underline font-medium"
+                  className="text-sm text-primary hover:text-primary/80 hover:underline font-medium"
                   disabled={isSubmitting}
                 >
                   {isLogin
-                    ? "Don't have an account? Join the MamaAlert family"
-                    : "Already protecting your pregnancy? Sign in here"
+                    ? "Don't have an account? Create one here"
+                    : "Already have an account? Sign in here"
                   }
                 </button>
               </div>
 
               <div className="mt-4 text-center">
-                <Link to="/" className="text-sm text-muted-foreground hover:text-rose-600 hover:underline">
+                <Link to="/" className="text-sm text-muted-foreground hover:text-primary hover:underline">
                   ← Back to home
                 </Link>
               </div>
@@ -297,7 +297,7 @@ const Auth = () => {
           <div className="mt-6 text-center">
             <p className="text-xs text-muted-foreground max-w-sm mx-auto">
               By creating an account, you agree to receive emergency notifications 
-              and health reminders to keep you and your baby safe. 💝
+              and health reminders to keep you and your baby safe.
             </p>
           </div>
         </div>
