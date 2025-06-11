@@ -141,7 +141,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(session);
       
       if (session?.user) {
-        await loadUserProfile(session.user);
+        // Use setTimeout to prevent auth deadlock
+        setTimeout(() => {
+          loadUserProfile(session.user);
+        }, 0);
       } else {
         setUser(null);
       }
@@ -160,7 +163,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(session);
       
       if (session?.user) {
-        loadUserProfile(session.user);
+        setTimeout(() => {
+          loadUserProfile(session.user);
+        }, 0);
       } else {
         setIsLoading(false);
       }

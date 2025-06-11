@@ -1,12 +1,12 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Navigate, Link } from "react-router-dom";
+import { Navigate, Link, useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { Loader2 } from "lucide-react";
 
@@ -20,10 +20,33 @@ const Auth = () => {
   
   const { user, login, signup, isLoading } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   // Redirect if user is already logged in
-  if (user && !isLoading) {
-    console.log('User authenticated, redirecting to dashboard');
+  useEffect(() => {
+    if (user && !isLoading) {
+      console.log('User authenticated, redirecting to dashboard');
+      navigate('/dashboard', { replace: true });
+    }
+  }, [user, isLoading, navigate]);
+
+  // Show loading screen while auth is loading
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-rose-50 to-pink-100">
+        <Navbar />
+        <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-12">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+            <p className="text-muted-foreground">Loading...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // If user is authenticated, don't show auth form
+  if (user) {
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -93,7 +116,8 @@ const Auth = () => {
             title: "Welcome back!",
             description: "Successfully logged in to your MamaAlert account.",
           });
-          // Navigation will be handled by the Navigate component above
+          // Navigation will be handled by useEffect above
+          return;
         }
       } else {
         console.log('Attempting signup...');
@@ -104,7 +128,8 @@ const Auth = () => {
             title: "Account Created!",
             description: "Welcome to MamaAlert! You can now access your dashboard.",
           });
-          // Navigation will be handled by the Navigate component above
+          // Navigation will be handled by useEffect above
+          return;
         }
       }
 
