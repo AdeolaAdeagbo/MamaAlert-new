@@ -6,7 +6,7 @@ import { AlertTriangle, Heart, CheckCircle } from "lucide-react";
 
 interface SymptomLog {
   id: string;
-  symptomType: string;
+  symptom_type: string;
   severity: number;
   description: string;
   timestamp: string;
@@ -22,21 +22,19 @@ interface HealthAlert {
 
 interface HealthAlertsProps {
   userId: string;
+  recentSymptoms?: SymptomLog[];
 }
 
-export const HealthAlerts = ({ userId }: HealthAlertsProps) => {
+export const HealthAlerts = ({ userId, recentSymptoms = [] }: HealthAlertsProps) => {
   const [alerts, setAlerts] = useState<HealthAlert[]>([]);
 
   useEffect(() => {
     generateHealthAlerts();
-  }, [userId]);
+  }, [userId, recentSymptoms]);
 
   const generateHealthAlerts = () => {
-    // Get recent symptom logs
-    const recentSymptoms = JSON.parse(
-      localStorage.getItem(`symptoms-${userId}`) || "[]"
-    ) as SymptomLog[];
-
+    console.log('Generating health alerts with symptoms:', recentSymptoms);
+    
     const newAlerts: HealthAlert[] = [];
 
     // Analyze recent symptoms (last 7 days)
@@ -47,6 +45,8 @@ export const HealthAlerts = ({ userId }: HealthAlertsProps) => {
       const symptomDate = new Date(symptom.timestamp);
       return symptomDate >= lastWeek && symptom.severity >= 7;
     });
+
+    console.log('Recent severe symptoms:', recentSevereSymptoms);
 
     if (recentSevereSymptoms.length > 0) {
       newAlerts.push({
@@ -60,7 +60,7 @@ export const HealthAlerts = ({ userId }: HealthAlertsProps) => {
 
     // Check for frequent headaches
     const headaches = recentSymptoms.filter(symptom => 
-      symptom.symptomType.toLowerCase().includes("headache") && 
+      symptom.symptom_type.toLowerCase().includes("headache") && 
       new Date(symptom.timestamp) >= lastWeek
     );
 
@@ -70,6 +70,38 @@ export const HealthAlerts = ({ userId }: HealthAlertsProps) => {
         type: "warning",
         title: "Frequent Headaches",
         message: "You've been experiencing frequent headaches. This could indicate high blood pressure - please consult your doctor.",
+        priority: "medium"
+      });
+    }
+
+    // Check for bleeding symptoms
+    const bleedingSymptoms = recentSymptoms.filter(symptom => 
+      symptom.symptom_type.toLowerCase().includes("bleeding") || 
+      symptom.symptom_type.toLowerCase().includes("spotting")
+    );
+
+    if (bleedingSymptoms.length > 0) {
+      newAlerts.push({
+        id: "bleeding-alert",
+        type: "warning",
+        title: "Bleeding Symptoms Logged",
+        message: "You've logged bleeding symptoms. Please contact your healthcare provider immediately for evaluation.",
+        priority: "high"
+      });
+    }
+
+    // Check for nausea/vomiting patterns
+    const nauseaSymptoms = recentSymptoms.filter(symptom => 
+      symptom.symptom_type.toLowerCase().includes("nausea") || 
+      symptom.symptom_type.toLowerCase().includes("vomiting")
+    );
+
+    if (nauseaSymptoms.length >= 4) {
+      newAlerts.push({
+        id: "severe-nausea",
+        type: "warning",
+        title: "Severe Morning Sickness",
+        message: "You've been experiencing frequent nausea/vomiting. Monitor hydration and consider contacting your doctor if it persists.",
         priority: "medium"
       });
     }
@@ -85,7 +117,7 @@ export const HealthAlerts = ({ userId }: HealthAlertsProps) => {
       });
     }
 
-    // General pregnancy tips based on week
+    // General pregnancy tips based on week (using localStorage as fallback)
     const pregnancyData = JSON.parse(
       localStorage.getItem(`pregnancy-data-${userId}`) || "{}"
     );
@@ -112,6 +144,7 @@ export const HealthAlerts = ({ userId }: HealthAlertsProps) => {
       }
     }
 
+    console.log('Generated alerts:', newAlerts);
     setAlerts(newAlerts);
   };
 

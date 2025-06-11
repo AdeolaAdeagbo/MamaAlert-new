@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { Navbar } from "@/components/Navbar";
@@ -50,12 +49,20 @@ interface SymptomLog {
   timestamp: string;
 }
 
+interface PregnancyData {
+  weeks_pregnant?: number;
+  due_date?: string;
+  last_menstrual_period?: string;
+  is_high_risk?: boolean;
+}
+
 const Dashboard = () => {
   const { user, refreshUserData, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [emergencyAlerts, setEmergencyAlerts] = useState<EmergencyAlert[]>([]);
   const [recentSymptoms, setRecentSymptoms] = useState<SymptomLog[]>([]);
+  const [pregnancyData, setPregnancyData] = useState<PregnancyData | null>(null);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [dataLoaded, setDataLoaded] = useState(false);
@@ -80,16 +87,24 @@ const Dashboard = () => {
     );
   }
 
-  useEffect(() => {
-    // Show welcome modal for new users without pregnancy data
-    if (user && !user.hasPregnancyData && !dataLoaded) {
-      setShowWelcomeModal(true);
+  // Calculate current pregnancy week from fresh data
+  const calculatePregnancyWeek = (pregnancyInfo: PregnancyData) => {
+    if (!pregnancyInfo) return 0;
+    
+    if (pregnancyInfo.weeks_pregnant) {
+      return pregnancyInfo.weeks_pregnant;
     }
     
-    if (user?.id && !dataLoaded) {
-      loadDashboardData();
+    if (pregnancyInfo.last_menstrual_period) {
+      const lmp = new Date(pregnancyInfo.last_menstrual_period);
+      const now = new Date();
+      const diffTime = Math.abs(now.getTime() - lmp.getTime());
+      const weeks = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 7));
+      return Math.min(weeks, 42); // Cap at 42 weeks
     }
-  }, [user?.id, dataLoaded]);
+    
+    return 0;
+  };
 
   const loadDashboardData = async () => {
     if (!user?.id) return;
@@ -98,7 +113,25 @@ const Dashboard = () => {
     try {
       console.log('Loading dashboard data for user:', user.id);
       
-      // Load appointments with error handling
+      // Load fresh pregnancy data
+      try {
+        const { data: freshPregnancyData, error: pregnancyError } = await supabase
+          .from('pregnancy_data')
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (pregnancyError) {
+          console.error('Error loading pregnancy data:', pregnancyError);
+        } else {
+          setPregnancyData(freshPregnancyData);
+          console.log('Fresh pregnancy data loaded:', freshPregnancyData);
+        }
+      } catch (error) {
+        console.error('Exception loading pregnancy data:', error);
+      }
+
+      // Load appointments
       try {
         const { data: appointmentsData, error: appointmentsError } = await supabase
           .from('appointments')
@@ -117,7 +150,7 @@ const Dashboard = () => {
         console.error('Exception loading appointments:', error);
       }
 
-      // Load emergency alerts with error handling
+      // Load emergency alerts
       try {
         const { data: alertsData, error: alertsError } = await supabase
           .from('emergency_alerts')
@@ -148,6 +181,7 @@ const Dashboard = () => {
           console.error('Error loading symptoms:', symptomsError);
         } else if (symptomsData) {
           setRecentSymptoms(symptomsData);
+          console.log('Fresh symptoms loaded:', symptomsData);
         }
       } catch (error) {
         console.error('Exception loading symptoms:', error);
@@ -165,6 +199,91 @@ const Dashboard = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (user?.id && !dataLoaded) {
+      loadDashboardData();
+    }
+  }, [user?.id, dataLoaded]);
+
+  // Set up real-time subscriptions for data changes
+  useEffect(() => {
+    if (!user?.id) return;
+
+    console.log('Setting up real-time subscriptions...');
+
+    // Subscribe to pregnancy data changes
+    const pregnancyChannel = supabase
+      .channel('pregnancy_data_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'pregnancy_data',
+          filter: `user_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('Pregnancy data changed:', payload);
+          loadDashboardData();
+        }
+      )
+      .subscribe();
+
+    // Subscribe to symptom log changes
+    const symptomsChannel = supabase
+      .channel('symptom_logs_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'symptom_logs',
+          filter: `user_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('Symptom logs changed:', payload);
+          loadDashboardData();
+        }
+      )
+      .subscribe();
+
+    // Subscribe to emergency alerts changes
+    const alertsChannel = supabase
+      .channel('emergency_alerts_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'emergency_alerts',
+          filter: `user_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('Emergency alerts changed:', payload);
+          loadDashboardData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      console.log('Cleaning up real-time subscriptions...');
+      supabase.removeChannel(pregnancyChannel);
+      supabase.removeChannel(symptomsChannel);
+      supabase.removeChannel(alertsChannel);
+    };
+  }, [user?.id]);
+
+  // Calculate current pregnancy week from fresh data
+  const currentPregnancyWeek = calculatePregnancyWeek(pregnancyData);
+  const hasPregnancyData = !!pregnancyData;
+
+  // Show welcome modal for new users without pregnancy data
+  useEffect(() => {
+    if (user && !hasPregnancyData && !loading && dataLoaded) {
+      setShowWelcomeModal(true);
+    }
+  }, [user, hasPregnancyData, loading, dataLoaded]);
 
   const handleAppointmentAdded = () => {
     loadDashboardData();
@@ -187,7 +306,7 @@ const Dashboard = () => {
     setShowWelcomeModal(false);
   };
 
-  // Calculate dynamic health status
+  // Calculate dynamic health status based on fresh data
   const getHealthStatus = () => {
     if (emergencyAlerts.length > 0) {
       return { status: "Emergency", color: "text-red-600", description: `${emergencyAlerts.length} recent alerts` };
@@ -215,15 +334,15 @@ const Dashboard = () => {
 
   const healthStatus = getHealthStatus();
 
-  // Mock data for stats with safe fallbacks
+  // Stats with fresh data
   const userStats = {
-    pregnancyWeek: user?.pregnancyWeek || 0,
+    pregnancyWeek: currentPregnancyWeek,
     nextAppointment: appointments.length > 0 ? new Date(appointments[0].appointment_date).toLocaleDateString() : "No upcoming appointments",
     emergencyContacts: user?.emergencyContacts || 0,
     recentSymptoms: recentSymptoms.length
   };
 
-  // Recent Activity
+  // Recent Activity from fresh data
   const recentActivity = [
     ...emergencyAlerts.slice(0, 2).map(alert => ({
       id: alert.id,
@@ -265,7 +384,7 @@ const Dashboard = () => {
             Welcome back, {user.firstName || 'Mama'}! 
           </h1>
           <p className="text-muted-foreground">
-            {user.hasPregnancyData ? 
+            {hasPregnancyData ? 
               `You're at week ${userStats.pregnancyWeek} of your pregnancy journey. Stay safe and healthy! 💕` :
               "Complete your pregnancy profile to get personalized care and tips!"
             }
@@ -273,7 +392,7 @@ const Dashboard = () => {
         </div>
 
         {/* Onboarding Alert */}
-        {!user.hasPregnancyData && (
+        {!hasPregnancyData && (
           <Card className="mb-8 border-amber-200 bg-gradient-to-r from-amber-50 to-yellow-50">
             <CardContent className="pt-6">
               <div className="text-center">
@@ -307,7 +426,7 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Stats Cards */}
+        {/* Stats Cards with fresh data */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card className="border-rose-200">
             <CardHeader className="pb-3">
@@ -399,7 +518,7 @@ const Dashboard = () => {
                     <Button variant="outline" className="w-full h-20 flex flex-col gap-2">
                       <Heart className="h-6 w-6 text-rose-500" />
                       <span className="text-sm">
-                        {user.hasPregnancyData ? 'Edit Details' : 'Add Details'}
+                        {hasPregnancyData ? 'Edit Details' : 'Add Details'}
                       </span>
                     </Button>
                   </Link>
@@ -485,8 +604,8 @@ const Dashboard = () => {
               </CardContent>
             </Card>
 
-            {/* Health Alerts */}
-            <HealthAlerts userId={user.id} />
+            {/* Health Alerts with fresh symptom data */}
+            <HealthAlerts userId={user.id} recentSymptoms={recentSymptoms} />
           </div>
 
           {/* Recent Activity & Health Tips */}
@@ -523,13 +642,13 @@ const Dashboard = () => {
               </CardContent>
             </Card>
 
-            {/* Dynamic Health Tips */}
-            <WeeklyHealthTips pregnancyWeek={userStats.pregnancyWeek} />
+            {/* Dynamic Health Tips with current week */}
+            <WeeklyHealthTips pregnancyWeek={currentPregnancyWeek} />
           </div>
         </div>
       </div>
 
-      {/* Footer with correct year */}
+      {/* Footer */}
       <footer className="border-t bg-background px-4 py-8 sm:px-6 lg:px-8 mt-16">
         <div className="max-w-6xl mx-auto text-center text-muted-foreground">
           <p>&copy; {new Date().getFullYear()} MamaAlert. Protecting Nigerian mothers, one alert at a time.</p>
