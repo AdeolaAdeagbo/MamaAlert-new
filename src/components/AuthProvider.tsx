@@ -117,7 +117,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(userProfile);
     } catch (error) {
       console.error('Error loading user profile:', error);
-      // Don't throw error, just set basic user info
+      // Set basic user info if profile loading fails
       const basicProfile: UserProfile = {
         id: authUser.id,
         email: authUser.email || '',
@@ -174,7 +174,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     console.log('Login attempt for:', email);
-    setIsLoading(true);
     
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -186,22 +185,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       if (error) {
         console.error('Login error:', error);
-        setIsLoading(false);
         return { error };
       }
       
-      // Don't set loading to false here - let the auth state change handle it
       return { error: null };
     } catch (error) {
       console.error('Login exception:', error);
-      setIsLoading(false);
       return { error };
     }
   };
 
   const signup = async (email: string, password: string, firstName: string, lastName: string) => {
     console.log('Signup attempt for:', email);
-    setIsLoading(true);
     
     try {
       const redirectUrl = `${window.location.origin}/dashboard`;
@@ -222,15 +217,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       if (error) {
         console.error('Signup error:', error);
-        setIsLoading(false);
         return { error };
       }
       
-      // Don't set loading to false here - let the auth state change handle it
       return { error: null };
     } catch (error) {
       console.error('Signup exception:', error);
-      setIsLoading(false);
       return { error };
     }
   };

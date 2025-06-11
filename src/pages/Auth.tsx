@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Navigate, Link } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
-import { Heart, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -23,6 +23,7 @@ const Auth = () => {
 
   // Redirect if user is already logged in
   if (user && !isLoading) {
+    console.log('User authenticated, redirecting to dashboard');
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -92,7 +93,7 @@ const Auth = () => {
             title: "Welcome back!",
             description: "Successfully logged in to your MamaAlert account.",
           });
-          // Don't manually redirect - AuthProvider will handle this
+          // Navigation will be handled by the Navigate component above
         }
       } else {
         console.log('Attempting signup...');
@@ -103,7 +104,7 @@ const Auth = () => {
             title: "Account Created!",
             description: "Welcome to MamaAlert! You can now access your dashboard.",
           });
-          // Don't manually redirect - AuthProvider will handle this
+          // Navigation will be handled by the Navigate component above
         }
       }
 
@@ -126,8 +127,6 @@ const Auth = () => {
       setIsSubmitting(false);
     }
   };
-
-  const isProcessing = isSubmitting;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 to-pink-100">
@@ -172,7 +171,7 @@ const Auth = () => {
                         value={firstName}
                         onChange={(e) => setFirstName(e.target.value)}
                         required={!isLogin}
-                        disabled={isProcessing}
+                        disabled={isSubmitting}
                         placeholder="Enter your first name"
                       />
                     </div>
@@ -184,7 +183,7 @@ const Auth = () => {
                         value={lastName}
                         onChange={(e) => setLastName(e.target.value)}
                         required={!isLogin}
-                        disabled={isProcessing}
+                        disabled={isSubmitting}
                         placeholder="Enter your last name"
                       />
                     </div>
@@ -199,7 +198,7 @@ const Auth = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    disabled={isProcessing}
+                    disabled={isSubmitting}
                     placeholder="Enter your email address"
                     autoComplete={isLogin ? "email" : "username"}
                   />
@@ -213,7 +212,7 @@ const Auth = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    disabled={isProcessing}
+                    disabled={isSubmitting}
                     placeholder={isLogin ? "Enter your password" : "Create a password (min 6 characters)"}
                     autoComplete={isLogin ? "current-password" : "new-password"}
                   />
@@ -222,16 +221,16 @@ const Auth = () => {
                 <Button
                   type="submit"
                   className="w-full bg-rose-500 hover:bg-rose-600"
-                  disabled={isProcessing}
+                  disabled={isSubmitting}
                 >
-                  {isProcessing ? (
+                  {isSubmitting ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                       {isLogin ? "Signing in..." : "Creating account..."}
                     </>
                   ) : (
                     <>
-                      {isLogin ? "Sign In" : "Create Account & Get Protected"}
+                      {isLogin ? "Sign In" : "Create Account"}
                     </>
                   )}
                 </Button>
@@ -242,14 +241,13 @@ const Auth = () => {
                   type="button"
                   onClick={() => {
                     setIsLogin(!isLogin);
-                    // Clear form when switching
                     setEmail("");
                     setPassword("");
                     setFirstName("");
                     setLastName("");
                   }}
                   className="text-sm text-rose-600 hover:underline"
-                  disabled={isProcessing}
+                  disabled={isSubmitting}
                 >
                   {isLogin
                     ? "Don't have an account? Join MamaAlert"
