@@ -45,7 +45,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Format emergency message if it's an emergency alert
     if (messageType === "emergency" && userLocation) {
-      finalMessage = `🚨 EMERGENCY ALERT 🚨
+      finalMessage = `EMERGENCY ALERT
 ${userName} has triggered an emergency alert and needs immediate assistance.
 
 Location: ${userLocation}

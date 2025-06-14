@@ -102,7 +102,7 @@ export const EmergencyAlertLogger = ({ userId, onAlertSent }: EmergencyAlertLogg
       }
 
       toast({
-        title: "🚨 Emergency Alert Sent!",
+        title: "Emergency Alert Sent!",
         description: emergencyContacts && emergencyContacts.length > 0 
           ? `Emergency contacts notified via SMS and nearest healthcare centers have been alerted.`
           : "Emergency alert logged. Add emergency contacts to receive SMS notifications.",

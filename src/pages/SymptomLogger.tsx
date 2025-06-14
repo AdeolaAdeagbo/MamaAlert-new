@@ -140,7 +140,7 @@ const SymptomLogger = () => {
         .eq('user_id', user.id);
 
       if (emergencyContacts && emergencyContacts.length > 0) {
-        const message = `⚠️ DANGER SYMPTOM ALERT ⚠️
+        const message = `DANGER SYMPTOM ALERT
 
 ${userName} has logged a danger symptom that requires immediate attention:
 
