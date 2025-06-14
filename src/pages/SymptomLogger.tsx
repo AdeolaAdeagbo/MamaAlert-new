@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { Navigate } from "react-router-dom";
 import { AlertTriangle, CheckCircle, Clock, Heart } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface SymptomLog {
   id: string;
@@ -130,6 +131,49 @@ const SymptomLogger = () => {
     ];
   };
 
+  const sendDangerSymptomSMS = async (symptomText: string, severityLevel: string, userName: string) => {
+    try {
+      // Get user's emergency contacts
+      const { data: emergencyContacts } = await supabase
+        .from('emergency_contacts')
+        .select('name, phone')
+        .eq('user_id', user.id);
+
+      if (emergencyContacts && emergencyContacts.length > 0) {
+        const message = `⚠️ DANGER SYMPTOM ALERT ⚠️
+
+${userName} has logged a danger symptom that requires immediate attention:
+
+Symptom: ${symptomText}
+Severity: ${severityLevel}
+Time: ${new Date().toLocaleString()}
+
+Please check on them and encourage them to seek medical attention immediately.
+
+This is an automated alert from MamaAlert.`;
+
+        console.log("Sending danger symptom SMS to emergency contacts");
+        
+        const response = await supabase.functions.invoke('send-termii-sms', {
+          body: {
+            emergencyContacts: emergencyContacts.filter(contact => contact.phone),
+            message,
+            userName,
+            messageType: "emergency"
+          }
+        });
+
+        if (response.error) {
+          console.error("SMS sending failed:", response.error);
+        } else {
+          console.log("Danger symptom SMS sent successfully:", response.data);
+        }
+      }
+    } catch (error) {
+      console.error("Error sending danger symptom SMS:", error);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -138,13 +182,40 @@ const SymptomLogger = () => {
     const recommendations = getRecommendations(symptom, severity, isEmergency);
 
     try {
-      // Here you would typically save to Supabase
-      console.log("Logging symptom:", { symptom, severity, description, isEmergency });
+      // Get user profile for name
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('first_name, last_name')
+        .eq('id', user.id)
+        .single();
+
+      const userName = profile ? `${profile.first_name} ${profile.last_name}`.trim() : 'Unknown User';
+
+      // Save to Supabase
+      const { data, error } = await supabase
+        .from('symptom_logs')
+        .insert({
+          user_id: user.id,
+          symptom_type: symptom,
+          severity: severity === "mild" ? 3 : severity === "moderate" ? 6 : 9,
+          description: description
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      console.log("Symptom logged:", data);
+
+      // Send SMS for danger symptoms
+      if (isEmergency) {
+        await sendDangerSymptomSMS(symptom, severity, userName);
+      }
 
       toast({
         title: isEmergency ? "⚠️ Emergency Symptom Detected" : "✅ Symptom Logged",
         description: isEmergency 
-          ? "This symptom requires immediate medical attention. Please contact your healthcare provider."
+          ? "This symptom requires immediate medical attention. Your emergency contacts have been notified."
           : "Your symptom has been logged successfully.",
         variant: isEmergency ? "destructive" : "default"
       });
@@ -155,6 +226,7 @@ const SymptomLogger = () => {
       setDescription("");
       
     } catch (error) {
+      console.error("Error logging symptom:", error);
       toast({
         title: "Error",
         description: "Failed to log symptom. Please try again.",

@@ -75,27 +75,28 @@ export const EmergencyAlertLogger = ({ userId, onAlertSent }: EmergencyAlertLogg
 
       console.log("Emergency alert stored in database:", data);
 
-      // Send SMS to emergency contacts if any exist
+      // Send SMS to emergency contacts using Termii if any exist
       if (emergencyContacts && emergencyContacts.length > 0) {
         try {
-          console.log("Sending SMS to emergency contacts:", emergencyContacts);
+          console.log("Sending SMS via Termii to emergency contacts:", emergencyContacts);
           
-          const response = await supabase.functions.invoke('send-emergency-sms', {
+          const response = await supabase.functions.invoke('send-termii-sms', {
             body: {
               emergencyContacts: emergencyContacts.filter(contact => contact.phone),
               userLocation: location,
-              userName
+              userName,
+              messageType: "emergency"
             }
           });
 
           if (response.error) {
-            console.error("SMS function error:", response.error);
+            console.error("Termii SMS function error:", response.error);
             // Don't throw error - alert was still saved to database
           } else {
-            console.log("SMS response:", response.data);
+            console.log("Termii SMS response:", response.data);
           }
         } catch (smsError) {
-          console.error("SMS sending failed:", smsError);
+          console.error("Termii SMS sending failed:", smsError);
           // Don't throw error - alert was still saved to database
         }
       }
