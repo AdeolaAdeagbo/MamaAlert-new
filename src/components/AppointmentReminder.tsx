@@ -9,20 +9,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useToast } from "@/hooks/use-toast";
 import { Calendar, Bell, Phone, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { Tables } from "@/integrations/supabase/types";
 
 interface AppointmentReminderProps {
   userId: string;
 }
 
-interface Appointment {
-  id: string;
-  hospital_name: string;
-  appointment_date: string;
-  appointment_time: string;
-  notes: string;
-  reminder_sent: boolean;
-  created_at: string;
-}
+type Appointment = Tables<'appointments'>;
 
 export const AppointmentReminder = ({ userId }: AppointmentReminderProps) => {
   const { toast } = useToast();
@@ -86,7 +79,7 @@ export const AppointmentReminder = ({ userId }: AppointmentReminderProps) => {
     }
   };
 
-  const sendAppointmentReminder = async (appointment: any) => {
+  const sendAppointmentReminder = async (appointment: Appointment) => {
     try {
       // Get user profile for phone number
       const { data: profile } = await supabase
