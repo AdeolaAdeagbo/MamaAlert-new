@@ -28,6 +28,9 @@ export function Navbar() {
               <Link to="/dashboard" className="text-sm font-medium hover:text-rose-600 transition-colors">
                 Dashboard
               </Link>
+              <Link to="/ai-nurse" className="text-sm font-medium hover:text-rose-600 transition-colors">
+                AI Nurse
+              </Link>
               <Link to="/symptom-logger" className="text-sm font-medium hover:text-rose-600 transition-colors">
                 Log Symptoms
               </Link>

@@ -9,6 +9,36 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      ai_nurse_chats: {
+        Row: {
+          ai_response: string
+          created_at: string
+          id: string
+          is_synced: boolean
+          response_audio_url: string | null
+          user_id: string
+          user_message: string
+        }
+        Insert: {
+          ai_response: string
+          created_at?: string
+          id?: string
+          is_synced?: boolean
+          response_audio_url?: string | null
+          user_id: string
+          user_message: string
+        }
+        Update: {
+          ai_response?: string
+          created_at?: string
+          id?: string
+          is_synced?: boolean
+          response_audio_url?: string | null
+          user_id?: string
+          user_message?: string
+        }
+        Relationships: []
+      }
       appointments: {
         Row: {
           appointment_date: string

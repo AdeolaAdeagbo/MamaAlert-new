@@ -24,7 +24,8 @@ import {
   Clock,
   Activity,
   Loader2,
-  TrendingUp
+  TrendingUp,
+  MessageCircle
 } from "lucide-react";
 
 interface Appointment {
@@ -512,6 +513,13 @@ const Dashboard = () => {
                       <span className="text-sm">
                         {hasPregnancyData ? 'Edit Details' : 'Add Details'}
                       </span>
+                    </Button>
+                  </Link>
+                  
+                  <Link to="/ai-nurse">
+                    <Button variant="outline" className="w-full h-20 flex flex-col gap-2">
+                      <MessageCircle className="h-6 w-6 text-purple-500" />
+                      <span className="text-sm">AI Nurse</span>
                     </Button>
                   </Link>
                   
