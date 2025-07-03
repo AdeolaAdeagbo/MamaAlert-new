@@ -11,6 +11,9 @@ import { HealthAlerts } from "@/components/HealthAlerts";
 import { WeeklyHealthTips } from "@/components/WeeklyHealthTips";
 import { EmergencyAlertLogger } from "@/components/EmergencyAlertLogger";
 import { WelcomeModal } from "@/components/WelcomeModal";
+import { DeliveryPreparationTips } from "@/components/DeliveryPreparationTips";
+import { AppointmentReminder } from "@/components/AppointmentReminder";
+import { usePregnancyProgress } from "@/hooks/usePregnancyProgress";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   Heart, 
@@ -20,7 +23,8 @@ import {
   MapPin,
   Clock,
   Activity,
-  Loader2
+  Loader2,
+  TrendingUp
 } from "lucide-react";
 
 interface Appointment {
@@ -62,10 +66,12 @@ const Dashboard = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [emergencyAlerts, setEmergencyAlerts] = useState<EmergencyAlert[]>([]);
   const [recentSymptoms, setRecentSymptoms] = useState<SymptomLog[]>([]);
-  const [pregnancyData, setPregnancyData] = useState<PregnancyData | null>(null);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [dataLoaded, setDataLoaded] = useState(false);
+
+  // Use the new progressive pregnancy hook
+  const { pregnancyData, currentWeek, loading: pregnancyLoading, refreshData } = usePregnancyProgress(user?.id || '');
 
   // Redirect to auth if no user and not loading
   if (!user && !authLoading) {
@@ -113,24 +119,6 @@ const Dashboard = () => {
     try {
       console.log('Loading dashboard data for user:', user.id);
       
-      // Load fresh pregnancy data
-      try {
-        const { data: freshPregnancyData, error: pregnancyError } = await supabase
-          .from('pregnancy_data')
-          .select('*')
-          .eq('user_id', user.id)
-          .maybeSingle();
-
-        if (pregnancyError) {
-          console.error('Error loading pregnancy data:', pregnancyError);
-        } else {
-          setPregnancyData(freshPregnancyData);
-          console.log('Fresh pregnancy data loaded:', freshPregnancyData);
-        }
-      } catch (error) {
-        console.error('Exception loading pregnancy data:', error);
-      }
-
       // Load appointments
       try {
         const { data: appointmentsData, error: appointmentsError } = await supabase
@@ -225,7 +213,7 @@ const Dashboard = () => {
         },
         (payload) => {
           console.log('Pregnancy data changed:', payload);
-          loadDashboardData();
+          refreshData();
         }
       )
       .subscribe();
@@ -274,16 +262,14 @@ const Dashboard = () => {
     };
   }, [user?.id]);
 
-  // Calculate current pregnancy week from fresh data
-  const currentPregnancyWeek = calculatePregnancyWeek(pregnancyData);
   const hasPregnancyData = !!pregnancyData;
 
   // Show welcome modal for new users without pregnancy data
   useEffect(() => {
-    if (user && !hasPregnancyData && !loading && dataLoaded) {
+    if (user && !hasPregnancyData && !loading && !pregnancyLoading && dataLoaded) {
       setShowWelcomeModal(true);
     }
-  }, [user, hasPregnancyData, loading, dataLoaded]);
+  }, [user, hasPregnancyData, loading, dataLoaded, pregnancyLoading]);
 
   const handleAppointmentAdded = () => {
     loadDashboardData();
@@ -334,9 +320,9 @@ const Dashboard = () => {
 
   const healthStatus = getHealthStatus();
 
-  // Stats with fresh data
+  // Stats with progressive data
   const userStats = {
-    pregnancyWeek: currentPregnancyWeek,
+    pregnancyWeek: currentWeek,
     nextAppointment: appointments.length > 0 ? new Date(appointments[0].appointment_date).toLocaleDateString() : "No upcoming appointments",
     emergencyContacts: user?.emergencyContacts || 0,
     recentSymptoms: recentSymptoms.length
@@ -385,7 +371,10 @@ const Dashboard = () => {
           </h1>
           <p className="text-muted-foreground">
             {hasPregnancyData ? 
-              `You're at week ${userStats.pregnancyWeek} of your pregnancy journey. Stay safe and healthy! 💕` :
+              <div className="flex items-center gap-2">
+                <span>You're at week {userStats.pregnancyWeek} of your pregnancy journey. Stay safe and healthy! 💕</span>
+                <TrendingUp className="h-4 w-4 text-green-500" />
+              </div> :
               "Complete your pregnancy profile to get personalized care and tips!"
             }
           </p>
@@ -426,7 +415,7 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Stats Cards with fresh data */}
+        {/* Stats Cards with progressive data */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card className="border-rose-200">
             <CardHeader className="pb-3">
@@ -434,7 +423,10 @@ const Dashboard = () => {
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   Pregnancy Week
                 </CardTitle>
-                <Heart className="h-4 w-4 text-rose-500" />
+                <div className="flex items-center gap-1">
+                  <Heart className="h-4 w-4 text-rose-500" />
+                  {hasPregnancyData && <TrendingUp className="h-3 w-3 text-green-500" />}
+                </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -554,6 +546,14 @@ const Dashboard = () => {
               </CardContent>
             </Card>
 
+            {/* Delivery Preparation Tips for late pregnancy */}
+            {currentWeek >= 36 && (
+              <DeliveryPreparationTips pregnancyWeek={currentWeek} />
+            )}
+
+            {/* Appointment Reminders */}
+            <AppointmentReminder userId={user.id} />
+
             {/* Upcoming Appointments */}
             <Card>
               <CardHeader>
@@ -642,8 +642,8 @@ const Dashboard = () => {
               </CardContent>
             </Card>
 
-            {/* Dynamic Health Tips with current week */}
-            <WeeklyHealthTips pregnancyWeek={currentPregnancyWeek} />
+            {/* Progressive Health Tips */}
+            <WeeklyHealthTips pregnancyWeek={currentWeek} isProgressive={true} />
           </div>
         </div>
       </div>

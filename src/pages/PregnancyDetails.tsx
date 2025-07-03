@@ -11,7 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { Navigate, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Heart, Calendar, Shield, UserCheck } from "lucide-react";
+import { Heart, Calendar, Shield, UserCheck, TrendingUp, Info } from "lucide-react";
 
 const PregnancyDetails = () => {
   const { user, refreshUserData } = useAuth();
@@ -94,19 +94,23 @@ const PregnancyDetails = () => {
     return dueDate.toISOString().split('T')[0];
   };
 
+  const calculateWeeksFromLMP = (lmp: string) => {
+    if (!lmp) return 0;
+    const lmpDate = new Date(lmp);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - lmpDate.getTime());
+    const weeks = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 7));
+    return Math.min(weeks, 42);
+  };
+
   const handleLMPChange = (lmp: string) => {
     handleInputChange('lastMenstrualPeriod', lmp);
     if (lmp) {
       const calculatedDueDate = calculateDueDate(lmp);
-      handleInputChange('dueDate', calculatedDueDate);
+      const calculatedWeeks = calculateWeeksFromLMP(lmp);
       
-      // Calculate weeks pregnant
-      const lmpDate = new Date(lmp);
-      const now = new Date();
-      const diffTime = Math.abs(now.getTime() - lmpDate.getTime());
-      const diffWeeks = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 7));
-      const weeks = Math.min(diffWeeks, 42);
-      handleInputChange('weeksPregnant', weeks.toString());
+      handleInputChange('dueDate', calculatedDueDate);
+      handleInputChange('weeksPregnant', calculatedWeeks.toString());
     }
   };
 
@@ -144,7 +148,7 @@ const PregnancyDetails = () => {
 
       toast({
         title: "Success! 🎉",
-        description: "Your pregnancy details have been saved successfully.",
+        description: "Your pregnancy details have been saved. Your pregnancy week will now automatically update weekly!",
       });
 
       navigate('/dashboard');
@@ -174,6 +178,25 @@ const PregnancyDetails = () => {
           </p>
         </div>
 
+        {/* Progressive Tracking Info */}
+        <Card className="mb-8 border-green-200 bg-gradient-to-r from-green-50 to-emerald-50">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-4">
+              <TrendingUp className="h-6 w-6 text-green-600 mt-1" />
+              <div>
+                <h3 className="font-semibold text-green-800 mb-2">Smart Pregnancy Tracking</h3>
+                <p className="text-green-700 text-sm mb-3">
+                  Once you enter your Last Menstrual Period (LMP), MamaAlert will automatically track your pregnancy progress and update your week every 7 days. This ensures you always get the most relevant health tips and alerts for your current stage.
+                </p>
+                <div className="flex items-center gap-2 text-xs text-green-600">
+                  <Info className="h-4 w-4" />
+                  <span>Your pregnancy week will be calculated and updated automatically</span>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Basic Information */}
           <Card>
@@ -186,15 +209,16 @@ const PregnancyDetails = () => {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="lastMenstrualPeriod">Last Menstrual Period (LMP)</Label>
+                  <Label htmlFor="lastMenstrualPeriod">Last Menstrual Period (LMP) *</Label>
                   <Input
                     id="lastMenstrualPeriod"
                     type="date"
                     value={formData.lastMenstrualPeriod}
                     onChange={(e) => handleLMPChange(e.target.value)}
+                    required
                   />
                   <p className="text-xs text-muted-foreground mt-1">
-                    This helps us calculate your due date and pregnancy week
+                    🔄 This automatically calculates your due date and pregnancy week
                   </p>
                 </div>
 
@@ -207,8 +231,12 @@ const PregnancyDetails = () => {
                     max="42"
                     value={formData.weeksPregnant}
                     onChange={(e) => handleInputChange('weeksPregnant', e.target.value)}
-                    placeholder="e.g., 24"
+                    placeholder="Auto-calculated from LMP"
+                    readOnly={!!formData.lastMenstrualPeriod}
                   />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {formData.lastMenstrualPeriod ? '📈 Updates automatically every week' : 'Or enter manually if you know your current week'}
+                  </p>
                 </div>
 
                 <div>
@@ -218,7 +246,11 @@ const PregnancyDetails = () => {
                     type="date"
                     value={formData.dueDate}
                     onChange={(e) => handleInputChange('dueDate', e.target.value)}
+                    readOnly={!!formData.lastMenstrualPeriod}
                   />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {formData.lastMenstrualPeriod ? 'Auto-calculated from LMP' : 'Enter your expected due date'}
+                  </p>
                 </div>
 
                 <div className="flex items-center space-x-2">

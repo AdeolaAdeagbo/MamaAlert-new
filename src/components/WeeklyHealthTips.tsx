@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Heart } from "lucide-react";
+import { Heart, TrendingUp } from "lucide-react";
 
 interface HealthTip {
   week: number;
@@ -12,9 +12,10 @@ interface HealthTip {
 
 interface WeeklyHealthTipsProps {
   pregnancyWeek: number;
+  isProgressive?: boolean;
 }
 
-export const WeeklyHealthTips = ({ pregnancyWeek }: WeeklyHealthTipsProps) => {
+export const WeeklyHealthTips = ({ pregnancyWeek, isProgressive = true }: WeeklyHealthTipsProps) => {
   const [currentTip, setCurrentTip] = useState<HealthTip | null>(null);
 
   const healthTips: HealthTip[] = [
@@ -104,7 +105,7 @@ export const WeeklyHealthTips = ({ pregnancyWeek }: WeeklyHealthTipsProps) => {
     },
     {
       week: 30,
-      title: "Baby Shower Planning",
+      title: "Baby Shower Planning", 
       content: "Perfect time for baby showers. Start preparing the nursery. Practice relaxation techniques for labor. Baby's brain is developing rapidly.",
       category: "Preparation"
     },
@@ -184,7 +185,14 @@ export const WeeklyHealthTips = ({ pregnancyWeek }: WeeklyHealthTipsProps) => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Heart className="h-5 w-5 text-rose-500" />
-          Week {currentTip.week} Health Tip
+          {isProgressive ? (
+            <div className="flex items-center gap-2">
+              <span>Week {currentTip.week} Health Tip</span>
+              <TrendingUp className="h-4 w-4 text-green-500" />
+            </div>
+          ) : (
+            `Week ${currentTip.week} Health Tip`
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -198,6 +206,13 @@ export const WeeklyHealthTips = ({ pregnancyWeek }: WeeklyHealthTipsProps) => {
           <p className="text-sm text-rose-700">
             {currentTip.content}
           </p>
+          {isProgressive && (
+            <div className="mt-3 pt-2 border-t border-rose-200">
+              <p className="text-xs text-rose-600">
+                Tips automatically update based on your pregnancy progress
+              </p>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
