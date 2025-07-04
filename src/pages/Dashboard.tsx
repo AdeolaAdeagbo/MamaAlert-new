@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { Navbar } from "@/components/Navbar";
@@ -17,25 +18,13 @@ import { usePregnancyProgress } from "@/hooks/usePregnancyProgress";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   Heart, 
-  Calendar, 
-  Shield, 
   Phone, 
   MapPin,
-  Clock,
   Activity,
   Loader2,
   TrendingUp,
   MessageCircle
 } from "lucide-react";
-
-interface Appointment {
-  id: string;
-  hospital_name: string;
-  appointment_date: string;
-  appointment_time: string;
-  notes: string;
-  created_at: string;
-}
 
 interface EmergencyAlert {
   id: string;
@@ -64,7 +53,6 @@ interface PregnancyData {
 const Dashboard = () => {
   const { user, refreshUserData, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [emergencyAlerts, setEmergencyAlerts] = useState<EmergencyAlert[]>([]);
   const [recentSymptoms, setRecentSymptoms] = useState<SymptomLog[]>([]);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
@@ -94,25 +82,6 @@ const Dashboard = () => {
     );
   }
 
-  // Calculate current pregnancy week from fresh data
-  const calculatePregnancyWeek = (pregnancyInfo: PregnancyData) => {
-    if (!pregnancyInfo) return 0;
-    
-    if (pregnancyInfo.weeks_pregnant) {
-      return pregnancyInfo.weeks_pregnant;
-    }
-    
-    if (pregnancyInfo.last_menstrual_period) {
-      const lmp = new Date(pregnancyInfo.last_menstrual_period);
-      const now = new Date();
-      const diffTime = Math.abs(now.getTime() - lmp.getTime());
-      const weeks = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 7));
-      return Math.min(weeks, 42); // Cap at 42 weeks
-    }
-    
-    return 0;
-  };
-
   const loadDashboardData = async () => {
     if (!user?.id) return;
     
@@ -120,25 +89,6 @@ const Dashboard = () => {
     try {
       console.log('Loading dashboard data for user:', user.id);
       
-      // Load appointments
-      try {
-        const { data: appointmentsData, error: appointmentsError } = await supabase
-          .from('appointments')
-          .select('*')
-          .eq('user_id', user.id)
-          .gte('appointment_date', new Date().toISOString().split('T')[0])
-          .order('appointment_date', { ascending: true })
-          .limit(3);
-
-        if (appointmentsError) {
-          console.error('Error loading appointments:', appointmentsError);
-        } else if (appointmentsData) {
-          setAppointments(appointmentsData);
-        }
-      } catch (error) {
-        console.error('Exception loading appointments:', error);
-      }
-
       // Load emergency alerts
       try {
         const { data: alertsData, error: alertsError } = await supabase
@@ -272,15 +222,6 @@ const Dashboard = () => {
     }
   }, [user, hasPregnancyData, loading, dataLoaded, pregnancyLoading]);
 
-  const handleAppointmentAdded = () => {
-    loadDashboardData();
-    refreshUserData();
-    toast({
-      title: "Appointment Saved",
-      description: "Your appointment has been saved successfully.",
-    });
-  };
-
   const handleEmergencyAlert = (alert: any) => {
     setEmergencyAlerts(prev => [alert, ...prev.slice(0, 4)]);
     toast({
@@ -324,7 +265,6 @@ const Dashboard = () => {
   // Stats with progressive data
   const userStats = {
     pregnancyWeek: currentWeek,
-    nextAppointment: appointments.length > 0 ? new Date(appointments[0].appointment_date).toLocaleDateString() : "No upcoming appointments",
     emergencyContacts: user?.emergencyContacts || 0,
     recentSymptoms: recentSymptoms.length
   };
@@ -343,13 +283,6 @@ const Dashboard = () => {
       type: "symptom",
       title: `Logged ${symptom.symptom_type}`,
       time: new Date(symptom.timestamp).toLocaleString(),
-      status: "normal"
-    })),
-    ...appointments.slice(0, 2).map(appointment => ({
-      id: appointment.id,
-      type: "appointment",
-      title: "Appointment scheduled",
-      time: new Date(appointment.created_at).toLocaleString(),
       status: "normal"
     }))
   ].slice(0, 5);
@@ -446,23 +379,6 @@ const Dashboard = () => {
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Next Appointment
-                </CardTitle>
-                <Calendar className="h-4 w-4 text-blue-500" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-lg font-bold">{userStats.nextAppointment}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {appointments.length > 0 ? appointments[0].hospital_name : "No appointments scheduled"}
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
                   Emergency Contacts
                 </CardTitle>
                 <Phone className="h-4 w-4 text-green-500" />
@@ -480,7 +396,7 @@ const Dashboard = () => {
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   Health Status
                 </CardTitle>
-                <Shield className="h-4 w-4 text-green-500" />
+                <Activity className="h-4 w-4 text-green-500" />
               </div>
             </CardHeader>
             <CardContent>
@@ -490,6 +406,21 @@ const Dashboard = () => {
               <p className="text-xs text-muted-foreground mt-1">
                 {healthStatus.description}
               </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Recent Symptoms
+                </CardTitle>
+                <Activity className="h-4 w-4 text-blue-500" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{userStats.recentSymptoms}</div>
+              <p className="text-xs text-muted-foreground mt-1">Tracked this week</p>
             </CardContent>
           </Card>
         </div>
@@ -502,7 +433,7 @@ const Dashboard = () => {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle>Quick Actions</CardTitle>
-                  <AppointmentLogger userId={user.id} onAppointmentAdded={handleAppointmentAdded} />
+                  <AppointmentLogger userId={user.id} onAppointmentAdded={loadDashboardData} />
                 </div>
               </CardHeader>
               <CardContent>
@@ -561,56 +492,6 @@ const Dashboard = () => {
 
             {/* Appointment Reminders */}
             <AppointmentReminder userId={user.id} />
-
-            {/* Upcoming Appointments */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5 text-blue-500" />
-                  Upcoming Appointments
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {loading ? (
-                  <div className="text-center py-8">
-                    <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-                    <p className="text-muted-foreground">Loading appointments...</p>
-                  </div>
-                ) : appointments.length > 0 ? (
-                  <div className="space-y-4">
-                    {appointments.map((appointment) => (
-                      <div key={appointment.id} className="p-4 border rounded-lg">
-                        <div className="flex justify-between items-start mb-2">
-                          <h4 className="font-medium">Antenatal Appointment</h4>
-                          <Badge variant="outline">{new Date(appointment.appointment_date).toLocaleDateString()}</Badge>
-                        </div>
-                        <div className="space-y-1 text-sm text-muted-foreground">
-                          <div className="flex items-center gap-2">
-                            <Clock className="h-4 w-4" />
-                            <span>{appointment.appointment_time}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <MapPin className="h-4 w-4" />
-                            <span>{appointment.hospital_name}</span>
-                          </div>
-                          {appointment.notes && (
-                            <div className="mt-2 p-2 bg-gray-50 rounded text-xs">
-                              {appointment.notes}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>No upcoming appointments scheduled.</p>
-                    <p className="text-xs mt-2">Use the "Log Appointment" button to add your next visit.</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
 
             {/* Health Alerts with fresh symptom data */}
             <HealthAlerts userId={user.id} recentSymptoms={recentSymptoms} />

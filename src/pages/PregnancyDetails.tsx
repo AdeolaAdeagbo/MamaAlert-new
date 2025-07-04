@@ -7,153 +7,124 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { Navigate, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Heart, Calendar, Shield, UserCheck, TrendingUp, Info } from "lucide-react";
+import { Loader2, Heart, Save } from "lucide-react";
+
+interface PregnancyData {
+  weeks_pregnant?: number;
+  due_date?: string;
+  last_menstrual_period?: string;
+  is_high_risk?: boolean;
+  hospital_name?: string;
+  doctor_name?: string;
+  emergency_notes?: string;
+  previous_pregnancies?: string;
+  medical_conditions?: string;
+  allergies?: string;
+  current_medications?: string;
+}
 
 const PregnancyDetails = () => {
-  const { user, refreshUserData } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-  
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    weeksPregnant: "",
-    dueDate: "",
-    lastMenstrualPeriod: "",
-    hospitalName: "",
-    doctorName: "",
-    isHighRisk: false,
-    previousPregnancies: "",
-    medicalConditions: "",
-    allergies: "",
-    currentMedications: "",
-    emergencyNotes: ""
-  });
+  const [formData, setFormData] = useState<PregnancyData>({});
+  const [phoneNumber, setPhoneNumber] = useState("");
 
-  if (!user) {
+  // Redirect to auth if no user and not loading
+  if (!user && !authLoading) {
     return <Navigate to="/auth" replace />;
   }
 
+  // Load existing data
   useEffect(() => {
-    loadPregnancyData();
+    if (user?.id) {
+      loadExistingData();
+    }
   }, [user?.id]);
 
-  const loadPregnancyData = async () => {
-    if (!user?.id) return;
-
+  const loadExistingData = async () => {
     try {
-      const { data, error } = await supabase
+      // Load pregnancy data
+      const { data: pregnancyData, error: pregnancyError } = await supabase
         .from('pregnancy_data')
         .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
+        .eq('user_id', user!.id)
+        .single();
 
-      if (error && error.code !== 'PGRST116') {
-        throw error;
+      if (pregnancyError && pregnancyError.code !== 'PGRST116') {
+        console.error('Error loading pregnancy data:', pregnancyError);
+      } else if (pregnancyData) {
+        setFormData(pregnancyData);
       }
 
-      if (data) {
-        setFormData({
-          weeksPregnant: data.weeks_pregnant?.toString() || "",
-          dueDate: data.due_date || "",
-          lastMenstrualPeriod: data.last_menstrual_period || "",
-          hospitalName: data.hospital_name || "",
-          doctorName: data.doctor_name || "",
-          isHighRisk: data.is_high_risk || false,
-          previousPregnancies: data.previous_pregnancies || "",
-          medicalConditions: data.medical_conditions || "",
-          allergies: data.allergies || "",
-          currentMedications: data.current_medications || "",
-          emergencyNotes: data.emergency_notes || ""
-        });
+      // Load user phone number from profile
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('phone')
+        .eq('id', user!.id)
+        .single();
+
+      if (profileError && profileError.code !== 'PGRST116') {
+        console.error('Error loading profile data:', profileError);
+      } else if (profileData) {
+        setPhoneNumber(profileData.phone || "");
       }
     } catch (error) {
-      console.error('Error loading pregnancy data:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load pregnancy data.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleInputChange = (field: string, value: string | boolean) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  const calculateDueDate = (lmp: string) => {
-    if (!lmp) return "";
-    const lmpDate = new Date(lmp);
-    const dueDate = new Date(lmpDate.getTime() + (280 * 24 * 60 * 60 * 1000)); // 280 days
-    return dueDate.toISOString().split('T')[0];
-  };
-
-  const calculateWeeksFromLMP = (lmp: string) => {
-    if (!lmp) return 0;
-    const lmpDate = new Date(lmp);
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - lmpDate.getTime());
-    const weeks = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 7));
-    return Math.min(weeks, 42);
-  };
-
-  const handleLMPChange = (lmp: string) => {
-    handleInputChange('lastMenstrualPeriod', lmp);
-    if (lmp) {
-      const calculatedDueDate = calculateDueDate(lmp);
-      const calculatedWeeks = calculateWeeksFromLMP(lmp);
-      
-      handleInputChange('dueDate', calculatedDueDate);
-      handleInputChange('weeksPregnant', calculatedWeeks.toString());
+      console.error('Error loading existing data:', error);
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user?.id) return;
+
+    // Validate required phone number
+    if (!phoneNumber.trim()) {
+      toast({
+        title: "Phone Number Required",
+        description: "Please enter your phone number to receive SMS reminders.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const pregnancyData = {
-        user_id: user.id,
-        weeks_pregnant: formData.weeksPregnant ? parseInt(formData.weeksPregnant) : null,
-        due_date: formData.dueDate || null,
-        last_menstrual_period: formData.lastMenstrualPeriod || null,
-        hospital_name: formData.hospitalName || null,
-        doctor_name: formData.doctorName || null,
-        is_high_risk: formData.isHighRisk,
-        previous_pregnancies: formData.previousPregnancies || null,
-        medical_conditions: formData.medicalConditions || null,
-        allergies: formData.allergies || null,
-        current_medications: formData.currentMedications || null,
-        emergency_notes: formData.emergencyNotes || null,
-        updated_at: new Date().toISOString()
-      };
-
-      const { error } = await supabase
+      // Update or insert pregnancy data
+      const { error: pregnancyError } = await supabase
         .from('pregnancy_data')
-        .upsert(pregnancyData, {
-          onConflict: 'user_id'
+        .upsert({
+          user_id: user.id,
+          ...formData,
+          updated_at: new Date().toISOString()
         });
 
-      if (error) throw error;
+      if (pregnancyError) throw pregnancyError;
 
-      // Refresh user data to update hasPregnancyData flag
-      await refreshUserData();
+      // Update user profile with phone number
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ 
+          phone: phoneNumber,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+
+      if (profileError) throw profileError;
 
       toast({
-        title: "Success! 🎉",
-        description: "Your pregnancy details have been saved. Your pregnancy week will now automatically update weekly!",
+        title: "Success",
+        description: "Your pregnancy details and phone number have been saved successfully!",
       });
 
       navigate('/dashboard');
     } catch (error) {
-      console.error('Error saving pregnancy data:', error);
+      console.error('Error saving pregnancy details:', error);
       toast({
         title: "Error",
         description: "Failed to save pregnancy details. Please try again.",
@@ -164,137 +135,209 @@ const PregnancyDetails = () => {
     }
   };
 
+  const handleInputChange = (field: keyof PregnancyData, value: string | number | boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  // Calculate due date from LMP
+  const calculateDueDate = (lmp: string) => {
+    if (!lmp) return;
+    const lmpDate = new Date(lmp);
+    const dueDate = new Date(lmpDate);
+    dueDate.setDate(dueDate.getDate() + 280); // 40 weeks
+    return dueDate.toISOString().split('T')[0];
+  };
+
+  // Calculate weeks pregnant from LMP
+  const calculateWeeksPregnant = (lmp: string) => {
+    if (!lmp) return 0;
+    const lmpDate = new Date(lmp);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - lmpDate.getTime());
+    const weeks = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 7));
+    return Math.min(weeks, 42); // Cap at 42 weeks
+  };
+
+  const handleLMPChange = (lmp: string) => {
+    handleInputChange('last_menstrual_period', lmp);
+    if (lmp) {
+      const calculatedDueDate = calculateDueDate(lmp);
+      const calculatedWeeks = calculateWeeksPregnant(lmp);
+      
+      if (calculatedDueDate) {
+        handleInputChange('due_date', calculatedDueDate);
+      }
+      handleInputChange('weeks_pregnant', calculatedWeeks);
+    }
+  };
+
+  if (authLoading || !user) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+            <p className="text-muted-foreground">Loading...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       
       <div className="max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">
+          <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
+            <Heart className="h-8 w-8 text-rose-500" />
             Pregnancy Details
           </h1>
-          <p className="text-muted-foreground">
-            Help us personalize your MamaAlert experience by sharing your pregnancy information.
+          <p className="text-muted-foreground mt-2">
+            Help us provide you with personalized care and SMS reminders by sharing your pregnancy information.
           </p>
         </div>
 
-        {/* Progressive Tracking Info */}
-        <Card className="mb-8 border-green-200 bg-gradient-to-r from-green-50 to-emerald-50">
-          <CardContent className="pt-6">
-            <div className="flex items-start gap-4">
-              <TrendingUp className="h-6 w-6 text-green-600 mt-1" />
-              <div>
-                <h3 className="font-semibold text-green-800 mb-2">Smart Pregnancy Tracking</h3>
-                <p className="text-green-700 text-sm mb-3">
-                  Once you enter your Last Menstrual Period (LMP), MamaAlert will automatically track your pregnancy progress and update your week every 7 days. This ensures you always get the most relevant health tips and alerts for your current stage.
-                </p>
-                <div className="flex items-center gap-2 text-xs text-green-600">
-                  <Info className="h-4 w-4" />
-                  <span>Your pregnancy week will be calculated and updated automatically</span>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
         <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Basic Information */}
-          <Card>
+          {/* Contact Information */}
+          <Card className="border-blue-200">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-rose-500" />
-                Basic Pregnancy Information
-              </CardTitle>
+              <CardTitle className="text-blue-700">Contact Information</CardTitle>
+              <p className="text-sm text-blue-600">Required for SMS appointment reminders and emergency alerts</p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="phone" className="text-sm font-medium">
+                  Phone Number *
+                </Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  placeholder="e.g., +234 801 234 5678"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  required
+                  className="mt-1"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  We'll use this number to send you appointment reminders and emergency alerts
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Basic Pregnancy Information */}
+          <Card className="border-rose-200">
+            <CardHeader>
+              <CardTitle className="text-rose-700">Basic Pregnancy Information</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="lastMenstrualPeriod">Last Menstrual Period (LMP) *</Label>
+                  <Label htmlFor="lmp" className="text-sm font-medium">
+                    Last Menstrual Period (LMP)
+                  </Label>
                   <Input
-                    id="lastMenstrualPeriod"
+                    id="lmp"
                     type="date"
-                    value={formData.lastMenstrualPeriod}
+                    value={formData.last_menstrual_period || ''}
                     onChange={(e) => handleLMPChange(e.target.value)}
-                    required
+                    className="mt-1"
                   />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    🔄 This automatically calculates your due date and pregnancy week
-                  </p>
                 </div>
-
+                
                 <div>
-                  <Label htmlFor="weeksPregnant">Current Weeks Pregnant</Label>
+                  <Label htmlFor="weeks" className="text-sm font-medium">
+                    Current Weeks Pregnant
+                  </Label>
                   <Input
-                    id="weeksPregnant"
+                    id="weeks"
                     type="number"
                     min="0"
                     max="42"
-                    value={formData.weeksPregnant}
-                    onChange={(e) => handleInputChange('weeksPregnant', e.target.value)}
-                    placeholder="Auto-calculated from LMP"
-                    readOnly={!!formData.lastMenstrualPeriod}
+                    value={formData.weeks_pregnant || ''}
+                    onChange={(e) => handleInputChange('weeks_pregnant', parseInt(e.target.value) || 0)}
+                    className="mt-1"
                   />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {formData.lastMenstrualPeriod ? '📈 Updates automatically every week' : 'Or enter manually if you know your current week'}
-                  </p>
                 </div>
-
+                
                 <div>
-                  <Label htmlFor="dueDate">Due Date</Label>
-                  <Input
-                    id="dueDate"
-                    type="date"
-                    value={formData.dueDate}
-                    onChange={(e) => handleInputChange('dueDate', e.target.value)}
-                    readOnly={!!formData.lastMenstrualPeriod}
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {formData.lastMenstrualPeriod ? 'Auto-calculated from LMP' : 'Enter your expected due date'}
-                  </p>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="isHighRisk"
-                    checked={formData.isHighRisk}
-                    onCheckedChange={(checked) => handleInputChange('isHighRisk', checked)}
-                  />
-                  <Label htmlFor="isHighRisk" className="flex items-center gap-2">
-                    <Shield className="h-4 w-4" />
-                    High-risk pregnancy
+                  <Label htmlFor="due_date" className="text-sm font-medium">
+                    Expected Due Date
                   </Label>
+                  <Input
+                    id="due_date"
+                    type="date"
+                    value={formData.due_date || ''}
+                    onChange={(e) => handleInputChange('due_date', e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
+                
+                <div>
+                  <Label className="text-sm font-medium">High-Risk Pregnancy</Label>
+                  <div className="flex items-center space-x-4 mt-2">
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="high_risk"
+                        checked={formData.is_high_risk === false}
+                        onChange={() => handleInputChange('is_high_risk', false)}
+                        className="mr-2"
+                      />
+                      No
+                    </label>
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="high_risk"
+                        checked={formData.is_high_risk === true}
+                        onChange={() => handleInputChange('is_high_risk', true)}
+                        className="mr-2"
+                      />
+                      Yes
+                    </label>
+                  </div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Healthcare Provider Information */}
-          <Card>
+          {/* Healthcare Information */}
+          <Card className="border-green-200">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <UserCheck className="h-5 w-5 text-blue-500" />
-                Healthcare Provider Information
-              </CardTitle>
+              <CardTitle className="text-green-700">Healthcare Information</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="hospitalName">Hospital/Clinic Name</Label>
+                  <Label htmlFor="hospital" className="text-sm font-medium">
+                    Hospital/Clinic Name
+                  </Label>
                   <Input
-                    id="hospitalName"
-                    value={formData.hospitalName}
-                    onChange={(e) => handleInputChange('hospitalName', e.target.value)}
+                    id="hospital"
+                    value={formData.hospital_name || ''}
+                    onChange={(e) => handleInputChange('hospital_name', e.target.value)}
                     placeholder="e.g., Lagos University Teaching Hospital"
+                    className="mt-1"
                   />
                 </div>
-
+                
                 <div>
-                  <Label htmlFor="doctorName">Doctor's Name</Label>
+                  <Label htmlFor="doctor" className="text-sm font-medium">
+                    Doctor's Name
+                  </Label>
                   <Input
-                    id="doctorName"
-                    value={formData.doctorName}
-                    onChange={(e) => handleInputChange('doctorName', e.target.value)}
+                    id="doctor"
+                    value={formData.doctor_name || ''}
+                    onChange={(e) => handleInputChange('doctor_name', e.target.value)}
                     placeholder="e.g., Dr. Sarah Johnson"
+                    className="mt-1"
                   />
                 </div>
               </div>
@@ -302,90 +345,113 @@ const PregnancyDetails = () => {
           </Card>
 
           {/* Medical History */}
-          <Card>
+          <Card className="border-purple-200">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Heart className="h-5 w-5 text-green-500" />
-                Medical History
-              </CardTitle>
+              <CardTitle className="text-purple-700">Medical History</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="previousPregnancies">Previous Pregnancies</Label>
+                <Label htmlFor="previous_pregnancies" className="text-sm font-medium">
+                  Previous Pregnancies
+                </Label>
                 <Textarea
-                  id="previousPregnancies"
-                  value={formData.previousPregnancies}
-                  onChange={(e) => handleInputChange('previousPregnancies', e.target.value)}
-                  placeholder="Please describe any previous pregnancies, including outcomes..."
-                  rows={3}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="medicalConditions">Medical Conditions</Label>
-                <Textarea
-                  id="medicalConditions"
-                  value={formData.medicalConditions}
-                  onChange={(e) => handleInputChange('medicalConditions', e.target.value)}
-                  placeholder="List any medical conditions (diabetes, hypertension, etc.)"
-                  rows={3}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="allergies">Allergies</Label>
-                <Textarea
-                  id="allergies"
-                  value={formData.allergies}
-                  onChange={(e) => handleInputChange('allergies', e.target.value)}
-                  placeholder="List any known allergies (medications, foods, etc.)"
+                  id="previous_pregnancies"
+                  value={formData.previous_pregnancies || ''}
+                  onChange={(e) => handleInputChange('previous_pregnancies', e.target.value)}
+                  placeholder="e.g., 2 previous pregnancies, 1 live birth, 1 miscarriage"
+                  className="mt-1"
                   rows={2}
                 />
               </div>
-
+              
               <div>
-                <Label htmlFor="currentMedications">Current Medications</Label>
+                <Label htmlFor="medical_conditions" className="text-sm font-medium">
+                  Medical Conditions
+                </Label>
                 <Textarea
-                  id="currentMedications"
-                  value={formData.currentMedications}
-                  onChange={(e) => handleInputChange('currentMedications', e.target.value)}
-                  placeholder="List current medications and supplements"
-                  rows={3}
+                  id="medical_conditions"
+                  value={formData.medical_conditions || ''}
+                  onChange={(e) => handleInputChange('medical_conditions', e.target.value)}
+                  placeholder="e.g., Diabetes, Hypertension, Asthma"
+                  className="mt-1"
+                  rows={2}
                 />
               </div>
-
+              
               <div>
-                <Label htmlFor="emergencyNotes">Emergency Notes</Label>
+                <Label htmlFor="allergies" className="text-sm font-medium">
+                  Allergies
+                </Label>
                 <Textarea
-                  id="emergencyNotes"
-                  value={formData.emergencyNotes}
-                  onChange={(e) => handleInputChange('emergencyNotes', e.target.value)}
-                  placeholder="Any special instructions for emergency situations"
+                  id="allergies"
+                  value={formData.allergies || ''}
+                  onChange={(e) => handleInputChange('allergies', e.target.value)}
+                  placeholder="e.g., Penicillin, Shellfish, Latex"
+                  className="mt-1"
+                  rows={2}
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="current_medications" className="text-sm font-medium">
+                  Current Medications
+                </Label>
+                <Textarea
+                  id="current_medications"
+                  value={formData.current_medications || ''}
+                  onChange={(e) => handleInputChange('current_medications', e.target.value)}
+                  placeholder="e.g., Prenatal vitamins, Iron supplements"
+                  className="mt-1"
+                  rows={2}
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="emergency_notes" className="text-sm font-medium">
+                  Emergency Notes
+                </Label>
+                <Textarea
+                  id="emergency_notes"
+                  value={formData.emergency_notes || ''}
+                  onChange={(e) => handleInputChange('emergency_notes', e.target.value)}
+                  placeholder="Any important information for emergency situations"
+                  className="mt-1"
                   rows={3}
                 />
               </div>
             </CardContent>
           </Card>
 
-          <div className="flex gap-4">
+          <div className="flex justify-end space-x-4">
             <Button
               type="button"
               variant="outline"
               onClick={() => navigate('/dashboard')}
-              className="flex-1"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={loading}
-              className="flex-1 bg-rose-600 hover:bg-rose-700"
+              className="bg-rose-500 hover:bg-rose-600"
             >
-              {loading ? "Saving..." : "Save Pregnancy Details"}
+              {loading ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <Save className="h-4 w-4 mr-2" />
+              )}
+              Save Details
             </Button>
           </div>
         </form>
       </div>
+
+      {/* Footer */}
+      <footer className="border-t bg-background px-4 py-8 sm:px-6 lg:px-8 mt-16">
+        <div className="max-w-6xl mx-auto text-center text-muted-foreground">
+          <p>&copy; {new Date().getFullYear()} MamaAlert. Protecting Nigerian mothers, one alert at a time.</p>
+        </div>
+      </footer>
     </div>
   );
 };

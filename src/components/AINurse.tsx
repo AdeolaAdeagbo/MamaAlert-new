@@ -226,21 +226,28 @@ export const AINurse = () => {
       
       const utterance = new SpeechSynthesisUtterance(text);
       
-      // Try to use a Nigerian or British English voice if available
+      // Enhanced voice selection for Nigerian English
       const voices = window.speechSynthesis.getVoices();
       const preferredVoice = voices.find(voice => 
         voice.name.includes('Nigerian') || 
-        voice.name.includes('British') ||
+        voice.name.includes('Africa') ||
         voice.lang === 'en-NG' ||
+        voice.lang === 'en-ZA' || // South African English (similar intonation)
+        voice.name.includes('British Female') ||
+        voice.name.includes('UK Female') ||
         voice.lang === 'en-GB'
+      ) || voices.find(voice => 
+        voice.lang.startsWith('en') && voice.name.toLowerCase().includes('female')
       ) || voices.find(voice => voice.lang.startsWith('en'));
       
       if (preferredVoice) {
         utterance.voice = preferredVoice;
       }
       
-      utterance.rate = 0.8;
-      utterance.pitch = 1;
+      // Adjust speech parameters for natural Nigerian English sound
+      utterance.rate = 0.85; // Slightly slower for clarity
+      utterance.pitch = 1.1; // Slightly higher pitch for warmth
+      utterance.volume = 0.9;
       
       utterance.onstart = () => setIsSpeaking(true);
       utterance.onend = () => setIsSpeaking(false);
