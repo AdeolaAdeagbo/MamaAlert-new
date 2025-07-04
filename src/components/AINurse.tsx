@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "./AuthProvider";
 import { Button } from "@/components/ui/button";
@@ -226,28 +225,47 @@ export const AINurse = () => {
       
       const utterance = new SpeechSynthesisUtterance(text);
       
-      // Enhanced voice selection for Nigerian English
+      // Enhanced voice selection prioritizing Nigerian/African English
       const voices = window.speechSynthesis.getVoices();
       const preferredVoice = voices.find(voice => 
         voice.name.includes('Nigerian') || 
-        voice.name.includes('Africa') ||
+        voice.name.includes('Nigeria') ||
         voice.lang === 'en-NG' ||
-        voice.lang === 'en-ZA' || // South African English (similar intonation)
-        voice.name.includes('British Female') ||
-        voice.name.includes('UK Female') ||
-        voice.lang === 'en-GB'
+        voice.name.includes('African') ||
+        voice.name.includes('Ghana') ||
+        voice.name.includes('Kenya') ||
+        voice.lang === 'en-GH' ||
+        voice.lang === 'en-KE' ||
+        voice.lang === 'en-ZA' // South African English
       ) || voices.find(voice => 
-        voice.lang.startsWith('en') && voice.name.toLowerCase().includes('female')
-      ) || voices.find(voice => voice.lang.startsWith('en'));
+        // Fallback to warm female voices that can approximate Nigerian accent
+        voice.lang.startsWith('en') && 
+        voice.name.toLowerCase().includes('female') &&
+        !voice.name.toLowerCase().includes('british')
+      ) || voices.find(voice => 
+        voice.lang.startsWith('en') && 
+        !voice.name.toLowerCase().includes('british') &&
+        !voice.name.toLowerCase().includes('uk')
+      );
       
       if (preferredVoice) {
         utterance.voice = preferredVoice;
+        console.log('Selected voice:', preferredVoice.name, preferredVoice.lang);
       }
       
-      // Adjust speech parameters for natural Nigerian English sound
-      utterance.rate = 0.85; // Slightly slower for clarity
-      utterance.pitch = 1.1; // Slightly higher pitch for warmth
+      // Adjust speech parameters for Nigerian English characteristics
+      utterance.rate = 0.8; // Slightly slower for natural Nigerian pace
+      utterance.pitch = 1.2; // Higher pitch for warmth and femininity
       utterance.volume = 0.9;
+      
+      // Add slight pauses for natural Nigerian speech pattern
+      const enhancedText = text
+        .replace(/\./g, '. ') // Add pause after periods
+        .replace(/,/g, ', ') // Add pause after commas
+        .replace(/\?/g, '? ') // Add pause after questions
+        .replace(/!/g, '! '); // Add pause after exclamations
+      
+      utterance.text = enhancedText;
       
       utterance.onstart = () => setIsSpeaking(true);
       utterance.onend = () => setIsSpeaking(false);
