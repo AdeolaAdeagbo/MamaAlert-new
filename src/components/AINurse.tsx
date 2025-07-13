@@ -229,19 +229,20 @@ export const AINurse = () => {
       const voices = window.speechSynthesis.getVoices();
       console.log('Available voices:', voices.map(v => ({ name: v.name, lang: v.lang })));
       
-      // Prioritize voices that sound more African/Nigerian
+      // Prioritize English voices that sound more African/Nigerian
       const preferredVoice = voices.find(voice => 
-        // First try specific African voices
-        voice.name.includes('Nigerian') || 
-        voice.name.includes('Nigeria') ||
-        voice.lang === 'en-NG' ||
-        voice.name.includes('African') ||
-        voice.name.includes('Ghana') ||
-        voice.name.includes('Kenya') ||
-        voice.lang === 'en-GH' ||
-        voice.lang === 'en-KE' ||
-        voice.lang === 'en-ZA' ||
-        voice.name.includes('South Africa')
+        // First try specific African English voices
+        (voice.name.includes('Nigerian') || 
+         voice.name.includes('Nigeria') ||
+         voice.lang === 'en-NG' ||
+         voice.name.includes('African') ||
+         voice.name.includes('Ghana') ||
+         voice.name.includes('Kenya') ||
+         voice.lang === 'en-GH' ||
+         voice.lang === 'en-KE' ||
+         voice.lang === 'en-ZA' ||
+         voice.name.includes('South Africa')) && 
+        voice.lang.startsWith('en')
       ) || voices.find(voice => 
         // Try American English females (closer to African accent than British)
         voice.lang === 'en-US' && 
@@ -250,11 +251,14 @@ export const AINurse = () => {
         // Try any American English voice (better than British)
         voice.lang === 'en-US'
       ) || voices.find(voice => 
-        // Avoid British/UK voices specifically
+        // Fallback to any English voice except British/UK
         voice.lang.startsWith('en') && 
         !voice.name.toLowerCase().includes('british') &&
         !voice.name.toLowerCase().includes('uk') &&
         !voice.lang.includes('GB')
+      ) || voices.find(voice => 
+        // Final fallback to any English voice
+        voice.lang.startsWith('en')
       );
       
       if (preferredVoice) {
