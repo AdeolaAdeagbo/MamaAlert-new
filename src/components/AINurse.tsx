@@ -225,9 +225,13 @@ export const AINurse = () => {
       
       const utterance = new SpeechSynthesisUtterance(text);
       
-      // Enhanced voice selection prioritizing Nigerian/African English
+      // Get all available voices and log them for debugging
       const voices = window.speechSynthesis.getVoices();
+      console.log('Available voices:', voices.map(v => ({ name: v.name, lang: v.lang })));
+      
+      // Prioritize voices that sound more African/Nigerian
       const preferredVoice = voices.find(voice => 
+        // First try specific African voices
         voice.name.includes('Nigerian') || 
         voice.name.includes('Nigeria') ||
         voice.lang === 'en-NG' ||
@@ -236,16 +240,21 @@ export const AINurse = () => {
         voice.name.includes('Kenya') ||
         voice.lang === 'en-GH' ||
         voice.lang === 'en-KE' ||
-        voice.lang === 'en-ZA' // South African English
+        voice.lang === 'en-ZA' ||
+        voice.name.includes('South Africa')
       ) || voices.find(voice => 
-        // Fallback to warm female voices that can approximate Nigerian accent
-        voice.lang.startsWith('en') && 
-        voice.name.toLowerCase().includes('female') &&
-        !voice.name.toLowerCase().includes('british')
+        // Try American English females (closer to African accent than British)
+        voice.lang === 'en-US' && 
+        voice.name.toLowerCase().includes('female')
       ) || voices.find(voice => 
+        // Try any American English voice (better than British)
+        voice.lang === 'en-US'
+      ) || voices.find(voice => 
+        // Avoid British/UK voices specifically
         voice.lang.startsWith('en') && 
         !voice.name.toLowerCase().includes('british') &&
-        !voice.name.toLowerCase().includes('uk')
+        !voice.name.toLowerCase().includes('uk') &&
+        !voice.lang.includes('GB')
       );
       
       if (preferredVoice) {
@@ -253,9 +262,9 @@ export const AINurse = () => {
         console.log('Selected voice:', preferredVoice.name, preferredVoice.lang);
       }
       
-      // Adjust speech parameters for Nigerian English characteristics
-      utterance.rate = 0.8; // Slightly slower for natural Nigerian pace
-      utterance.pitch = 1.2; // Higher pitch for warmth and femininity
+      // Enhanced speech parameters to mimic Nigerian English characteristics
+      utterance.rate = 0.75; // Slower pace typical of Nigerian English
+      utterance.pitch = 1.3; // Higher pitch for feminine Nigerian voice
       utterance.volume = 0.9;
       
       // Add slight pauses for natural Nigerian speech pattern
