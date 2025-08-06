@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "./AuthProvider";
+import { useBabyProfile } from "@/hooks/useBabyProfile";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -16,7 +17,9 @@ import {
   Heart,
   Stethoscope,
   Wifi,
-  WifiOff
+  WifiOff,
+  Mic,
+  MicOff
 } from "lucide-react";
 
 type ChatMessage = Tables<'ai_nurse_chats'>;
@@ -35,13 +38,20 @@ const SUGGESTED_QUESTIONS = [
   "What exercises are safe during pregnancy?",
   "How much weight should I gain?",
   "What are the warning signs I should watch for?",
-  "How can I prepare for breastfeeding?"
+  "How can I prepare for breastfeeding?",
+  "Is this poop color normal for my baby?",
+  "How often should I breastfeed my newborn?",
+  "When should my baby start crawling?",
+  "What are signs of postpartum depression?",
+  "How can I increase my milk supply?",
+  "Is my baby eating enough?"
 ];
 
 export const AINurse = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { currentWeek } = usePregnancyProgress(user?.id || '');
+  const { babyProfiles } = useBabyProfile(user?.id || '');
   
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [currentMessage, setCurrentMessage] = useState("");
@@ -50,6 +60,10 @@ export const AINurse = () => {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [offlineMessages, setOfflineMessages] = useState<OfflineMessage[]>([]);
+  const [isRecording, setIsRecording] = useState(false);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
+  const audioRef = useRef<HTMLAudioElement>(null);
 
   // Monitor online status
   useEffect(() => {
@@ -140,11 +154,24 @@ export const AINurse = () => {
     setCurrentMessage("");
 
     try {
+      // Enhanced context for postpartum mothers
+      const contextInfo = {
+        pregnancyWeek: currentWeek,
+        hasDelivered: currentWeek === 0 || babyProfiles.length > 0,
+        babyCount: babyProfiles.length,
+        babyAges: babyProfiles.map(baby => {
+          const birthDate = new Date(baby.birth_date);
+          const now = new Date();
+          const ageInDays = Math.floor((now.getTime() - birthDate.getTime()) / (1000 * 60 * 60 * 24));
+          return { name: baby.name, ageInDays };
+        })
+      };
+
       // Call AI nurse function
       const { data, error } = await supabase.functions.invoke('ai-nurse-chat', {
         body: { 
           message,
-          pregnancyWeek: currentWeek 
+          ...contextInfo
         }
       });
 
@@ -215,7 +242,19 @@ export const AINurse = () => {
       return "Avoid raw fish, unpasteurized dairy, raw eggs, and limit caffeine. Eat plenty of fruits, vegetables, whole grains, and lean proteins. Always consult your healthcare provider for personalized advice.";
     }
     
-    return "I'm currently offline, but please remember to take your prenatal vitamins, stay hydrated, get regular prenatal care, and contact your healthcare provider with any concerns. For emergencies, go to the nearest hospital immediately.";
+    if (lowerMessage.includes('breastfeed') || lowerMessage.includes('feeding')) {
+      return "Breastfeed your baby every 2-3 hours or 8-12 times per day. Look for feeding cues like rooting, sucking motions, or hand-to-mouth movements. Contact a lactation consultant if you have concerns.";
+    }
+    
+    if (lowerMessage.includes('poop') || lowerMessage.includes('diaper') || lowerMessage.includes('stool')) {
+      return "Newborn stool changes from dark meconium to yellow/green by day 3-5. Breastfed babies have yellow, seedy stools. If you notice blood, white, or very hard stools, contact your pediatrician.";
+    }
+    
+    if (lowerMessage.includes('postpartum') || lowerMessage.includes('depression') || lowerMessage.includes('mood')) {
+      return "Postpartum mood changes are common. Baby blues last 1-2 weeks, but persistent sadness, anxiety, or thoughts of harm need immediate attention. Contact your healthcare provider for support.";
+    }
+    
+    return "I'm currently offline, but please remember to take care of yourself and your baby. Stay hydrated, rest when possible, and contact your healthcare provider with any concerns. For emergencies, go to the nearest hospital immediately.";
   };
 
   const handleTextToSpeech = (text: string) => {
@@ -308,6 +347,90 @@ export const AINurse = () => {
     }
   };
 
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+      
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          setAudioChunks(prev => [...prev, event.data]);
+        }
+      };
+      
+      recorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        await processAudioTranscription(audioBlob);
+        setAudioChunks([]);
+        
+        // Stop all tracks to release the microphone
+        stream.getTracks().forEach(track => track.stop());
+      };
+      
+      setMediaRecorder(recorder);
+      setIsRecording(true);
+      recorder.start();
+      
+      toast({
+        title: "Recording Started",
+        description: "Speak your question now..."
+      });
+    } catch (error) {
+      console.error('Error starting recording:', error);
+      toast({
+        title: "Recording Error",
+        description: "Unable to access microphone. Please check permissions.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorder && isRecording) {
+      mediaRecorder.stop();
+      setIsRecording(false);
+      setMediaRecorder(null);
+      
+      toast({
+        title: "Processing Audio",
+        description: "Converting your speech to text..."
+      });
+    }
+  };
+
+  const processAudioTranscription = async (audioBlob: Blob) => {
+    try {
+      // Convert blob to base64
+      const arrayBuffer = await audioBlob.arrayBuffer();
+      const uint8Array = new Uint8Array(arrayBuffer);
+      const binaryString = Array.from(uint8Array, byte => String.fromCharCode(byte)).join('');
+      const base64Audio = btoa(binaryString);
+
+      // Call speech-to-text function
+      const { data, error } = await supabase.functions.invoke('speech-to-text', {
+        body: { audio: base64Audio }
+      });
+
+      if (error) throw error;
+
+      const transcribedText = data.text;
+      if (transcribedText) {
+        setCurrentMessage(transcribedText);
+        toast({
+          title: "Speech Recognized",
+          description: `Transcribed: "${transcribedText.substring(0, 50)}${transcribedText.length > 50 ? '...' : ''}"`
+        });
+      }
+    } catch (error) {
+      console.error('Error processing audio:', error);
+      toast({
+        title: "Transcription Error",
+        description: "Failed to convert speech to text. Please try typing your message.",
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-4 space-y-6">
       {/* Header */}
@@ -337,13 +460,20 @@ export const AINurse = () => {
         </CardHeader>
         <CardContent>
           <p className="text-sm text-rose-600">
-            Ask me anything about your pregnancy journey. I'm here to provide guidance, 
-            support, and answers to your questions - specially tailored for expecting mothers in Nigeria.
+            Ask me anything about your pregnancy journey and postpartum care. I'm here to provide guidance, 
+            support, and answers to your questions about pregnancy, breastfeeding, baby care, and maternal health - 
+            specially tailored for mothers in Nigeria.
           </p>
           {currentWeek > 0 && (
             <p className="text-xs text-rose-500 mt-2 flex items-center gap-1">
               <Heart className="h-3 w-3" />
               Currently at week {currentWeek} of your pregnancy
+            </p>
+          )}
+          {babyProfiles.length > 0 && (
+            <p className="text-xs text-rose-500 mt-2 flex items-center gap-1">
+              <Heart className="h-3 w-3" />
+              Caring for {babyProfiles.length} {babyProfiles.length === 1 ? 'baby' : 'babies'}: {babyProfiles.map(b => b.name).join(', ')}
             </p>
           )}
         </CardContent>
@@ -441,13 +571,25 @@ export const AINurse = () => {
       {/* Input */}
       <div className="flex gap-2">
         <Input
-          placeholder="Ask MamaAlert AI Nurse anything about your pregnancy..."
+          placeholder="Ask MamaAlert AI Nurse anything about pregnancy, baby care, or postpartum health..."
           value={currentMessage}
           onChange={(e) => setCurrentMessage(e.target.value)}
           onKeyPress={(e) => e.key === 'Enter' && !isLoading && handleSendMessage()}
-          disabled={isLoading}
+          disabled={isLoading || isRecording}
           className="flex-1"
         />
+        <Button
+          onClick={isRecording ? stopRecording : startRecording}
+          disabled={isLoading}
+          size="icon"
+          variant={isRecording ? "destructive" : "outline"}
+        >
+          {isRecording ? (
+            <MicOff className="h-4 w-4 animate-pulse" />
+          ) : (
+            <Mic className="h-4 w-4" />
+          )}
+        </Button>
         <Button
           onClick={() => handleSendMessage()}
           disabled={isLoading || !currentMessage.trim()}

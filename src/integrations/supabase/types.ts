@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instanciate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "12.2.3 (519615d)"
+    PostgrestVersion: "12.2.12 (cd3cf9e)"
   }
   public: {
     Tables: {
@@ -80,6 +80,147 @@ export type Database = {
         }
         Relationships: []
       }
+      baby_growth: {
+        Row: {
+          baby_id: string
+          created_at: string
+          head_circumference: number | null
+          height: number | null
+          id: string
+          notes: string | null
+          recorded_date: string
+          user_id: string
+          weight: number | null
+        }
+        Insert: {
+          baby_id: string
+          created_at?: string
+          head_circumference?: number | null
+          height?: number | null
+          id?: string
+          notes?: string | null
+          recorded_date: string
+          user_id: string
+          weight?: number | null
+        }
+        Update: {
+          baby_id?: string
+          created_at?: string
+          head_circumference?: number | null
+          height?: number | null
+          id?: string
+          notes?: string | null
+          recorded_date?: string
+          user_id?: string
+          weight?: number | null
+        }
+        Relationships: []
+      }
+      baby_milestones: {
+        Row: {
+          achieved_date: string | null
+          baby_id: string
+          created_at: string
+          expected_age_months: number | null
+          id: string
+          milestone_name: string
+          milestone_type: string | null
+          notes: string | null
+          user_id: string
+        }
+        Insert: {
+          achieved_date?: string | null
+          baby_id: string
+          created_at?: string
+          expected_age_months?: number | null
+          id?: string
+          milestone_name: string
+          milestone_type?: string | null
+          notes?: string | null
+          user_id: string
+        }
+        Update: {
+          achieved_date?: string | null
+          baby_id?: string
+          created_at?: string
+          expected_age_months?: number | null
+          id?: string
+          milestone_name?: string
+          milestone_type?: string | null
+          notes?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      baby_profiles: {
+        Row: {
+          birth_date: string
+          birth_height: number | null
+          birth_weight: number | null
+          created_at: string
+          gender: string | null
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          birth_date: string
+          birth_height?: number | null
+          birth_weight?: number | null
+          created_at?: string
+          gender?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          birth_date?: string
+          birth_height?: number | null
+          birth_weight?: number | null
+          created_at?: string
+          gender?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      breastfeeding_sessions: {
+        Row: {
+          baby_id: string
+          created_at: string
+          end_time: string | null
+          id: string
+          notes: string | null
+          side_used: string | null
+          start_time: string
+          user_id: string
+        }
+        Insert: {
+          baby_id: string
+          created_at?: string
+          end_time?: string | null
+          id?: string
+          notes?: string | null
+          side_used?: string | null
+          start_time: string
+          user_id: string
+        }
+        Update: {
+          baby_id?: string
+          created_at?: string
+          end_time?: string | null
+          id?: string
+          notes?: string | null
+          side_used?: string | null
+          start_time?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       emergency_alerts: {
         Row: {
           alert_type: string
@@ -139,6 +280,72 @@ export type Database = {
           name?: string
           phone?: string
           relationship?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      infant_symptoms: {
+        Row: {
+          baby_id: string
+          created_at: string
+          description: string | null
+          id: string
+          severity: number | null
+          symptom_type: string
+          temperature: number | null
+          timestamp: string
+          user_id: string
+        }
+        Insert: {
+          baby_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          severity?: number | null
+          symptom_type: string
+          temperature?: number | null
+          timestamp?: string
+          user_id: string
+        }
+        Update: {
+          baby_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          severity?: number | null
+          symptom_type?: string
+          temperature?: number | null
+          timestamp?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      mood_tracking: {
+        Row: {
+          anxiety_level: number | null
+          created_at: string
+          id: string
+          mood_score: number | null
+          notes: string | null
+          sleep_hours: number | null
+          user_id: string
+        }
+        Insert: {
+          anxiety_level?: number | null
+          created_at?: string
+          id?: string
+          mood_score?: number | null
+          notes?: string | null
+          sleep_hours?: number | null
+          user_id: string
+        }
+        Update: {
+          anxiety_level?: number | null
+          created_at?: string
+          id?: string
+          mood_score?: number | null
+          notes?: string | null
+          sleep_hours?: number | null
           user_id?: string
         }
         Relationships: []
@@ -272,6 +479,45 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      vaccines: {
+        Row: {
+          administered_date: string | null
+          baby_id: string
+          created_at: string
+          id: string
+          location: string | null
+          notes: string | null
+          scheduled_date: string
+          updated_at: string
+          user_id: string
+          vaccine_name: string
+        }
+        Insert: {
+          administered_date?: string | null
+          baby_id: string
+          created_at?: string
+          id?: string
+          location?: string | null
+          notes?: string | null
+          scheduled_date: string
+          updated_at?: string
+          user_id: string
+          vaccine_name: string
+        }
+        Update: {
+          administered_date?: string | null
+          baby_id?: string
+          created_at?: string
+          id?: string
+          location?: string | null
+          notes?: string | null
+          scheduled_date?: string
+          updated_at?: string
+          user_id?: string
+          vaccine_name?: string
         }
         Relationships: []
       }
