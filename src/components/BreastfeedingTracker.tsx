@@ -77,7 +77,8 @@ export const BreastfeedingTracker = () => {
       if (active) {
         setActiveSession(active);
         setSelectedBaby(active.baby_id);
-        setSelectedSide(active.side_used || 'left');
+        const validSide = (active.side_used as 'left' | 'right' | 'both') || 'left';
+        setSelectedSide(validSide);
       }
     } catch (error) {
       console.error('Error fetching sessions:', error);
