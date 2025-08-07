@@ -272,28 +272,32 @@ export const InfantHealthMonitor = () => {
     if (!baby) return;
 
     const birthDate = new Date(baby.birth_date);
-    const schedulePromises = NIGERIAN_VACCINE_SCHEDULE.map(vaccine => {
-      const scheduledDate = new Date(birthDate);
-      scheduledDate.setMonth(scheduledDate.getMonth() + vaccine.months);
-
-      return supabase
-        .from('vaccines')
-        .upsert({
+    
+    try {
+      const vaccineRecords = NIGERIAN_VACCINE_SCHEDULE.map(vaccine => {
+        const scheduledDate = new Date(birthDate);
+        scheduledDate.setMonth(scheduledDate.getMonth() + vaccine.months);
+        
+        return {
           user_id: user!.id,
           baby_id: selectedBaby,
           vaccine_name: vaccine.name,
-          scheduled_date: scheduledDate.toISOString().split('T')[0]
-        }, {
-          onConflict: 'user_id,baby_id,vaccine_name'
-        });
-    });
+          scheduled_date: scheduledDate.toISOString().split('T')[0],
+          location: 'Primary Health Care Center',
+          notes: `Standard Nigerian immunization schedule - ${vaccine.name}`
+        };
+      });
 
-    try {
-      await Promise.all(schedulePromises);
+      const { data, error } = await supabase
+        .from('vaccines')
+        .insert(vaccineRecords);
+
+      if (error) throw error;
+
       fetchHealthData();
       toast({
         title: "Vaccine Schedule Generated",
-        description: "Nigerian immunization schedule has been created."
+        description: `Nigerian immunization schedule created with ${NIGERIAN_VACCINE_SCHEDULE.length} vaccines.`
       });
     } catch (error) {
       console.error('Error generating vaccine schedule:', error);

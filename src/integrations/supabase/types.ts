@@ -355,6 +355,7 @@ export type Database = {
           allergies: string | null
           created_at: string | null
           current_medications: string | null
+          delivery_date: string | null
           doctor_name: string | null
           due_date: string | null
           emergency_notes: string | null
@@ -372,6 +373,7 @@ export type Database = {
           allergies?: string | null
           created_at?: string | null
           current_medications?: string | null
+          delivery_date?: string | null
           doctor_name?: string | null
           due_date?: string | null
           emergency_notes?: string | null
@@ -389,6 +391,7 @@ export type Database = {
           allergies?: string | null
           created_at?: string | null
           current_medications?: string | null
+          delivery_date?: string | null
           doctor_name?: string | null
           due_date?: string | null
           emergency_notes?: string | null

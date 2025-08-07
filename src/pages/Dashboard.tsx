@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/components/AuthProvider";
+import { useMode } from "@/contexts/ModeContext";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +13,8 @@ import { HealthAlerts } from "@/components/HealthAlerts";
 import { WeeklyHealthTips } from "@/components/WeeklyHealthTips";
 import { EmergencyAlertLogger } from "@/components/EmergencyAlertLogger";
 import { WelcomeModal } from "@/components/WelcomeModal";
+import { OnboardingPrompt } from "@/components/OnboardingPrompt";
+import { DeliveryLogger } from "@/components/DeliveryLogger";
 import { DeliveryPreparationTips } from "@/components/DeliveryPreparationTips";
 import { AppointmentReminder } from "@/components/AppointmentReminder";
 import { usePregnancyProgress } from "@/hooks/usePregnancyProgress";
@@ -23,7 +26,8 @@ import {
   Activity,
   Loader2,
   TrendingUp,
-  MessageCircle
+  MessageCircle,
+  Baby
 } from "lucide-react";
 
 interface EmergencyAlert {
@@ -52,10 +56,12 @@ interface PregnancyData {
 
 const Dashboard = () => {
   const { user, refreshUserData, isLoading: authLoading } = useAuth();
+  const { currentMode, isLoading: modeLoading } = useMode();
   const { toast } = useToast();
   const [emergencyAlerts, setEmergencyAlerts] = useState<EmergencyAlert[]>([]);
   const [recentSymptoms, setRecentSymptoms] = useState<SymptomLog[]>([]);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [loading, setLoading] = useState(true);
   const [dataLoaded, setDataLoaded] = useState(false);
 
@@ -67,8 +73,8 @@ const Dashboard = () => {
     return <Navigate to="/auth" replace />;
   }
 
-  // Show loading screen while auth is loading
-  if (authLoading || !user) {
+  // Show loading screen while auth or mode is loading
+  if (authLoading || modeLoading || !user) {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
@@ -215,12 +221,19 @@ const Dashboard = () => {
 
   const hasPregnancyData = !!pregnancyData;
 
-  // Show welcome modal for new users without pregnancy data
+  // Show onboarding for users in onboarding mode
   useEffect(() => {
-    if (user && !hasPregnancyData && !loading && !pregnancyLoading && dataLoaded) {
+    if (user && currentMode === 'onboarding' && !modeLoading) {
+      setShowOnboarding(true);
+    }
+  }, [user, currentMode, modeLoading]);
+
+  // Show welcome modal for new users without pregnancy data (pregnancy mode only)
+  useEffect(() => {
+    if (user && currentMode === 'pregnancy' && !hasPregnancyData && !loading && !pregnancyLoading && dataLoaded) {
       setShowWelcomeModal(true);
     }
-  }, [user, hasPregnancyData, loading, dataLoaded, pregnancyLoading]);
+  }, [user, currentMode, hasPregnancyData, loading, dataLoaded, pregnancyLoading]);
 
   const handleEmergencyAlert = (alert: any) => {
     setEmergencyAlerts(prev => [alert, ...prev.slice(0, 4)]);
@@ -291,6 +304,11 @@ const Dashboard = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       
+      <OnboardingPrompt 
+        isOpen={showOnboarding}
+        onClose={() => setShowOnboarding(false)}
+      />
+      
       <WelcomeModal 
         isOpen={showWelcomeModal}
         onClose={handleWelcomeModalClose}
@@ -304,18 +322,22 @@ const Dashboard = () => {
             Welcome back, {user.firstName || 'Mama'}! 
           </h1>
           <p className="text-muted-foreground">
-            {hasPregnancyData ? 
+            {currentMode === 'pregnancy' && hasPregnancyData ? 
               <div className="flex items-center gap-2">
                 <span>You're at week {userStats.pregnancyWeek} of your pregnancy journey. Stay safe and healthy! 💕</span>
                 <TrendingUp className="h-4 w-4 text-green-500" />
               </div> :
-              "Complete your pregnancy profile to get personalized care and tips!"
+            currentMode === 'postpartum' ? 
+              "Welcome to postpartum care! Track your baby's health and your recovery journey. 🍼" :
+            currentMode === 'pregnancy' ?
+              "Complete your pregnancy profile to get personalized care and tips!" :
+              "Let's get started with personalized maternal care!"
             }
           </p>
         </div>
 
-        {/* Onboarding Alert */}
-        {!hasPregnancyData && (
+        {/* Onboarding Alert for Pregnancy Mode */}
+        {currentMode === 'pregnancy' && !hasPregnancyData && (
           <Card className="mb-8 border-amber-200 bg-gradient-to-r from-amber-50 to-yellow-50">
             <CardContent className="pt-6">
               <div className="text-center">
@@ -344,7 +366,12 @@ const Dashboard = () => {
                 If you're experiencing a medical emergency, press the button below to instantly 
                 notify your emergency contacts and nearest healthcare center.
               </p>
-              <EmergencyAlertLogger userId={user.id} onAlertSent={handleEmergencyAlert} />
+              <div className="flex items-center justify-center gap-4">
+                <EmergencyAlertLogger userId={user.id} onAlertSent={handleEmergencyAlert} />
+                {currentMode === 'pregnancy' && (
+                  <DeliveryLogger />
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -438,14 +465,25 @@ const Dashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <Link to="/pregnancy-details">
-                    <Button variant="outline" className="w-full h-20 flex flex-col gap-2">
-                      <Heart className="h-6 w-6 text-rose-500" />
-                      <span className="text-sm">
-                        {hasPregnancyData ? 'Edit Details' : 'Add Details'}
-                      </span>
-                    </Button>
-                  </Link>
+                  {currentMode === 'pregnancy' && (
+                    <Link to="/pregnancy-details">
+                      <Button variant="outline" className="w-full h-20 flex flex-col gap-2">
+                        <Heart className="h-6 w-6 text-rose-500" />
+                        <span className="text-sm">
+                          {hasPregnancyData ? 'Edit Details' : 'Add Details'}
+                        </span>
+                      </Button>
+                    </Link>
+                  )}
+                  
+                  {currentMode === 'postpartum' && (
+                    <Link to="/postpartum-care">
+                      <Button variant="outline" className="w-full h-20 flex flex-col gap-2">
+                        <Baby className="h-6 w-6 text-pink-500" />
+                        <span className="text-sm">Baby Care</span>
+                      </Button>
+                    </Link>
+                  )}
                   
                   <Link to="/ai-nurse">
                     <Button variant="outline" className="w-full h-20 flex flex-col gap-2">
@@ -454,12 +492,14 @@ const Dashboard = () => {
                     </Button>
                   </Link>
                   
-                  <Link to="/symptom-logger">
-                    <Button variant="outline" className="w-full h-20 flex flex-col gap-2">
-                      <Heart className="h-6 w-6 text-rose-500" />
-                      <span className="text-sm">Log Symptoms</span>
-                    </Button>
-                  </Link>
+                  {currentMode === 'pregnancy' && (
+                    <Link to="/symptom-logger">
+                      <Button variant="outline" className="w-full h-20 flex flex-col gap-2">
+                        <Heart className="h-6 w-6 text-rose-500" />
+                        <span className="text-sm">Log Symptoms</span>
+                      </Button>
+                    </Link>
+                  )}
                   
                   <Link to="/symptom-guide">
                     <Button variant="outline" className="w-full h-20 flex flex-col gap-2">
