@@ -1,3 +1,4 @@
+
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
@@ -44,11 +45,17 @@ serve(async (req) => {
   }
 
   try {
+    if (!openAIApiKey) {
+      throw new Error('OpenAI API key not configured');
+    }
+
     const { audio } = await req.json();
     
     if (!audio) {
       throw new Error('No audio data provided');
     }
+
+    console.log('Processing audio transcription request...');
 
     // Process audio in chunks
     const binaryAudio = processBase64Chunks(audio);
@@ -59,6 +66,9 @@ serve(async (req) => {
     formData.append('file', blob, 'audio.webm');
     formData.append('model', 'whisper-1');
     formData.append('language', 'en'); // Specify English for better Nigerian English recognition
+    formData.append('response_format', 'json');
+
+    console.log('Sending request to OpenAI Whisper API...');
 
     // Send to OpenAI
     const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
@@ -72,13 +82,17 @@ serve(async (req) => {
     if (!response.ok) {
       const errorText = await response.text();
       console.error('OpenAI API error:', errorText);
-      throw new Error(`OpenAI API error: ${errorText}`);
+      throw new Error(`OpenAI API error: ${response.status} ${errorText}`);
     }
 
     const result = await response.json();
+    console.log('Transcription successful:', result.text);
 
     return new Response(
-      JSON.stringify({ text: result.text }),
+      JSON.stringify({ 
+        text: result.text?.trim() || '',
+        success: true 
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
@@ -87,7 +101,8 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         error: error.message,
-        fallbackMessage: "Speech recognition failed. Please try typing your message instead."
+        success: false,
+        fallbackMessage: "Speech recognition failed. Please try again or type your message instead."
       }),
       {
         status: 500,

@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "./AuthProvider";
 import { useBabyProfile } from "@/hooks/useBabyProfile";
@@ -63,7 +64,14 @@ export const AINurse = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
-  const audioRef = useRef<HTMLAudioElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to bottom when new messages are added
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
+    }
+  }, [messages]);
 
   // Monitor online status
   useEffect(() => {
@@ -264,60 +272,30 @@ export const AINurse = () => {
       
       const utterance = new SpeechSynthesisUtterance(text);
       
-      // Get all available voices and log them for debugging
+      // Get available voices
       const voices = window.speechSynthesis.getVoices();
-      console.log('Available voices:', voices.map(v => ({ name: v.name, lang: v.lang })));
       
-      // Prioritize English voices that sound more African/Nigerian
+      // Prioritize Nigerian/African English voices
       const preferredVoice = voices.find(voice => 
-        // First try specific African English voices
-        (voice.name.includes('Nigerian') || 
-         voice.name.includes('Nigeria') ||
-         voice.lang === 'en-NG' ||
-         voice.name.includes('African') ||
-         voice.name.includes('Ghana') ||
-         voice.name.includes('Kenya') ||
-         voice.lang === 'en-GH' ||
-         voice.lang === 'en-KE' ||
-         voice.lang === 'en-ZA' ||
-         voice.name.includes('South Africa')) && 
-        voice.lang.startsWith('en')
+        voice.lang === 'en-NG' || 
+        voice.name.includes('Nigeria') ||
+        voice.name.includes('Nigerian') ||
+        voice.lang === 'en-GH' ||
+        voice.lang === 'en-KE' ||
+        voice.lang === 'en-ZA'
       ) || voices.find(voice => 
-        // Try American English females (closer to African accent than British)
         voice.lang === 'en-US' && 
         voice.name.toLowerCase().includes('female')
-      ) || voices.find(voice => 
-        // Try any American English voice (better than British)
-        voice.lang === 'en-US'
-      ) || voices.find(voice => 
-        // Fallback to any English voice except British/UK
-        voice.lang.startsWith('en') && 
-        !voice.name.toLowerCase().includes('british') &&
-        !voice.name.toLowerCase().includes('uk') &&
-        !voice.lang.includes('GB')
-      ) || voices.find(voice => 
-        // Final fallback to any English voice
-        voice.lang.startsWith('en')
-      );
+      ) || voices.find(voice => voice.lang.startsWith('en'));
       
       if (preferredVoice) {
         utterance.voice = preferredVoice;
-        console.log('Selected voice:', preferredVoice.name, preferredVoice.lang);
       }
       
-      // Enhanced speech parameters to mimic Nigerian English characteristics
-      utterance.rate = 0.75; // Slower pace typical of Nigerian English
-      utterance.pitch = 1.3; // Higher pitch for feminine Nigerian voice
+      // Enhanced speech parameters for Nigerian English
+      utterance.rate = 0.75;
+      utterance.pitch = 1.3;
       utterance.volume = 0.9;
-      
-      // Add slight pauses for natural Nigerian speech pattern
-      const enhancedText = text
-        .replace(/\./g, '. ') // Add pause after periods
-        .replace(/,/g, ', ') // Add pause after commas
-        .replace(/\?/g, '? ') // Add pause after questions
-        .replace(/!/g, '! '); // Add pause after exclamations
-      
-      utterance.text = enhancedText;
       
       utterance.onstart = () => setIsSpeaking(true);
       utterance.onend = () => setIsSpeaking(false);
@@ -349,8 +327,26 @@ export const AINurse = () => {
 
   const startRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          sampleRate: 16000,
+          channelCount: 1,
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        } 
+      });
+      
+      // Use webm format for better compatibility
+      const options = { mimeType: 'audio/webm;codecs=opus' };
+      if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+        options.mimeType = 'audio/webm';
+      }
+      if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+        options.mimeType = '';
+      }
+      
+      const recorder = new MediaRecorder(stream, options);
       
       recorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
@@ -373,13 +369,13 @@ export const AINurse = () => {
       
       toast({
         title: "Recording Started",
-        description: "Speak your question now..."
+        description: "Speak your question now. Tap the microphone again to stop.",
       });
     } catch (error) {
       console.error('Error starting recording:', error);
       toast({
         title: "Recording Error",
-        description: "Unable to access microphone. Please check permissions.",
+        description: "Unable to access microphone. Please check permissions and try again.",
         variant: "destructive"
       });
     }
@@ -393,7 +389,7 @@ export const AINurse = () => {
       
       toast({
         title: "Processing Audio",
-        description: "Converting your speech to text..."
+        description: "Converting your speech to text...",
       });
     }
   };
@@ -413,19 +409,25 @@ export const AINurse = () => {
 
       if (error) throw error;
 
-      const transcribedText = data.text;
+      const transcribedText = data.text?.trim();
       if (transcribedText) {
         setCurrentMessage(transcribedText);
         toast({
           title: "Speech Recognized",
           description: `Transcribed: "${transcribedText.substring(0, 50)}${transcribedText.length > 50 ? '...' : ''}"`
         });
+      } else {
+        toast({
+          title: "No Speech Detected",
+          description: "Please try speaking more clearly and ensure good audio quality.",
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error('Error processing audio:', error);
       toast({
         title: "Transcription Error",
-        description: "Failed to convert speech to text. Please try typing your message.",
+        description: error.fallbackMessage || "Failed to convert speech to text. Please try typing your message.",
         variant: "destructive"
       });
     }
@@ -443,7 +445,7 @@ export const AINurse = () => {
               </div>
               <div>
                 <CardTitle className="text-rose-700">MamaAlert AI Nurse</CardTitle>
-                <p className="text-sm text-rose-600">Your 24/7 pregnancy companion</p>
+                <p className="text-sm text-rose-600">Your 24/7 pregnancy & postpartum companion</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -513,7 +515,7 @@ export const AINurse = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="flex-1">
-          <ScrollArea className="h-full">
+          <ScrollArea className="h-full" ref={scrollAreaRef}>
             {isLoadingHistory ? (
               <div className="flex items-center justify-center h-full">
                 <Loader2 className="h-8 w-8 animate-spin" />
@@ -574,7 +576,7 @@ export const AINurse = () => {
           placeholder="Ask MamaAlert AI Nurse anything about pregnancy, baby care, or postpartum health..."
           value={currentMessage}
           onChange={(e) => setCurrentMessage(e.target.value)}
-          onKeyPress={(e) => e.key === 'Enter' && !isLoading && handleSendMessage()}
+          onKeyPress={(e) => e.key === 'Enter' && !isLoading && currentMessage.trim() && handleSendMessage()}
           disabled={isLoading || isRecording}
           className="flex-1"
         />
@@ -583,9 +585,10 @@ export const AINurse = () => {
           disabled={isLoading}
           size="icon"
           variant={isRecording ? "destructive" : "outline"}
+          className={isRecording ? "animate-pulse" : ""}
         >
           {isRecording ? (
-            <MicOff className="h-4 w-4 animate-pulse" />
+            <MicOff className="h-4 w-4" />
           ) : (
             <Mic className="h-4 w-4" />
           )}
