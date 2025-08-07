@@ -18,6 +18,7 @@ import HealthcareCenters from "./pages/HealthcareCenters";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminLogin from "./pages/AdminLogin";
 import PregnancyDetails from "./pages/PregnancyDetails";
+import PostpartumCare from "./pages/PostpartumCare";
 import AINursePage from "./pages/AINursePage";
 
 const queryClient = new QueryClient();
@@ -39,6 +40,7 @@ const App = () => (
               <Route path="/symptom-logger" element={<SymptomLogger />} />
               <Route path="/symptom-guide" element={<SymptomGuide />} />
               <Route path="/healthcare-centers" element={<HealthcareCenters />} />
+              <Route path="/postpartum-care" element={<PostpartumCare />} />
               <Route path="/ai-nurse" element={<AINursePage />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/admin/login" element={<AdminLogin />} />

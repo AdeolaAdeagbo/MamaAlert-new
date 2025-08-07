@@ -43,6 +43,9 @@ export function Navbar() {
               <Link to="/healthcare-centers" className="text-sm font-medium hover:text-rose-600 transition-colors">
                 Healthcare Centers
               </Link>
+              <Link to="/postpartum-care" className="text-sm font-medium hover:text-rose-600 transition-colors">
+                Postpartum Care
+              </Link>
             </div>
           )}
 
