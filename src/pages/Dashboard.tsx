@@ -68,26 +68,6 @@ const Dashboard = () => {
   // Use the new progressive pregnancy hook
   const { pregnancyData, currentWeek, loading: pregnancyLoading, refreshData } = usePregnancyProgress(user?.id || '');
 
-  // Redirect to auth if no user and not loading
-  if (!user && !authLoading) {
-    return <Navigate to="/auth" replace />;
-  }
-
-  // Show loading screen while auth or mode is loading
-  if (authLoading || modeLoading || !user) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
-          <div className="text-center">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-            <p className="text-muted-foreground">Loading your dashboard...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   const loadDashboardData = async () => {
     if (!user?.id) return;
     
@@ -299,6 +279,26 @@ const Dashboard = () => {
       status: "normal"
     }))
   ].slice(0, 5);
+
+  // Redirect to auth if no user and not loading
+  if (!user && !authLoading) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  // Show loading screen while auth or mode is loading
+  if (authLoading || modeLoading || !user) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+            <p className="text-muted-foreground">Loading your dashboard...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
