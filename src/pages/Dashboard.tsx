@@ -19,6 +19,10 @@ import { DeliveryPreparationTips } from "@/components/DeliveryPreparationTips";
 import { AppointmentReminder } from "@/components/AppointmentReminder";
 import { usePregnancyProgress } from "@/hooks/usePregnancyProgress";
 import { supabase } from "@/integrations/supabase/client";
+import { BabyProfileSetup } from "@/components/BabyProfileSetup";
+import { BreastfeedingTracker } from "@/components/BreastfeedingTracker";
+import { InfantHealthMonitor } from "@/components/InfantHealthMonitor";
+import { PostpartumMoodTracker } from "@/components/PostpartumMoodTracker";
 import { 
   Heart, 
   Phone, 
@@ -56,7 +60,7 @@ interface PregnancyData {
 
 const Dashboard = () => {
   const { user, refreshUserData, isLoading: authLoading } = useAuth();
-  const { currentMode, isLoading: modeLoading } = useMode();
+  const { currentMode, isLoading: modeLoading, switchToPregnancy } = useMode();
   const { toast } = useToast();
   const [emergencyAlerts, setEmergencyAlerts] = useState<EmergencyAlert[]>([]);
   const [recentSymptoms, setRecentSymptoms] = useState<SymptomLog[]>([]);
@@ -334,6 +338,13 @@ const Dashboard = () => {
               "Let's get started with personalized maternal care!"
             }
           </p>
+          {currentMode === 'postpartum' && (
+            <div className="mt-4">
+              <Button variant="outline" onClick={switchToPregnancy}>
+                Switch to Pregnancy Mode
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Onboarding Alert for Pregnancy Mode */}
@@ -529,6 +540,14 @@ const Dashboard = () => {
                 </div>
               </CardContent>
             </Card>
+            {currentMode === 'postpartum' && (
+              <>
+                <BabyProfileSetup />
+                <BreastfeedingTracker />
+                <InfantHealthMonitor />
+                <PostpartumMoodTracker />
+              </>
+            )}
 
             {/* Delivery Preparation Tips for late pregnancy */}
             {currentMode === 'pregnancy' && currentWeek >= 36 && (
