@@ -9,6 +9,7 @@ interface ModeContextType {
   currentMode: UserMode;
   isLoading: boolean;
   switchToPostpartum: (deliveryDate: string) => Promise<void>;
+  switchToPregnancy: () => Promise<void>;
   setOnboardingMode: (mode: 'pregnancy' | 'postpartum') => Promise<void>;
   refreshMode: () => Promise<void>;
   deliveryDate?: string;
@@ -121,6 +122,42 @@ export const ModeProvider = ({ children }: ModeProviderProps) => {
     }
   };
 
+  // Switch back to pregnancy mode by clearing delivery date
+  const switchToPregnancy = async () => {
+    if (!user?.id) return;
+
+    try {
+      setIsLoading(true);
+
+      const { error } = await supabase
+        .from('pregnancy_data')
+        .update({
+          delivery_date: null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      setCurrentMode('pregnancy');
+      setDeliveryDate(undefined);
+
+      toast({
+        title: "Switched to Pregnancy Mode",
+        description: "You're now back in pregnancy care.",
+      });
+    } catch (error) {
+      console.error('Error switching to pregnancy mode:', error);
+      toast({
+        title: "Error",
+        description: "Failed to switch mode.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Set initial mode during onboarding
   const setOnboardingMode = async (mode: 'pregnancy' | 'postpartum') => {
     if (!user?.id) return;
@@ -162,6 +199,7 @@ export const ModeProvider = ({ children }: ModeProviderProps) => {
       currentMode,
       isLoading,
       switchToPostpartum,
+      switchToPregnancy,
       setOnboardingMode,
       refreshMode,
       deliveryDate

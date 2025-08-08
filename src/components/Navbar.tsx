@@ -1,14 +1,18 @@
 
 import { useAuth } from "./AuthProvider";
 import { useTheme } from "./ThemeProvider";
+import { useMode } from "@/contexts/ModeContext";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { DeliveryLogger } from "@/components/DeliveryLogger";
 import { Moon, Sun } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export function Navbar() {
   const { user, logout } = useAuth();
   const { theme, setTheme } = useTheme();
+  const { currentMode, switchToPregnancy, isLoading: modeLoading } = useMode();
 
   return (
     <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">

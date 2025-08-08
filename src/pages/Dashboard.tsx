@@ -361,10 +361,11 @@ const Dashboard = () => {
         <Card className="mb-8 border-red-200 bg-gradient-to-r from-red-50 to-rose-50">
           <CardContent className="pt-6">
             <div className="text-center">
-              <h2 className="text-xl font-bold text-red-800 mb-4">Emergency Alert</h2>
+              <h2 className="text-xl font-bold text-red-800 mb-4">{currentMode === 'postpartum' ? 'Postpartum/Baby Emergency' : 'Emergency Alert'}</h2>
               <p className="text-red-700 mb-6">
-                If you're experiencing a medical emergency, press the button below to instantly 
-                notify your emergency contacts and nearest healthcare center.
+                {currentMode === 'postpartum'
+                  ? 'If your baby or you have a postpartum emergency, press the button below to notify your contacts and nearest healthcare center.'
+                  : "If you're experiencing a medical emergency, press the button below to instantly notify your emergency contacts and nearest healthcare center."}
               </p>
               <div className="flex items-center justify-center gap-4">
                 <EmergencyAlertLogger userId={user.id} onAlertSent={handleEmergencyAlert} />
@@ -378,29 +379,31 @@ const Dashboard = () => {
 
         {/* Stats Cards with progressive data */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="border-rose-200">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Pregnancy Week
-                </CardTitle>
-                <div className="flex items-center gap-1">
-                  <Heart className="h-4 w-4 text-rose-500" />
-                  {hasPregnancyData && <TrendingUp className="h-3 w-3 text-green-500" />}
+          {currentMode === 'pregnancy' && (
+            <Card className="border-rose-200">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Pregnancy Week
+                  </CardTitle>
+                  <div className="flex items-center gap-1">
+                    <Heart className="h-4 w-4 text-rose-500" />
+                    {hasPregnancyData && <TrendingUp className="h-3 w-3 text-green-500" />}
+                  </div>
                 </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-rose-600">
-                Week {userStats.pregnancyWeek}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {userStats.pregnancyWeek === 0 ? 'Add pregnancy details' :
-                 userStats.pregnancyWeek <= 12 ? '1st Trimester' : 
-                 userStats.pregnancyWeek <= 26 ? '2nd Trimester' : '3rd Trimester'}
-              </p>
-            </CardContent>
-          </Card>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-rose-600">
+                  Week {userStats.pregnancyWeek}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {userStats.pregnancyWeek === 0 ? 'Add pregnancy details' :
+                   userStats.pregnancyWeek <= 12 ? '1st Trimester' : 
+                   userStats.pregnancyWeek <= 26 ? '2nd Trimester' : '3rd Trimester'}
+                </p>
+              </CardContent>
+            </Card>
+          )}
 
           <Card>
             <CardHeader className="pb-3">
@@ -436,20 +439,22 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Recent Symptoms
-                </CardTitle>
-                <Activity className="h-4 w-4 text-blue-500" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{userStats.recentSymptoms}</div>
-              <p className="text-xs text-muted-foreground mt-1">Tracked this week</p>
-            </CardContent>
-          </Card>
+          {currentMode === 'pregnancy' && (
+            <Card>
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Recent Symptoms
+                  </CardTitle>
+                  <Activity className="h-4 w-4 text-blue-500" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{userStats.recentSymptoms}</div>
+                <p className="text-xs text-muted-foreground mt-1">Tracked this week</p>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Main Content Grid */}
@@ -526,7 +531,7 @@ const Dashboard = () => {
             </Card>
 
             {/* Delivery Preparation Tips for late pregnancy */}
-            {currentWeek >= 36 && (
+            {currentMode === 'pregnancy' && currentWeek >= 36 && (
               <DeliveryPreparationTips pregnancyWeek={currentWeek} />
             )}
 
