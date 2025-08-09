@@ -487,60 +487,51 @@ const Dashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {currentMode === 'pregnancy' && (
-                    <Link to="/pregnancy-details">
-                      <Button variant="outline" className="w-full h-20 flex flex-col gap-2">
-                        <Heart className="h-6 w-6 text-rose-500" />
-                        <span className="text-sm">
-                          {hasPregnancyData ? 'Edit Details' : 'Add Details'}
-                        </span>
-                      </Button>
-                    </Link>
-                  )}
-                  
-                  {currentMode === 'postpartum' && (
-                    <Link to="/postpartum-care">
-                      <Button variant="outline" className="w-full h-20 flex flex-col gap-2">
-                        <Baby className="h-6 w-6 text-pink-500" />
-                        <span className="text-sm">Baby Care</span>
-                      </Button>
-                    </Link>
-                  )}
+                  <Link to="/symptom-logger">
+                    <Button variant="outline" className="w-full h-auto py-4 px-6 flex flex-col items-center gap-2">
+                      <Activity className="h-8 w-8 text-rose-500" />
+                      <div className="text-center">
+                        <div className="font-medium">
+                          {currentMode === 'postpartum' ? 'Log Postpartum Symptoms' : 'Log Symptoms'}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {currentMode === 'postpartum' ? 'Track postpartum & baby health' : 'Track your health'}
+                        </div>
+                      </div>
+                    </Button>
+                  </Link>
+
+                  <Link to="/symptom-guide">
+                    <Button variant="outline" className="w-full h-auto py-4 px-6 flex flex-col items-center gap-2">
+                      <Heart className="h-8 w-8 text-rose-500" />
+                      <div className="text-center">
+                        <div className="font-medium">
+                          {currentMode === 'postpartum' ? 'Postpartum Guide' : 'Symptoms Guide'}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {currentMode === 'postpartum' ? 'Postpartum & baby care' : 'When to seek help'}
+                        </div>
+                      </div>
+                    </Button>
+                  </Link>
                   
                   <Link to="/ai-nurse">
-                    <Button variant="outline" className="w-full h-20 flex flex-col gap-2">
-                      <MessageCircle className="h-6 w-6 text-purple-500" />
-                      <span className="text-sm">AI Nurse</span>
+                    <Button variant="outline" className="w-full h-auto py-4 px-6 flex flex-col items-center gap-2">
+                      <MessageCircle className="h-8 w-8 text-purple-500" />
+                      <div className="text-center">
+                        <div className="font-medium">AI Nurse</div>
+                        <div className="text-xs text-muted-foreground">Chat with our AI</div>
+                      </div>
                     </Button>
                   </Link>
-                  
-                  {currentMode === 'pregnancy' && (
-                    <Link to="/symptom-logger">
-                      <Button variant="outline" className="w-full h-20 flex flex-col gap-2">
-                        <Heart className="h-6 w-6 text-rose-500" />
-                        <span className="text-sm">Log Symptoms</span>
-                      </Button>
-                    </Link>
-                  )}
-                  
-                  <Link to="/symptom-guide">
-                    <Button variant="outline" className="w-full h-20 flex flex-col gap-2">
-                      <Activity className="h-6 w-6 text-blue-500" />
-                      <span className="text-sm">Symptom Guide</span>
-                    </Button>
-                  </Link>
-                  
-                  <Link to="/emergency-contacts">
-                    <Button variant="outline" className="w-full h-20 flex flex-col gap-2">
-                      <Phone className="h-6 w-6 text-green-500" />
-                      <span className="text-sm">Contacts</span>
-                    </Button>
-                  </Link>
-                  
+                   
                   <Link to="/healthcare-centers">
-                    <Button variant="outline" className="w-full h-20 flex flex-col gap-2">
-                      <MapPin className="h-6 w-6 text-purple-500" />
-                      <span className="text-sm">Find Care</span>
+                    <Button variant="outline" className="w-full h-auto py-4 px-6 flex flex-col items-center gap-2">
+                      <MapPin className="h-8 w-8 text-purple-500" />
+                      <div className="text-center">
+                        <div className="font-medium">Find Care</div>
+                        <div className="text-xs text-muted-foreground">Nearby centers</div>
+                      </div>
                     </Button>
                   </Link>
                 </div>

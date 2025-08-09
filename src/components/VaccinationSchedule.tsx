@@ -6,7 +6,7 @@ import { Badge } from './ui/badge';
 import { Calendar, MapPin, Clock, Baby, Check } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { format, addDays, isBefore, isWithin } from 'date-fns';
+import { format, addDays, isBefore } from 'date-fns';
 
 interface Vaccine {
   id: string;

@@ -493,6 +493,8 @@ export type Database = {
           id: string
           location: string | null
           notes: string | null
+          reminder_sent: boolean | null
+          reminder_sent_date: string | null
           scheduled_date: string
           updated_at: string
           user_id: string
@@ -505,6 +507,8 @@ export type Database = {
           id?: string
           location?: string | null
           notes?: string | null
+          reminder_sent?: boolean | null
+          reminder_sent_date?: string | null
           scheduled_date: string
           updated_at?: string
           user_id: string
@@ -517,6 +521,8 @@ export type Database = {
           id?: string
           location?: string | null
           notes?: string | null
+          reminder_sent?: boolean | null
+          reminder_sent_date?: string | null
           scheduled_date?: string
           updated_at?: string
           user_id?: string
@@ -534,6 +540,10 @@ export type Database = {
           | Record<PropertyKey, never>
           | { _user_id: string; _role: Database["public"]["Enums"]["app_role"] }
         Returns: boolean
+      }
+      send_vaccine_reminders: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
     }
     Enums: {
