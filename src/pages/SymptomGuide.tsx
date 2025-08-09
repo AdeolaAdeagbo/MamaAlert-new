@@ -1,6 +1,7 @@
 
 import { useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
+import { useMode } from "@/contexts/ModeContext";
 import { Navbar } from "@/components/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -20,6 +21,7 @@ interface SymptomInfo {
 
 const SymptomGuide = () => {
   const { user } = useAuth();
+  const { currentMode } = useMode();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<"all" | "normal" | "monitor" | "emergency">("all");
 
@@ -27,7 +29,7 @@ const SymptomGuide = () => {
     return <Navigate to="/auth" replace />;
   }
 
-  const symptoms: SymptomInfo[] = [
+  const pregnancySymptoms: SymptomInfo[] = [
     {
       id: "1",
       name: "Morning Sickness",
@@ -144,6 +146,106 @@ const SymptomGuide = () => {
     }
   ];
 
+  const postpartumSymptoms: SymptomInfo[] = [
+    {
+      id: "1",
+      name: "Heavy Bleeding",
+      category: "emergency",
+      description: "Excessive bleeding after delivery requiring immediate medical attention.",
+      whenToWorry: [
+        "Soaking a pad every hour for 2+ hours",
+        "Passing clots larger than a golf ball",
+        "Bleeding that increases rather than decreases",
+        "Bright red bleeding after first few days"
+      ],
+      selfCare: [
+        "Call emergency services immediately",
+        "Lie down with legs elevated",
+        "Keep track of blood loss",
+        "Stay calm and get to hospital"
+      ],
+      whenToSeekHelp: "Immediately - call emergency services or go to nearest hospital."
+    },
+    {
+      id: "2",
+      name: "Postpartum Depression",
+      category: "monitor",
+      description: "Persistent feelings of sadness, anxiety, or hopelessness after childbirth.",
+      whenToWorry: [
+        "Thoughts of harming yourself or baby",
+        "Inability to care for baby",
+        "Extreme mood swings",
+        "Feeling disconnected from baby"
+      ],
+      selfCare: [
+        "Talk to supportive friends/family",
+        "Get adequate rest when possible",
+        "Accept help with baby care",
+        "Practice self-care activities"
+      ],
+      whenToSeekHelp: "If symptoms persist for more than 2 weeks or interfere with daily functioning."
+    },
+    {
+      id: "3",
+      name: "Breast Engorgement",
+      category: "normal",
+      description: "Swollen, hard, painful breasts when milk comes in or between feedings.",
+      whenToWorry: [
+        "Red streaks on breast",
+        "Fever with breast pain",
+        "Severe pain that doesn't improve",
+        "Hard lumps that don't soften"
+      ],
+      selfCare: [
+        "Frequent breastfeeding or pumping",
+        "Apply warm compresses before feeding",
+        "Apply cold compresses after feeding",
+        "Gentle breast massage"
+      ],
+      whenToSeekHelp: "If accompanied by fever, red streaks, or severe pain that doesn't improve."
+    },
+    {
+      id: "4",
+      name: "Baby Not Feeding Well",
+      category: "monitor",
+      description: "Baby showing poor feeding patterns, lethargy, or not gaining weight appropriately.",
+      whenToWorry: [
+        "Baby refuses to feed for 8+ hours",
+        "Fewer than 6 wet diapers per day",
+        "Baby seems lethargic or weak",
+        "Weight loss continues after first week"
+      ],
+      selfCare: [
+        "Try skin-to-skin contact",
+        "Offer breast frequently",
+        "Check diaper count daily",
+        "Monitor baby's alertness"
+      ],
+      whenToSeekHelp: "If baby shows signs of dehydration or poor weight gain."
+    },
+    {
+      id: "5",
+      name: "High Fever",
+      category: "emergency",
+      description: "Fever above 101°F (38.3°C) in mother or baby requires immediate attention.",
+      whenToWorry: [
+        "Temperature above 101°F in mother",
+        "Any fever in baby under 3 months",
+        "Fever with severe headache",
+        "Fever with difficulty breathing"
+      ],
+      selfCare: [
+        "Take temperature regularly",
+        "Stay hydrated",
+        "Rest as much as possible",
+        "Contact healthcare provider"
+      ],
+      whenToSeekHelp: "Immediately for any fever in newborn or high fever in mother."
+    }
+  ];
+
+  const symptoms = currentMode === 'postpartum' ? postpartumSymptoms : pregnancySymptoms;
+
   const filteredSymptoms = symptoms.filter(symptom => {
     const matchesSearch = symptom.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          symptom.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -185,10 +287,12 @@ const SymptomGuide = () => {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2 flex items-center gap-3">
             <Heart className="h-8 w-8 text-rose-500" />
-            Pregnancy Symptom Guide
+            {currentMode === 'postpartum' ? 'Postpartum & Baby Care Guide' : 'Pregnancy Symptom Guide'}
           </h1>
           <p className="text-muted-foreground">
-            Understand common pregnancy symptoms and learn when to seek medical attention.
+            {currentMode === 'postpartum'
+              ? 'Understand common postpartum and baby symptoms and learn when to seek medical attention.'
+              : 'Understand common pregnancy symptoms and learn when to seek medical attention.'}
           </p>
         </div>
 

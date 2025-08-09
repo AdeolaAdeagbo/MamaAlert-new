@@ -23,6 +23,8 @@ import { BabyProfileSetup } from "@/components/BabyProfileSetup";
 import { BreastfeedingTracker } from "@/components/BreastfeedingTracker";
 import { InfantHealthMonitor } from "@/components/InfantHealthMonitor";
 import { PostpartumMoodTracker } from "@/components/PostpartumMoodTracker";
+import { VaccinationSchedule } from "@/components/VaccinationSchedule";
+import { PostpartumFeatureCard } from "@/components/PostpartumFeatureCard";
 import { 
   Heart, 
   Phone, 
@@ -31,7 +33,11 @@ import {
   Loader2,
   TrendingUp,
   MessageCircle,
-  Baby
+  Baby,
+  Stethoscope,
+  Calendar,
+  Milk,
+  Smile
 } from "lucide-react";
 
 interface EmergencyAlert {
@@ -541,12 +547,51 @@ const Dashboard = () => {
               </CardContent>
             </Card>
             {currentMode === 'postpartum' && (
-              <>
-                <BabyProfileSetup />
-                <BreastfeedingTracker />
-                <InfantHealthMonitor />
-                <PostpartumMoodTracker />
-              </>
+              <div className="space-y-6">
+                <h2 className="text-2xl font-bold text-foreground mb-4">Postpartum & Baby Care</h2>
+                <div className="grid grid-cols-1 gap-6">
+                  <PostpartumFeatureCard
+                    title="Baby Profile & Growth"
+                    icon={<Baby className="h-6 w-6 text-blue-500" />}
+                    description="Manage your baby's profile and track growth milestones"
+                    defaultExpanded={true}
+                  >
+                    <BabyProfileSetup />
+                  </PostpartumFeatureCard>
+
+                  <PostpartumFeatureCard
+                    title="Vaccination Schedule"
+                    icon={<Stethoscope className="h-6 w-6 text-green-500" />}
+                    description="Track your baby's immunization schedule with reminders"
+                  >
+                    <VaccinationSchedule userId={user.id} />
+                  </PostpartumFeatureCard>
+
+                  <PostpartumFeatureCard
+                    title="Breastfeeding Tracker"
+                    icon={<Milk className="h-6 w-6 text-purple-500" />}
+                    description="Log and monitor breastfeeding sessions"
+                  >
+                    <BreastfeedingTracker />
+                  </PostpartumFeatureCard>
+
+                  <PostpartumFeatureCard
+                    title="Health Monitoring"
+                    icon={<Activity className="h-6 w-6 text-red-500" />}
+                    description="Monitor your baby's health and development"
+                  >
+                    <InfantHealthMonitor />
+                  </PostpartumFeatureCard>
+
+                  <PostpartumFeatureCard
+                    title="Mood & Recovery Tracking"
+                    icon={<Smile className="h-6 w-6 text-yellow-500" />}
+                    description="Track your postpartum recovery and mental health"
+                  >
+                    <PostpartumMoodTracker />
+                  </PostpartumFeatureCard>
+                </div>
+              </div>
             )}
 
             {/* Delivery Preparation Tips for late pregnancy */}

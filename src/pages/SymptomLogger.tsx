@@ -1,6 +1,7 @@
 
 import { useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
+import { useMode } from "@/contexts/ModeContext";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,6 +25,7 @@ interface SymptomLog {
 
 const SymptomLogger = () => {
   const { user } = useAuth();
+  const { currentMode } = useMode();
   const { toast } = useToast();
   
   const [symptom, setSymptom] = useState("");
@@ -66,7 +68,7 @@ const SymptomLogger = () => {
     "high fever"
   ];
 
-  const commonSymptoms = [
+  const pregnancySymptoms = [
     "Morning sickness",
     "Fatigue",
     "Headache",
@@ -83,6 +85,28 @@ const SymptomLogger = () => {
     "Dizziness",
     "Other"
   ];
+
+  const postpartumSymptoms = [
+    "Heavy bleeding",
+    "Severe headache",
+    "Chest pain",
+    "Difficulty breathing",
+    "Severe abdominal pain",
+    "High fever",
+    "Painful urination",
+    "Swelling in legs",
+    "Depression/anxiety",
+    "Breast pain/engorgement",
+    "Incision pain",
+    "Extreme fatigue",
+    "Baby not feeding well",
+    "Baby fever",
+    "Baby breathing issues",
+    "Baby excessive crying",
+    "Other"
+  ];
+
+  const commonSymptoms = currentMode === 'postpartum' ? postpartumSymptoms : pregnancySymptoms;
 
   if (!user) {
     return <Navigate to="/auth" replace />;
@@ -243,9 +267,13 @@ This is an automated alert from MamaAlert.`;
       
       <div className="max-w-4xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Symptom Logger</h1>
+          <h1 className="text-3xl font-bold text-foreground mb-2">
+            {currentMode === 'postpartum' ? 'Postpartum & Baby Symptom Logger' : 'Symptom Logger'}
+          </h1>
           <p className="text-muted-foreground">
-            Log your symptoms to track your health and get guidance on when to seek medical attention.
+            {currentMode === 'postpartum' 
+              ? 'Log postpartum and baby symptoms to track health and get guidance on when to seek medical attention.'
+              : 'Log your symptoms to track your health and get guidance on when to seek medical attention.'}
           </p>
         </div>
 
