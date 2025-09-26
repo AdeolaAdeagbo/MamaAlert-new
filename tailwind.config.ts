@@ -19,6 +19,9 @@ export default {
 			}
 		},
 		extend: {
+			fontFamily: {
+				sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
@@ -26,42 +29,40 @@ export default {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				primary: {
-					DEFAULT: '#84cc16',
-					foreground: '#ffffff',
-					50: '#f7fee7',
-					100: '#ecfccb',
-					200: '#d9f99d',
-					300: '#bef264',
-					400: '#a3e635',
-					500: '#84cc16',
-					600: '#65a30d',
-					700: '#4d7c0f',
-					800: '#3f6212',
-					900: '#365314'
+					DEFAULT: 'hsl(var(--primary))',
+					light: 'hsl(var(--primary-light))',
+					dark: 'hsl(var(--primary-dark))',
+					foreground: 'hsl(var(--primary-foreground))'
 				},
 				secondary: {
-					DEFAULT: '#f4f4f5',
-					foreground: '#09090b'
+					DEFAULT: 'hsl(var(--secondary))',
+					foreground: 'hsl(var(--secondary-foreground))'
 				},
 				success: {
-					DEFAULT: '#22c55e',
-					foreground: '#ffffff'
+					DEFAULT: 'hsl(var(--success))',
+					foreground: 'hsl(var(--primary-foreground))'
 				},
 				warning: {
-					DEFAULT: '#f59e0b',
-					foreground: '#ffffff'
+					DEFAULT: 'hsl(var(--warning))',
+					foreground: 'hsl(var(--primary-foreground))'
 				},
 				destructive: {
-					DEFAULT: '#ef4444',
-					foreground: '#ffffff'
+					DEFAULT: 'hsl(var(--destructive))',
+					foreground: 'hsl(var(--destructive-foreground))'
+				},
+				emergency: {
+					DEFAULT: 'hsl(var(--emergency))',
+					foreground: 'hsl(var(--primary-foreground))'
 				},
 				muted: {
-					DEFAULT: '#f4f4f5',
-					foreground: '#71717a'
+					DEFAULT: 'hsl(var(--muted))',
+					foreground: 'hsl(var(--muted-foreground))'
 				},
 				accent: {
-					DEFAULT: '#f4f4f5',
-					foreground: '#09090b'
+					DEFAULT: 'hsl(var(--accent))',
+					gold: 'hsl(var(--accent-gold))',
+					pink: 'hsl(var(--accent-pink))',
+					foreground: 'hsl(var(--accent-foreground))'
 				},
 				popover: {
 					DEFAULT: 'hsl(var(--popover))',
@@ -79,47 +80,42 @@ export default {
 			},
 			keyframes: {
 				'accordion-down': {
-					from: {
-						height: '0'
-					},
-					to: {
-						height: 'var(--radix-accordion-content-height)'
-					}
+					from: { height: '0', opacity: '0' },
+					to: { height: 'var(--radix-accordion-content-height)', opacity: '1' }
 				},
 				'accordion-up': {
-					from: {
-						height: 'var(--radix-accordion-content-height)'
-					},
-					to: {
-						height: '0'
-					}
+					from: { height: 'var(--radix-accordion-content-height)', opacity: '1' },
+					to: { height: '0', opacity: '0' }
 				},
 				'fade-in': {
-					'0%': {
-						opacity: '0',
-						transform: 'translateY(10px)'
-					},
-					'100%': {
-						opacity: '1',
-						transform: 'translateY(0)'
-					}
+					'0%': { opacity: '0', transform: 'translateY(10px)' },
+					'100%': { opacity: '1', transform: 'translateY(0)' }
 				},
 				'scale-in': {
-					'0%': {
-						transform: 'scale(0.95)',
-						opacity: '0'
-					},
-					'100%': {
-						transform: 'scale(1)',
-						opacity: '1'
-					}
+					'0%': { transform: 'scale(0.95)', opacity: '0' },
+					'100%': { transform: 'scale(1)', opacity: '1' }
+				},
+				'slide-up': {
+					'0%': { opacity: '0', transform: 'translateY(20px)' },
+					'100%': { opacity: '1', transform: 'translateY(0)' }
+				},
+				'bounce-subtle': {
+					'0%, 100%': { transform: 'translateY(0)' },
+					'50%': { transform: 'translateY(-4px)' }
+				},
+				'pulse-primary': {
+					'0%, 100%': { opacity: '1' },
+					'50%': { opacity: '0.7' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'fade-in': 'fade-in 0.3s ease-out',
-				'scale-in': 'scale-in 0.2s ease-out'
+				'scale-in': 'scale-in 0.2s ease-out',
+				'slide-up': 'slide-up 0.3s ease-out',
+				'bounce-subtle': 'bounce-subtle 0.6s ease-out',
+				'pulse-primary': 'pulse-primary 2s ease-in-out infinite'
 			}
 		}
 	},

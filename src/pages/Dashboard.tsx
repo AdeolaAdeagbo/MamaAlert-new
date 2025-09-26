@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { useMode } from "@/contexts/ModeContext";
@@ -6,7 +5,7 @@ import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Navigate, Link } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { AppointmentLogger } from "@/components/AppointmentLogger";
 import { HealthAlerts } from "@/components/HealthAlerts";
@@ -27,17 +26,15 @@ import { VaccinationSchedule } from "@/components/VaccinationSchedule";
 import { PostpartumFeatureCard } from "@/components/PostpartumFeatureCard";
 import { 
   Heart, 
-  Phone, 
-  MapPin,
+  Baby,
+  MessageCircle,
   Activity,
   Loader2,
-  TrendingUp,
-  MessageCircle,
-  Baby,
-  Stethoscope,
+  Shield,
+  Hospital,
   Calendar,
-  Milk,
-  Smile
+  Clock,
+  TrendingUp
 } from "lucide-react";
 
 interface EmergencyAlert {
@@ -66,8 +63,11 @@ interface PregnancyData {
 
 const Dashboard = () => {
   const { user, refreshUserData, isLoading: authLoading } = useAuth();
-  const { currentMode, isLoading: modeLoading, switchToPregnancy } = useMode();
+  const { currentMode, setMode } = useMode();
   const { toast } = useToast();
+  const navigate = useNavigate();
+  
+  const isPostpartum = currentMode === "postpartum";
   const [emergencyAlerts, setEmergencyAlerts] = useState<EmergencyAlert[]>([]);
   const [recentSymptoms, setRecentSymptoms] = useState<SymptomLog[]>([]);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
@@ -141,82 +141,14 @@ const Dashboard = () => {
     }
   }, [user?.id, dataLoaded]);
 
-  // Set up real-time subscriptions for data changes
-  useEffect(() => {
-    if (!user?.id) return;
-
-    console.log('Setting up real-time subscriptions...');
-
-    // Subscribe to pregnancy data changes
-    const pregnancyChannel = supabase
-      .channel('pregnancy_data_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'pregnancy_data',
-          filter: `user_id=eq.${user.id}`
-        },
-        (payload) => {
-          console.log('Pregnancy data changed:', payload);
-          refreshData();
-        }
-      )
-      .subscribe();
-
-    // Subscribe to symptom log changes
-    const symptomsChannel = supabase
-      .channel('symptom_logs_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'symptom_logs',
-          filter: `user_id=eq.${user.id}`
-        },
-        (payload) => {
-          console.log('Symptom logs changed:', payload);
-          loadDashboardData();
-        }
-      )
-      .subscribe();
-
-    // Subscribe to emergency alerts changes
-    const alertsChannel = supabase
-      .channel('emergency_alerts_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'emergency_alerts',
-          filter: `user_id=eq.${user.id}`
-        },
-        (payload) => {
-          console.log('Emergency alerts changed:', payload);
-          loadDashboardData();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      console.log('Cleaning up real-time subscriptions...');
-      supabase.removeChannel(pregnancyChannel);
-      supabase.removeChannel(symptomsChannel);
-      supabase.removeChannel(alertsChannel);
-    };
-  }, [user?.id]);
-
   const hasPregnancyData = !!pregnancyData;
 
   // Show onboarding for users in onboarding mode
   useEffect(() => {
-    if (user && currentMode === 'onboarding' && !modeLoading) {
+    if (user && currentMode === 'onboarding' && !loading) {
       setShowOnboarding(true);
     }
-  }, [user, currentMode, modeLoading]);
+  }, [user, currentMode, loading]);
 
   // Show welcome modal for new users without pregnancy data (pregnancy mode only)
   useEffect(() => {
@@ -240,7 +172,7 @@ const Dashboard = () => {
   // Calculate dynamic health status based on fresh data
   const getHealthStatus = () => {
     if (emergencyAlerts.length > 0) {
-      return { status: "Emergency", color: "text-red-600", description: `${emergencyAlerts.length} recent alerts` };
+      return { status: "Emergency", color: "text-emergency", description: `${emergencyAlerts.length} recent alerts` };
     }
     
     // Check recent symptoms (last 7 days)
@@ -253,14 +185,14 @@ const Dashboard = () => {
     });
     
     if (recentSevereSymptoms.length > 0) {
-      return { status: "Needs Attention", color: "text-yellow-600", description: `${recentSevereSymptoms.length} severe symptoms logged` };
+      return { status: "Needs Attention", color: "text-warning", description: `${recentSevereSymptoms.length} severe symptoms logged` };
     }
     
     if (recentSymptoms.length > 0) {
-      return { status: "Monitoring", color: "text-blue-600", description: `${recentSymptoms.length} symptoms tracked` };
+      return { status: "Monitoring", color: "text-primary", description: `${recentSymptoms.length} symptoms tracked` };
     }
     
-    return { status: "Good", color: "text-green-600", description: "No concerning symptoms" };
+    return { status: "Good", color: "text-success", description: "No concerning symptoms" };
   };
 
   const healthStatus = getHealthStatus();
@@ -272,23 +204,12 @@ const Dashboard = () => {
     recentSymptoms: recentSymptoms.length
   };
 
-  // Recent Activity from fresh data
-  const recentActivity = [
-    ...emergencyAlerts.slice(0, 2).map(alert => ({
-      id: alert.id,
-      type: "emergency",
-      title: "Emergency alert sent",
-      time: new Date(alert.timestamp).toLocaleString(),
-      status: "emergency"
-    })),
-    ...recentSymptoms.slice(0, 3).map(symptom => ({
-      id: symptom.id,
-      type: "symptom",
-      title: `Logged ${symptom.symptom_type}`,
-      time: new Date(symptom.timestamp).toLocaleString(),
-      status: "normal"
-    }))
-  ].slice(0, 5);
+  const getTimeOfDay = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "morning";
+    if (hour < 17) return "afternoon";
+    return "evening";
+  };
 
   // Redirect to auth if no user and not loading
   if (!user && !authLoading) {
@@ -296,7 +217,7 @@ const Dashboard = () => {
   }
 
   // Show loading screen while auth or mode is loading
-  if (authLoading || modeLoading || !user) {
+  if (authLoading || !user) {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
@@ -311,7 +232,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-card">
       <Navbar />
       
       <OnboardingPrompt 
@@ -326,314 +247,236 @@ const Dashboard = () => {
       />
       
       <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">
-            Welcome back, {user.firstName || 'Mama'}! 
-          </h1>
-          <p className="text-muted-foreground">
-            {currentMode === 'pregnancy' && hasPregnancyData ? 
-              <div className="flex items-center gap-2">
-                <span>You're at week {userStats.pregnancyWeek} of your pregnancy journey. Stay safe and healthy! 💕</span>
-                <TrendingUp className="h-4 w-4 text-green-500" />
-              </div> :
-            currentMode === 'postpartum' ? 
-              "Welcome to postpartum care! Track your baby's health and your recovery journey. 🍼" :
-            currentMode === 'pregnancy' ?
-              "Complete your pregnancy profile to get personalized care and tips!" :
-              "Let's get started with personalized maternal care!"
-            }
-          </p>
-          {currentMode === 'postpartum' && (
-            <div className="mt-4">
-              <Button variant="outline" onClick={switchToPregnancy}>
-                Switch to Pregnancy Mode
-              </Button>
-            </div>
-          )}
-        </div>
-
-        {/* Onboarding Alert for Pregnancy Mode */}
-        {currentMode === 'pregnancy' && !hasPregnancyData && (
-          <Card className="mb-8 border-amber-200 bg-gradient-to-r from-amber-50 to-yellow-50">
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <h2 className="text-xl font-bold text-amber-800 mb-4">Complete Your Pregnancy Profile</h2>
-                <p className="text-amber-700 mb-6">
-                  Help us provide you with personalized care by sharing your pregnancy details. 
-                  This information will help us send you relevant alerts and track your symptoms better.
+        <div className="space-y-8">
+          {/* Header with Greeting */}
+          <div className="bg-white rounded-3xl p-6 shadow-soft">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div className="space-y-2">
+                <h1 className="text-2xl font-semibold text-foreground">
+                  Good {getTimeOfDay()}, {user?.firstName || "Mama"}! 👋
+                </h1>
+                <p className="text-muted-foreground">
+                  {isPostpartum ? "Track your recovery and baby's growth" : "Monitor your pregnancy journey"}
                 </p>
-                <Link to="/pregnancy-details">
-                  <Button className="bg-amber-600 hover:bg-amber-700 text-white">
-                    <Heart className="h-4 w-4 mr-2" />
-                    Add Pregnancy Details
-                  </Button>
-                </Link>
               </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Emergency Alert Button */}
-        <Card className="mb-8 border-red-200 bg-gradient-to-r from-red-50 to-rose-50">
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <h2 className="text-xl font-bold text-red-800 mb-4">{currentMode === 'postpartum' ? 'Postpartum/Baby Emergency' : 'Emergency Alert'}</h2>
-              <p className="text-red-700 mb-6">
-                {currentMode === 'postpartum'
-                  ? 'If your baby or you have a postpartum emergency, press the button below to notify your contacts and nearest healthcare center.'
-                  : "If you're experiencing a medical emergency, press the button below to instantly notify your emergency contacts and nearest healthcare center."}
-              </p>
-              <div className="flex items-center justify-center gap-4">
-                <EmergencyAlertLogger userId={user.id} onAlertSent={handleEmergencyAlert} />
-                {currentMode === 'pregnancy' && (
-                  <DeliveryLogger />
-                )}
-              </div>
+              {!isPostpartum && (
+                <Button
+                  onClick={() => setMode("postpartum")}
+                  variant="accent"
+                  size="lg"
+                  className="flex items-center gap-2 animate-bounce-subtle"
+                >
+                  <Baby className="h-5 w-5" />
+                  Switch to Postpartum Mode
+                </Button>
+              )}
+              {isPostpartum && (
+                <Button
+                  onClick={() => setMode("pregnancy")}
+                  variant="outline"
+                  size="lg"
+                  className="flex items-center gap-2"
+                >
+                  <Heart className="h-5 w-5" />
+                  Switch to Pregnancy Mode
+                </Button>
+              )}
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* Stats Cards with progressive data */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {currentMode === 'pregnancy' && (
-            <Card className="border-rose-200">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Pregnancy Week
-                  </CardTitle>
-                  <div className="flex items-center gap-1">
-                    <Heart className="h-4 w-4 text-rose-500" />
-                    {hasPregnancyData && <TrendingUp className="h-3 w-3 text-green-500" />}
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-rose-600">
-                  Week {userStats.pregnancyWeek}
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {userStats.pregnancyWeek === 0 ? 'Add pregnancy details' :
-                   userStats.pregnancyWeek <= 12 ? '1st Trimester' : 
-                   userStats.pregnancyWeek <= 26 ? '2nd Trimester' : '3rd Trimester'}
-                </p>
-              </CardContent>
-            </Card>
-          )}
+          {/* Emergency SOS Button */}
+          <div className="flex justify-center mb-8">
+            <div className="bg-white rounded-3xl p-8 shadow-large">
+              <EmergencyAlertLogger 
+                userId={user?.id || ""} 
+                onAlertSent={handleEmergencyAlert}
+              />
+            </div>
+          </div>
 
-          <Card>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Emergency Contacts
-                </CardTitle>
-                <Phone className="h-4 w-4 text-green-500" />
+          {/* Daily Health Tip Card */}
+          <Card className="bg-gradient-accent border-0 shadow-medium">
+            <CardContent className="p-6">
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-white/80 rounded-xl">
+                  <MessageCircle className="h-6 w-6 text-accent-gold" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-accent-foreground mb-2">Daily Health Tip</h3>
+                  <p className="text-sm text-accent-foreground/80">
+                    {isPostpartum ? 
+                      "Remember to stay hydrated while breastfeeding. Drink 8-10 glasses of water daily to maintain your milk supply and energy levels." :
+                      "Take prenatal vitamins daily, especially folic acid. This helps prevent birth defects and supports your baby's healthy development."
+                    }
+                  </p>
+                </div>
               </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{userStats.emergencyContacts}</div>
-              <p className="text-xs text-muted-foreground mt-1">Ready to help</p>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Health Status
-                </CardTitle>
-                <Activity className="h-4 w-4 text-green-500" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className={`text-2xl font-bold ${healthStatus.color}`}>
-                {healthStatus.status}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {healthStatus.description}
-              </p>
-            </CardContent>
-          </Card>
-
-          {currentMode === 'pregnancy' && (
-            <Card>
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Recent Symptoms
-                  </CardTitle>
-                  <Activity className="h-4 w-4 text-blue-500" />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{userStats.recentSymptoms}</div>
-                <p className="text-xs text-muted-foreground mt-1">Tracked this week</p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Quick Actions */}
-          <div className="lg:col-span-2 space-y-6">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>Quick Actions</CardTitle>
-                  <AppointmentLogger userId={user.id} onAppointmentAdded={loadDashboardData} />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <Link to="/symptom-logger">
-                    <Button variant="outline" className="w-full h-auto py-4 px-6 flex flex-col items-center gap-2">
-                      <Activity className="h-8 w-8 text-rose-500" />
-                      <div className="text-center">
-                        <div className="font-medium">
-                          {currentMode === 'postpartum' ? 'Log Postpartum Symptoms' : 'Log Symptoms'}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          {currentMode === 'postpartum' ? 'Track postpartum & baby health' : 'Track your health'}
-                        </div>
-                      </div>
-                    </Button>
-                  </Link>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <Button
+              onClick={() => navigate("/emergency-contacts")}
+              variant="outline"
+              size="lg"
+              className="h-20 flex flex-col items-center gap-2 bg-white/80 hover:bg-white"
+            >
+              <Shield className="h-6 w-6 text-emergency" />
+              <span className="text-sm font-medium">Emergency Contacts</span>
+            </Button>
+            
+            <Button
+              onClick={() => navigate("/healthcare-centers")}
+              variant="outline"
+              size="lg"
+              className="h-20 flex flex-col items-center gap-2 bg-white/80 hover:bg-white"
+            >
+              <Hospital className="h-6 w-6 text-primary" />
+              <span className="text-sm font-medium">Healthcare Centers</span>
+            </Button>
+            
+            <Button
+              onClick={() => navigate("/ai-nurse")}
+              variant="outline"
+              size="lg"
+              className="h-20 flex flex-col items-center gap-2 bg-white/80 hover:bg-white"
+            >
+              <MessageCircle className="h-6 w-6 text-primary" />
+              <span className="text-sm font-medium">AI Nurse Chat</span>
+            </Button>
+            
+            <Button
+              onClick={() => navigate(isPostpartum ? "/symptom-logger?mode=postpartum" : "/symptom-logger?mode=pregnancy")}
+              variant="outline"
+              size="lg"
+              className="h-20 flex flex-col items-center gap-2 bg-white/80 hover:bg-white"
+            >
+              <Activity className="h-6 w-6 text-primary" />
+              <span className="text-sm font-medium">Log Symptoms</span>
+            </Button>
+          </div>
 
-                  <Link to="/symptom-guide">
-                    <Button variant="outline" className="w-full h-auto py-4 px-6 flex flex-col items-center gap-2">
-                      <Heart className="h-8 w-8 text-rose-500" />
-                      <div className="text-center">
-                        <div className="font-medium">
-                          {currentMode === 'postpartum' ? 'Postpartum Guide' : 'Symptoms Guide'}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          {currentMode === 'postpartum' ? 'Postpartum & baby care' : 'When to seek help'}
-                        </div>
-                      </div>
-                    </Button>
-                  </Link>
-                  
-                  <Link to="/ai-nurse">
-                    <Button variant="outline" className="w-full h-auto py-4 px-6 flex flex-col items-center gap-2">
-                      <MessageCircle className="h-8 w-8 text-purple-500" />
-                      <div className="text-center">
-                        <div className="font-medium">AI Nurse</div>
-                        <div className="text-xs text-muted-foreground">Chat with our AI</div>
-                      </div>
-                    </Button>
-                  </Link>
-                   
-                  <Link to="/healthcare-centers">
-                    <Button variant="outline" className="w-full h-auto py-4 px-6 flex flex-col items-center gap-2">
-                      <MapPin className="h-8 w-8 text-purple-500" />
-                      <div className="text-center">
-                        <div className="font-medium">Find Care</div>
-                        <div className="text-xs text-muted-foreground">Nearby centers</div>
-                      </div>
-                    </Button>
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
-            {currentMode === 'postpartum' && (
-              <div className="space-y-6">
-                <h2 className="text-2xl font-bold text-foreground mb-4">Postpartum & Baby Care</h2>
-                <div className="grid grid-cols-1 gap-6">
-                  <PostpartumFeatureCard
-                    title="Baby Profile & Growth"
-                    icon={<Baby className="h-6 w-6 text-blue-500" />}
-                    description="Manage your baby's profile and track growth milestones"
-                    defaultExpanded={true}
-                  >
-                    <BabyProfileSetup />
-                  </PostpartumFeatureCard>
-
-                  <PostpartumFeatureCard
-                    title="Vaccination Schedule"
-                    icon={<Stethoscope className="h-6 w-6 text-green-500" />}
-                    description="Track your baby's immunization schedule with reminders"
-                  >
-                    <VaccinationSchedule userId={user.id} />
-                  </PostpartumFeatureCard>
-
-                  <PostpartumFeatureCard
-                    title="Breastfeeding Tracker"
-                    icon={<Milk className="h-6 w-6 text-purple-500" />}
-                    description="Log and monitor breastfeeding sessions"
-                  >
-                    <BreastfeedingTracker />
-                  </PostpartumFeatureCard>
-
-                  <PostpartumFeatureCard
-                    title="Health Monitoring"
-                    icon={<Activity className="h-6 w-6 text-red-500" />}
-                    description="Monitor your baby's health and development"
-                  >
-                    <InfantHealthMonitor />
-                  </PostpartumFeatureCard>
-
-                  <PostpartumFeatureCard
-                    title="Mood & Recovery Tracking"
-                    icon={<Smile className="h-6 w-6 text-yellow-500" />}
-                    description="Track your postpartum recovery and mental health"
-                  >
-                    <PostpartumMoodTracker />
-                  </PostpartumFeatureCard>
-                </div>
+          {/* Content based on mode */}
+          {isPostpartum ? (
+            <div className="space-y-8">
+              <div className="text-center space-y-2">
+                <h2 className="text-2xl font-semibold text-foreground">Postpartum & Baby Care</h2>
+                <p className="text-muted-foreground">All your postpartum tools in one place</p>
               </div>
-            )}
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <PostpartumFeatureCard
+                  title="Baby Profile Setup"
+                  icon={<Baby className="h-6 w-6 text-primary" />}
+                  description="Manage your baby's profile and basic information"
+                  defaultExpanded={true}
+                >
+                  <BabyProfileSetup userId={user?.id || ""} />
+                </PostpartumFeatureCard>
+                
+                <PostpartumFeatureCard
+                  title="Breastfeeding Tracker"
+                  icon={<Heart className="h-6 w-6 text-accent-pink" />}
+                  description="Track nursing sessions and feeding patterns"
+                >
+                  <BreastfeedingTracker userId={user?.id || ""} />
+                </PostpartumFeatureCard>
+                
+                <PostpartumFeatureCard
+                  title="Baby Health Monitor"
+                  icon={<Activity className="h-6 w-6 text-success" />}
+                  description="Monitor growth, milestones, and health metrics"
+                >
+                  <InfantHealthMonitor userId={user?.id || ""} />
+                </PostpartumFeatureCard>
+                
+                <PostpartumFeatureCard
+                  title="Mood Tracker"
+                  icon={<MessageCircle className="h-6 w-6 text-accent-gold" />}
+                  description="Track your postpartum mental health and recovery"
+                >
+                  <PostpartumMoodTracker userId={user?.id || ""} />
+                </PostpartumFeatureCard>
 
-            {/* Delivery Preparation Tips for late pregnancy */}
-            {currentMode === 'pregnancy' && currentWeek >= 36 && (
-              <DeliveryPreparationTips pregnancyWeek={currentWeek} />
-            )}
+                <PostpartumFeatureCard
+                  title="Vaccination Schedule"
+                  icon={<Shield className="h-6 w-6 text-primary" />}
+                  description="Track and manage your baby's vaccination schedule"
+                >
+                  <VaccinationSchedule userId={user?.id || ""} />
+                </PostpartumFeatureCard>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-8">
+              <div className="text-center space-y-2">
+                <h2 className="text-2xl font-semibold text-foreground">Pregnancy Journey</h2>
+                <p className="text-muted-foreground">Track your pregnancy milestones and stay healthy</p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <Card className="bg-white/80">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <Calendar className="h-5 w-5 text-primary" />
+                      Upcoming Appointments
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <AppointmentReminder userId={user?.id || ""} />
+                  </CardContent>
+                </Card>
 
-            {/* Appointment Reminders */}
-            <AppointmentReminder userId={user.id} />
+                <Card className="bg-white/80">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <Activity className="h-5 w-5 text-success" />
+                      Health Alerts
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <HealthAlerts userId={user?.id || ""} />
+                  </CardContent>
+                </Card>
 
-            {/* Health Alerts with fresh symptom data */}
-            <HealthAlerts userId={user.id} recentSymptoms={recentSymptoms} />
-          </div>
+                <Card className="bg-white/80">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <MessageCircle className="h-5 w-5 text-accent-gold" />
+                      Weekly Health Tips
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <WeeklyHealthTips pregnancyWeek={currentWeek} />
+                  </CardContent>
+                </Card>
+              </div>
 
-          {/* Recent Activity & Health Tips */}
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Activity className="h-5 w-5 text-rose-500" />
-                  Recent Activity
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {recentActivity.length > 0 ? recentActivity.map((activity) => (
-                    <div key={activity.id} className="flex items-start gap-3">
-                      <div className={`w-2 h-2 rounded-full mt-2 ${
-                        activity.status === 'emergency' ? 'bg-red-500' : 'bg-rose-500'
-                      }`}></div>
-                      <div className="flex-1">
-                        <p className={`text-sm font-medium ${
-                          activity.status === 'emergency' ? 'text-red-600' : ''
-                        }`}>
-                          {activity.title}
-                        </p>
-                        <p className="text-xs text-muted-foreground">{activity.time}</p>
-                      </div>
+              {/* Onboarding Alert for Pregnancy Mode */}
+              {!hasPregnancyData && (
+                <Card className="border-warning/20 bg-gradient-to-r from-warning/5 to-accent/10 shadow-soft">
+                  <CardContent className="pt-6">
+                    <div className="text-center">
+                      <h2 className="text-xl font-semibold text-warning mb-4">Complete Your Pregnancy Profile</h2>
+                      <p className="text-muted-foreground mb-6">
+                        Help us provide you with personalized care by sharing your pregnancy details. 
+                        This information will help us send you relevant alerts and track your symptoms better.
+                      </p>
+                      <Button 
+                        onClick={() => navigate("/pregnancy-details")}
+                        variant="accent"
+                        size="lg"
+                      >
+                        <Heart className="h-4 w-4 mr-2" />
+                        Add Pregnancy Details
+                      </Button>
                     </div>
-                  )) : (
-                    <p className="text-center text-muted-foreground py-4">
-                      No recent activity. Start by logging symptoms or scheduling appointments!
-                    </p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Progressive Health Tips */}
-            <WeeklyHealthTips pregnancyWeek={currentWeek} isProgressive={true} />
-          </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

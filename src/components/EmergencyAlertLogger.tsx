@@ -135,26 +135,27 @@ export const EmergencyAlertLogger = ({ userId, onAlertSent }: EmergencyAlertLogg
   };
 
   return (
-    <Button 
-      onClick={handleEmergencyAlert}
-      disabled={isEmergencyActive}
-      className={`text-white font-bold py-4 px-8 text-lg ${
-        isEmergencyActive 
-          ? 'bg-red-700 emergency-pulse' 
-          : 'bg-red-600 hover:bg-red-700'
-      }`}
-    >
-      {isEmergencyActive ? (
-        <>
-          <Loader2 className="h-6 w-6 mr-3 animate-spin" />
-          SENDING ALERT...
-        </>
-      ) : (
-        <>
-          <AlertTriangle className="h-6 w-6 mr-3" />
-          EMERGENCY ALERT
-        </>
+    <div className="text-center space-y-4">
+      <div className="space-y-2">
+        <h3 className="text-xl font-semibold text-foreground">Emergency SOS</h3>
+        <p className="text-sm text-muted-foreground">Tap for immediate help</p>
+      </div>
+      <Button
+        onClick={handleEmergencyAlert}
+        disabled={isEmergencyActive}
+        variant="emergency"
+        size="emergency"
+        className="mx-auto"
+      >
+        {isEmergencyActive ? (
+          <Loader2 className="h-6 w-6 animate-spin" />
+        ) : (
+          <AlertTriangle className="h-6 w-6" />
+        )}
+      </Button>
+      {isEmergencyActive && (
+        <p className="text-sm text-muted-foreground animate-pulse">Sending alert...</p>
       )}
-    </Button>
+    </div>
   );
 };

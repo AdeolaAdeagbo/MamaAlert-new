@@ -22,13 +22,15 @@ export const PostpartumFeatureCard = ({
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
   return (
-    <Card className="w-full">
-      <CardHeader>
+    <Card className="w-full bg-white/80 overflow-hidden">
+      <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            {icon}
+          <div className="flex items-center gap-4">
+            <div className="p-3 rounded-xl bg-accent/20">
+              {icon}
+            </div>
             <div>
-              <CardTitle className="text-lg">{title}</CardTitle>
+              <CardTitle className="text-lg font-semibold">{title}</CardTitle>
               <p className="text-sm text-muted-foreground mt-1">{description}</p>
             </div>
           </div>
@@ -36,7 +38,7 @@ export const PostpartumFeatureCard = ({
             variant="ghost"
             size="sm"
             onClick={() => setIsExpanded(!isExpanded)}
-            className="flex-shrink-0"
+            className="flex-shrink-0 hover:bg-accent/20 rounded-xl"
           >
             {isExpanded ? (
               <ChevronUp className="h-4 w-4" />
@@ -47,7 +49,7 @@ export const PostpartumFeatureCard = ({
         </div>
       </CardHeader>
       {isExpanded && (
-        <CardContent>
+        <CardContent className="pt-0 animate-slide-up">
           {children}
         </CardContent>
       )}
