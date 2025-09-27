@@ -24,6 +24,8 @@ import { InfantHealthMonitor } from "@/components/InfantHealthMonitor";
 import { PostpartumMoodTracker } from "@/components/PostpartumMoodTracker";
 import { VaccinationSchedule } from "@/components/VaccinationSchedule";
 import { PostpartumFeatureCard } from "@/components/PostpartumFeatureCard";
+import heroImage from '@/assets/hero-maternal-care.jpg';
+import healthTipsImage from '@/assets/health-tips-card.jpg';
 import { 
   Heart, 
   Baby,
@@ -63,7 +65,7 @@ interface PregnancyData {
 
 const Dashboard = () => {
   const { user, refreshUserData, isLoading: authLoading } = useAuth();
-  const { currentMode, setMode } = useMode();
+  const { currentMode, switchToPostpartum, switchToPregnancy } = useMode();
   const { toast } = useToast();
   const navigate = useNavigate();
   
@@ -261,7 +263,7 @@ const Dashboard = () => {
               </div>
               {!isPostpartum && (
                 <Button
-                  onClick={() => setMode("postpartum")}
+                  onClick={() => switchToPostpartum(new Date().toISOString().split('T')[0])}
                   variant="accent"
                   size="lg"
                   className="flex items-center gap-2 animate-bounce-subtle"
@@ -272,7 +274,7 @@ const Dashboard = () => {
               )}
               {isPostpartum && (
                 <Button
-                  onClick={() => setMode("pregnancy")}
+                  onClick={() => switchToPregnancy()}
                   variant="outline"
                   size="lg"
                   className="flex items-center gap-2"
@@ -380,7 +382,7 @@ const Dashboard = () => {
                   icon={<Heart className="h-6 w-6 text-accent-pink" />}
                   description="Track nursing sessions and feeding patterns"
                 >
-                  <BreastfeedingTracker userId={user?.id || ""} />
+                  <BreastfeedingTracker />
                 </PostpartumFeatureCard>
                 
                 <PostpartumFeatureCard
@@ -388,7 +390,7 @@ const Dashboard = () => {
                   icon={<Activity className="h-6 w-6 text-success" />}
                   description="Monitor growth, milestones, and health metrics"
                 >
-                  <InfantHealthMonitor userId={user?.id || ""} />
+                  <InfantHealthMonitor />
                 </PostpartumFeatureCard>
                 
                 <PostpartumFeatureCard
@@ -396,7 +398,7 @@ const Dashboard = () => {
                   icon={<MessageCircle className="h-6 w-6 text-accent-gold" />}
                   description="Track your postpartum mental health and recovery"
                 >
-                  <PostpartumMoodTracker userId={user?.id || ""} />
+                  <PostpartumMoodTracker />
                 </PostpartumFeatureCard>
 
                 <PostpartumFeatureCard

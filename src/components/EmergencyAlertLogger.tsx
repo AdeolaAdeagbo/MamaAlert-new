@@ -145,13 +145,16 @@ export const EmergencyAlertLogger = ({ userId, onAlertSent }: EmergencyAlertLogg
         disabled={isEmergencyActive}
         variant="emergency"
         size="emergency"
-        className="mx-auto"
+        className="mx-auto relative overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300"
       >
-        {isEmergencyActive ? (
-          <Loader2 className="h-6 w-6 animate-spin" />
-        ) : (
-          <AlertTriangle className="h-6 w-6" />
-        )}
+        <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-red-700 animate-pulse-primary" />
+        <div className="relative z-10 flex items-center justify-center">
+          {isEmergencyActive ? (
+            <Loader2 className="h-8 w-8 animate-spin text-white" />
+          ) : (
+            <AlertTriangle className="h-8 w-8 text-white drop-shadow-lg" />
+          )}
+        </div>
       </Button>
       {isEmergencyActive && (
         <p className="text-sm text-muted-foreground animate-pulse">Sending alert...</p>
