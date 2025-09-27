@@ -374,7 +374,7 @@ const Dashboard = () => {
                   description="Manage your baby's profile and basic information"
                   defaultExpanded={true}
                 >
-                  <BabyProfileSetup userId={user?.id || ""} />
+                  <BabyProfileSetup />
                 </PostpartumFeatureCard>
                 
                 <PostpartumFeatureCard
