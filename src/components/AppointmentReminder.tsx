@@ -208,19 +208,19 @@ From MamaAlert - Your Pregnancy Companion`;
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <Card>
-        <CardHeader>
+        <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Bell className="h-5 w-5 text-blue-500" />
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Bell className="h-4 w-4 text-blue-500" />
               Appointment Reminders
             </CardTitle>
             <Dialog open={isOpen} onOpenChange={setIsOpen}>
               <DialogTrigger asChild>
-                <Button>
-                  <Calendar className="h-4 w-4 mr-2" />
-                  Add Appointment
+                <Button size="sm" className="text-xs h-8">
+                  <Calendar className="h-3 w-3 mr-1" />
+                  Add
                 </Button>
               </DialogTrigger>
               <DialogContent>
