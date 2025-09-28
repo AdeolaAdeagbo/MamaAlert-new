@@ -21,6 +21,9 @@ import { InfantHealthMonitor } from "@/components/InfantHealthMonitor";
 import { PostpartumMoodTracker } from "@/components/PostpartumMoodTracker";
 import { VaccinationSchedule } from "@/components/VaccinationSchedule";
 import { PostpartumFeatureCard } from "@/components/PostpartumFeatureCard";
+import { FullTermLaborWatch } from "@/components/FullTermLaborWatch";
+import { HospitalBagChecklist } from "@/components/HospitalBagChecklist";
+import { FetalGrowthTracker } from "@/components/FetalGrowthTracker";
 import { 
   Heart, 
   Baby,
@@ -32,8 +35,11 @@ import {
   Calendar,
   Lightbulb
 } from "lucide-react";
-import heroImage from '@/assets/hero-maternal-care.jpg';
+import heroImage from '@/assets/dashboard-hero.jpg';
 import healthTipsImage from '@/assets/health-tips-card.jpg';
+import fetalDevImage from '@/assets/fetal-development.jpg';
+import hospitalBagImage from '@/assets/hospital-bag.jpg';
+import laborWatchImage from '@/assets/labor-watch.jpg';
 
 interface EmergencyAlert {
   id: string;
@@ -253,9 +259,9 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          {/* Emergency SOS Button */}
-          <div className="flex justify-center">
-            <Card className="bg-white shadow-xl rounded-3xl p-3 sm:p-4 lg:p-6">
+          {/* Emergency SOS Button - Fixed and Prominent */}
+          <div className="flex justify-center sticky top-20 z-40">
+            <Card className="bg-white dark:bg-gray-900 shadow-2xl rounded-3xl p-4 sm:p-6 lg:p-8 border-2 border-emergency/20">
               <EmergencyAlertLogger
                 userId={user?.id || ""}
                 onAlertSent={handleEmergencyAlert}
@@ -360,11 +366,49 @@ const Dashboard = () => {
                 <p className="text-muted-foreground text-xs sm:text-sm">Track your pregnancy milestones and stay healthy</p>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
-                <Card className="bg-white/80 shadow-medium">
-                  <CardHeader className="pb-2 sm:pb-3">
-                    <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
-                      <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+                {/* Full Term Labor Watch */}
+                {currentWeek >= 35 && (
+                  <Card className="bg-white/90 shadow-large overflow-hidden relative">
+                    <div 
+                      className="absolute right-0 top-0 h-full w-1/3 opacity-20 bg-cover bg-center"
+                      style={{ backgroundImage: `url(${laborWatchImage})` }}
+                    />
+                    <CardContent className="pt-6 relative z-10">
+                      <FullTermLaborWatch userId={user?.id || ""} />
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Hospital Bag Checklist */}
+                {currentWeek >= 32 && (
+                  <Card className="bg-white/90 shadow-large overflow-hidden relative">
+                    <div 
+                      className="absolute right-0 top-0 h-full w-1/3 opacity-20 bg-cover bg-center"
+                      style={{ backgroundImage: `url(${hospitalBagImage})` }}
+                    />
+                    <CardContent className="pt-6 relative z-10">
+                      <HospitalBagChecklist userId={user?.id || ""} />
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Fetal Growth Tracker */}
+                <Card className="bg-white/90 shadow-large overflow-hidden relative lg:col-span-2 xl:col-span-1">
+                  <div 
+                    className="absolute right-0 top-0 h-full w-1/3 opacity-20 bg-cover bg-center"
+                    style={{ backgroundImage: `url(${fetalDevImage})` }}
+                  />
+                  <CardContent className="pt-6 relative z-10">
+                    <FetalGrowthTracker userId={user?.id || ""} />
+                  </CardContent>
+                </Card>
+
+                {/* Appointments Card */}
+                <Card className="bg-white/90 shadow-large">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <Calendar className="h-5 w-5 text-primary" />
                       Upcoming Appointments
                     </CardTitle>
                   </CardHeader>
@@ -373,10 +417,11 @@ const Dashboard = () => {
                   </CardContent>
                 </Card>
 
-                <Card className="bg-white/80 shadow-medium">
-                  <CardHeader className="pb-2 sm:pb-3">
-                    <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
-                      <Activity className="h-4 w-4 sm:h-5 sm:w-5 text-success" />
+                {/* Health Alerts Card */}
+                <Card className="bg-white/90 shadow-large">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <Activity className="h-5 w-5 text-success" />
                       Health Alerts
                     </CardTitle>
                   </CardHeader>
@@ -385,10 +430,11 @@ const Dashboard = () => {
                   </CardContent>
                 </Card>
 
-                <Card className="bg-white/80 shadow-medium md:col-span-2 lg:col-span-1">
-                  <CardHeader className="pb-2 sm:pb-3">
-                    <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
-                      <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5 text-accent-gold" />
+                {/* Weekly Health Tips Card */}
+                <Card className="bg-white/90 shadow-large lg:col-span-2 xl:col-span-1">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <MessageCircle className="h-5 w-5 text-accent-gold" />
                       Weekly Health Tips
                     </CardTitle>
                   </CardHeader>
