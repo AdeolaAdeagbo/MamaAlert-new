@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +21,13 @@ interface FetalGrowthTrackerProps {
 export const FetalGrowthTracker = ({ userId }: FetalGrowthTrackerProps) => {
   const { pregnancyData, currentWeek } = usePregnancyProgress(userId);
   const [selectedWeek, setSelectedWeek] = useState(currentWeek || 12);
+
+  // Auto-sync with pregnancy week
+  useEffect(() => {
+    if (currentWeek && currentWeek !== selectedWeek) {
+      setSelectedWeek(currentWeek);
+    }
+  }, [currentWeek]);
 
   const fetalDevelopmentData: FetalDevelopment[] = [
     {

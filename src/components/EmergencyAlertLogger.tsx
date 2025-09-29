@@ -135,34 +135,45 @@ export const EmergencyAlertLogger = ({ userId, onAlertSent }: EmergencyAlertLogg
   };
 
   return (
-    <div className="text-center space-y-4 sm:space-y-6">
-      <div className="space-y-2">
-        <h3 className="text-xl sm:text-2xl font-bold text-foreground">🚨 Emergency SOS</h3>
-        <p className="text-sm sm:text-base text-muted-foreground">Tap for immediate help</p>
+    <div className="fixed bottom-4 left-4 right-4 z-50 bg-card/95 backdrop-blur-sm border border-border rounded-2xl p-4 shadow-2xl">
+      <div className="space-y-4">
+        <div className="text-center space-y-2">
+          <h3 className="text-lg font-bold text-foreground">🚨 Emergency Alert</h3>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            If you are in danger or need urgent help, press the Emergency Alert button to notify your emergency contacts and the nearest healthcare center.
+          </p>
+        </div>
+        
+        <div className="flex justify-center">
+          <Button
+            onClick={handleEmergencyAlert}
+            disabled={isEmergencyActive}
+            variant="emergency"
+            className="w-full max-w-md h-16 rounded-xl relative overflow-hidden shadow-xl hover:shadow-emergency transition-all duration-300 transform hover:scale-105 text-xl font-bold emergency-pulse"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-emergency via-red-600 to-red-700 animate-pulse-primary" />
+            <div className="relative z-10 flex items-center justify-center gap-3">
+              {isEmergencyActive ? (
+                <>
+                  <Loader2 className="h-6 w-6 animate-spin text-emergency-foreground drop-shadow-lg" />
+                  <span className="text-emergency-foreground drop-shadow-lg">Sending Alert...</span>
+                </>
+              ) : (
+                <>
+                  <AlertTriangle className="h-6 w-6 text-emergency-foreground drop-shadow-lg" />
+                  <span className="text-emergency-foreground drop-shadow-lg">EMERGENCY ALERT</span>
+                </>
+              )}
+            </div>
+          </Button>
+        </div>
+
+        {isEmergencyActive && (
+          <p className="text-center text-sm text-muted-foreground animate-pulse font-medium">
+            🚑 Notifying emergency contacts and healthcare centers...
+          </p>
+        )}
       </div>
-      <div className="flex justify-center">
-        <Button
-          onClick={handleEmergencyAlert}
-          disabled={isEmergencyActive}
-          variant="emergency"
-          className="h-20 w-20 sm:h-24 sm:w-24 lg:h-28 lg:w-28 rounded-full relative overflow-hidden shadow-2xl hover:shadow-emergency transition-all duration-300 transform hover:scale-105 emergency-pulse"
-        >
-          <div className="absolute inset-0 bg-gradient-to-br from-emergency via-red-600 to-red-700 animate-pulse-primary" />
-          <div className="relative z-10 flex items-center justify-center">
-            {isEmergencyActive ? (
-              <Loader2 className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 animate-spin text-emergency-foreground drop-shadow-lg" />
-            ) : (
-              <AlertTriangle className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-emergency-foreground drop-shadow-lg" />
-            )}
-          </div>
-        </Button>
-      </div>
-      {isEmergencyActive && (
-        <p className="text-sm sm:text-base text-muted-foreground animate-pulse font-medium">🚑 Sending emergency alert...</p>
-      )}
-      <p className="text-xs sm:text-sm text-muted-foreground max-w-xs mx-auto">
-        This will notify your emergency contacts and nearby healthcare facilities
-      </p>
     </div>
   );
 };

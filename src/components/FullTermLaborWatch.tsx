@@ -63,13 +63,24 @@ export const FullTermLaborWatch = ({ userId }: FullTermLaborWatchProps) => {
   const isFullTerm = currentWeek >= 37;
 
   const toggleLaborSign = (signId: string) => {
-    setLaborSigns(prev => 
-      prev.map(sign => 
+    setLaborSigns(prev => {
+      const updatedSigns = prev.map(sign => 
         sign.id === signId 
           ? { ...sign, isActive: !sign.isActive }
           : sign
-      )
-    );
+      );
+      
+      // Auto-trigger emergency alert if high-risk symptoms are selected
+      const newActiveHighSigns = updatedSigns.filter(sign => sign.isActive && sign.severity === 'high').length;
+      if (newActiveHighSigns >= 1) {
+        // Delay to allow state update
+        setTimeout(() => {
+          contactProvider();
+        }, 100);
+      }
+      
+      return updatedSigns;
+    });
   };
 
   const getActiveHighSeveritySigns = () => {
@@ -91,15 +102,44 @@ export const FullTermLaborWatch = ({ userId }: FullTermLaborWatchProps) => {
           .from('emergency_alerts')
           .insert({
             user_id: userId,
-            alert_type: 'labor_signs',
-            message: `Labor signs detected: ${laborSigns.filter(s => s.isActive).map(s => s.name).join(', ')}`,
-            location: 'Labor Watch'
+            alert_type: 'emergency',
+            message: `URGENT: High-risk labor signs detected - ${laborSigns.filter(s => s.isActive).map(s => s.name).join(', ')}. Immediate medical attention required.`,
+            location: 'Labor Watch - Auto-triggered'
           });
 
+        // Also trigger SMS to emergency contacts like the emergency button does
+        try {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('first_name, last_name')
+            .eq('id', userId)
+            .single();
+
+          const { data: emergencyContacts } = await supabase
+            .from('emergency_contacts')
+            .select('name, phone')
+            .eq('user_id', userId);
+
+          const userName = profile ? `${profile.first_name} ${profile.last_name}`.trim() : 'Unknown User';
+
+          if (emergencyContacts && emergencyContacts.length > 0) {
+            await supabase.functions.invoke('send-termii-sms', {
+              body: {
+                emergencyContacts: emergencyContacts.filter(contact => contact.phone),
+                userLocation: 'Labor Watch',
+                userName,
+                messageType: "labor_emergency"
+              }
+            });
+          }
+        } catch (smsError) {
+          console.error('SMS sending failed:', smsError);
+        }
+
         toast({
-          title: "Healthcare Provider Contacted!",
-          description: "Your signs indicate possible labor. Your healthcare provider has been notified.",
-          variant: "default"
+          title: "EMERGENCY ALERT TRIGGERED!",
+          description: "High-risk labor signs detected. Emergency contacts notified and healthcare providers alerted immediately.",
+          variant: "destructive"
         });
       } catch (error) {
         console.error('Error logging labor signs:', error);
