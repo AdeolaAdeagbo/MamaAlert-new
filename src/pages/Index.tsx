@@ -29,6 +29,13 @@ const Index = () => {
       {/* Hero Section */}
       <section className="relative px-4 pt-20 pb-16 sm:px-6 lg:px-8 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-rose-50 via-pink-50 to-orange-50 dark:from-rose-950/20 dark:via-pink-950/20 dark:to-orange-950/20" />
+        <div className="absolute inset-0 opacity-20">
+          <img 
+            src={heroImage} 
+            alt="Background maternal care" 
+            className="w-full h-full object-cover"
+          />
+        </div>
         <div className="relative max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Column - Content */}

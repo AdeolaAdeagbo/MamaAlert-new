@@ -1,9 +1,8 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
 import { AlertTriangle, Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { useEmergencyAlert } from "@/hooks/useEmergencyAlert";
 
 interface EmergencyAlert {
   id: string;
@@ -21,126 +20,26 @@ interface EmergencyAlertLoggerProps {
 
 export const EmergencyAlertLogger = ({ userId, onAlertSent }: EmergencyAlertLoggerProps) => {
   const [isEmergencyActive, setIsEmergencyActive] = useState(false);
-  const { toast } = useToast();
+  const { triggerEmergencyAlert } = useEmergencyAlert();
 
   const handleEmergencyAlert = async () => {
     setIsEmergencyActive(true);
     
-    try {
-      // Get user's location if available
-      let location = "Location not available";
-      try {
-        if (navigator.geolocation) {
-          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(resolve, reject, {
-              timeout: 10000,
-              enableHighAccuracy: true
-            });
-          });
-          location = `${position.coords.latitude}, ${position.coords.longitude}`;
-        }
-      } catch (error) {
-        console.log("Could not get location:", error);
-      }
-
-      // Get user profile and emergency contacts
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('first_name, last_name')
-        .eq('id', userId)
-        .single();
-
-      const { data: emergencyContacts } = await supabase
-        .from('emergency_contacts')
-        .select('name, phone')
-        .eq('user_id', userId);
-
-      const userName = profile ? `${profile.first_name} ${profile.last_name}`.trim() : 'Unknown User';
-
-      // Store alert in database
-      const alertData = {
-        user_id: userId,
-        alert_type: "emergency",
-        message: "Emergency alert triggered by user",
-        location
-      };
-
-      const { data, error } = await supabase
-        .from('emergency_alerts')
-        .insert(alertData)
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      console.log("Emergency alert stored in database:", data);
-
-      // Send SMS to emergency contacts using Termii if any exist
-      if (emergencyContacts && emergencyContacts.length > 0) {
-        try {
-          console.log("Sending SMS via Termii to emergency contacts:", emergencyContacts);
-          
-          const response = await supabase.functions.invoke('send-termii-sms', {
-            body: {
-              emergencyContacts: emergencyContacts.filter(contact => contact.phone),
-              userLocation: location,
-              userName,
-              messageType: "emergency"
-            }
-          });
-
-          if (response.error) {
-            console.error("Termii SMS function error:", response.error);
-            // Don't throw error - alert was still saved to database
-          } else {
-            console.log("Termii SMS response:", response.data);
-          }
-        } catch (smsError) {
-          console.error("Termii SMS sending failed:", smsError);
-          // Don't throw error - alert was still saved to database
-        }
-      }
-
-      toast({
-        title: "Emergency Alert Sent!",
-        description: emergencyContacts && emergencyContacts.length > 0 
-          ? `Emergency contacts notified via SMS and nearest healthcare centers have been alerted.`
-          : "Emergency alert logged. Add emergency contacts to receive SMS notifications.",
-        variant: "destructive"
-      });
-
-      // Call the callback to update parent component
-      const emergencyAlert: EmergencyAlert = {
-        id: data.id,
-        userId: data.user_id,
-        type: data.alert_type as "emergency",
-        message: data.message,
-        timestamp: data.timestamp,
-        location: data.location || undefined
-      };
-
-      onAlertSent(emergencyAlert);
-
+    const success = await triggerEmergencyAlert(userId, "Emergency alert triggered by user", "Location not available", onAlertSent);
+    
+    if (success) {
       setTimeout(() => setIsEmergencyActive(false), 3000);
-      
-    } catch (error) {
-      console.error("Error sending emergency alert:", error);
-      toast({
-        title: "Alert Failed",
-        description: "Failed to send emergency alert. Please call emergency services directly.",
-        variant: "destructive"
-      });
+    } else {
       setIsEmergencyActive(false);
     }
   };
 
   return (
     <div className="fixed bottom-4 left-4 right-4 z-50 bg-card/95 backdrop-blur-sm border border-border rounded-2xl p-4 shadow-2xl">
-      <div className="space-y-4">
-        <div className="text-center space-y-2">
-          <h3 className="text-lg font-bold text-foreground">🚨 Emergency Alert</h3>
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            If you are in danger or need urgent help, press the Emergency Alert button to notify your emergency contacts and the nearest healthcare center.
+      <div className="space-y-3">
+        <div className="text-center">
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            In danger? Press this button to notify your emergency contacts and nearest healthcare center.
           </p>
         </div>
         
@@ -149,19 +48,18 @@ export const EmergencyAlertLogger = ({ userId, onAlertSent }: EmergencyAlertLogg
             onClick={handleEmergencyAlert}
             disabled={isEmergencyActive}
             variant="emergency"
-            className="w-full max-w-md h-16 rounded-xl relative overflow-hidden shadow-xl hover:shadow-emergency transition-all duration-300 transform hover:scale-105 text-xl font-bold emergency-pulse"
+            className="w-full max-w-lg h-14 rounded-xl relative overflow-hidden shadow-xl hover:shadow-emergency transition-all duration-300 text-lg font-bold"
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-emergency via-red-600 to-red-700 animate-pulse-primary" />
             <div className="relative z-10 flex items-center justify-center gap-3">
               {isEmergencyActive ? (
                 <>
-                  <Loader2 className="h-6 w-6 animate-spin text-emergency-foreground drop-shadow-lg" />
-                  <span className="text-emergency-foreground drop-shadow-lg">Sending Alert...</span>
+                  <Loader2 className="h-5 w-5 animate-spin text-emergency-foreground" />
+                  <span className="text-emergency-foreground">Sending Alert...</span>
                 </>
               ) : (
                 <>
-                  <AlertTriangle className="h-6 w-6 text-emergency-foreground drop-shadow-lg" />
-                  <span className="text-emergency-foreground drop-shadow-lg">EMERGENCY ALERT</span>
+                  <AlertTriangle className="h-5 w-5 text-emergency-foreground" />
+                  <span className="text-emergency-foreground">EMERGENCY ALERT</span>
                 </>
               )}
             </div>
@@ -169,7 +67,7 @@ export const EmergencyAlertLogger = ({ userId, onAlertSent }: EmergencyAlertLogg
         </div>
 
         {isEmergencyActive && (
-          <p className="text-center text-sm text-muted-foreground animate-pulse font-medium">
+          <p className="text-center text-sm text-muted-foreground font-medium">
             🚑 Notifying emergency contacts and healthcare centers...
           </p>
         )}

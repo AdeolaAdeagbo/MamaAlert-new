@@ -41,7 +41,7 @@ export const FetalGrowthTracker = ({ userId }: FetalGrowthTrackerProps) => {
         "Reflexes are developing",
         "Kidneys start producing urine"
       ],
-      image: "🍋"
+      image: "/src/assets/fetal/week-12.jpg"
     },
     {
       week: 16,
@@ -54,7 +54,7 @@ export const FetalGrowthTracker = ({ userId }: FetalGrowthTrackerProps) => {
         "Heart pumps 25 quarts of blood daily",
         "Skeleton changing from cartilage to bone"
       ],
-      image: "🥑"
+      image: "/src/assets/fetal/week-16.jpg"
     },
     {
       week: 20,
@@ -67,7 +67,7 @@ export const FetalGrowthTracker = ({ userId }: FetalGrowthTrackerProps) => {
         "You may feel first movements",
         "Genitals are fully formed"
       ],
-      image: "🍌"
+      image: "/src/assets/fetal/week-20.jpg"
     },
     {
       week: 24,
@@ -80,7 +80,7 @@ export const FetalGrowthTracker = ({ userId }: FetalGrowthTrackerProps) => {
         "Baby responds to sound",
         "Footprints and fingerprints form"
       ],
-      image: "🌽"
+      image: "/src/assets/fetal/week-24.jpg"
     },
     {
       week: 28,
@@ -93,7 +93,7 @@ export const FetalGrowthTracker = ({ userId }: FetalGrowthTrackerProps) => {
         "Brain tissue continues developing",
         "Can recognize your voice"
       ],
-      image: "🍆"
+      image: "/src/assets/fetal/week-28.jpg"
     },
     {
       week: 32,
@@ -106,7 +106,7 @@ export const FetalGrowthTracker = ({ userId }: FetalGrowthTrackerProps) => {
         "Rapid weight gain begins",
         "Toenails and fingernails grow"
       ],
-      image: "🎃"
+      image: "/src/assets/fetal/week-32.jpg"
     },
     {
       week: 36,
@@ -119,7 +119,7 @@ export const FetalGrowthTracker = ({ userId }: FetalGrowthTrackerProps) => {
         "Getting ready for birth",
         "Digestive system nearly mature"
       ],
-      image: "🥭"
+      image: "/src/assets/fetal/week-36.jpg"
     },
     {
       week: 40,
@@ -132,7 +132,7 @@ export const FetalGrowthTracker = ({ userId }: FetalGrowthTrackerProps) => {
         "Immune system still developing",
         "Ready to meet you!"
       ],
-      image: "🍉"
+      image: "/src/assets/fetal/week-40.jpg"
     }
   ];
 
@@ -206,7 +206,13 @@ export const FetalGrowthTracker = ({ userId }: FetalGrowthTrackerProps) => {
 
         {/* Current Development Display */}
         <div className="text-center space-y-4">
-          <div className="text-6xl">{currentDev.image}</div>
+          <div className="w-32 h-32 mx-auto rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
+            <img 
+              src={currentDev.image} 
+              alt={`Fetal development at week ${currentDev.week}`}
+              className="w-full h-full object-cover"
+            />
+          </div>
           <div className="space-y-2">
             <h3 className="text-xl font-bold text-blue-800 dark:text-blue-200">
               Week {currentDev.week}

@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { usePregnancyProgress } from "@/hooks/usePregnancyProgress";
+import { useEmergencyAlert } from "@/hooks/useEmergencyAlert";
 import { Clock, AlertTriangle, Baby, Heart } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 
 interface LaborSign {
   id: string;
@@ -22,6 +22,7 @@ interface FullTermLaborWatchProps {
 export const FullTermLaborWatch = ({ userId }: FullTermLaborWatchProps) => {
   const { pregnancyData, currentWeek } = usePregnancyProgress(userId);
   const { toast } = useToast();
+  const { triggerEmergencyAlert } = useEmergencyAlert();
   const [laborSigns, setLaborSigns] = useState<LaborSign[]>([
     {
       id: '1',
@@ -75,7 +76,7 @@ export const FullTermLaborWatch = ({ userId }: FullTermLaborWatchProps) => {
       if (newActiveHighSigns >= 1) {
         // Delay to allow state update
         setTimeout(() => {
-          contactProvider();
+          autoTriggerEmergency(updatedSigns);
         }, 100);
       }
       
@@ -91,64 +92,25 @@ export const FullTermLaborWatch = ({ userId }: FullTermLaborWatchProps) => {
     return laborSigns.filter(sign => sign.isActive && sign.severity === 'medium').length;
   };
 
+  const autoTriggerEmergency = async (signs: LaborSign[]) => {
+    const activeSigns = signs.filter(s => s.isActive);
+    const message = `URGENT: High-risk labor signs detected - ${activeSigns.map(s => s.name).join(', ')}. Immediate medical attention required.`;
+    
+    await triggerEmergencyAlert(userId, message, 'Labor Watch - Auto-triggered');
+    
+    toast({
+      title: "EMERGENCY ALERT TRIGGERED!",
+      description: "High-risk labor signs detected. Emergency contacts notified and healthcare providers alerted immediately.",
+      variant: "destructive"
+    });
+  };
+
   const contactProvider = async () => {
     const activeHighSigns = getActiveHighSeveritySigns();
     const activeMediumSigns = getActiveMediumSeveritySigns();
     
     if (activeHighSigns >= 1 || activeMediumSigns >= 2) {
-      try {
-        // Log the labor signs as emergency alert
-        await supabase
-          .from('emergency_alerts')
-          .insert({
-            user_id: userId,
-            alert_type: 'emergency',
-            message: `URGENT: High-risk labor signs detected - ${laborSigns.filter(s => s.isActive).map(s => s.name).join(', ')}. Immediate medical attention required.`,
-            location: 'Labor Watch - Auto-triggered'
-          });
-
-        // Also trigger SMS to emergency contacts like the emergency button does
-        try {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('first_name, last_name')
-            .eq('id', userId)
-            .single();
-
-          const { data: emergencyContacts } = await supabase
-            .from('emergency_contacts')
-            .select('name, phone')
-            .eq('user_id', userId);
-
-          const userName = profile ? `${profile.first_name} ${profile.last_name}`.trim() : 'Unknown User';
-
-          if (emergencyContacts && emergencyContacts.length > 0) {
-            await supabase.functions.invoke('send-termii-sms', {
-              body: {
-                emergencyContacts: emergencyContacts.filter(contact => contact.phone),
-                userLocation: 'Labor Watch',
-                userName,
-                messageType: "labor_emergency"
-              }
-            });
-          }
-        } catch (smsError) {
-          console.error('SMS sending failed:', smsError);
-        }
-
-        toast({
-          title: "EMERGENCY ALERT TRIGGERED!",
-          description: "High-risk labor signs detected. Emergency contacts notified and healthcare providers alerted immediately.",
-          variant: "destructive"
-        });
-      } catch (error) {
-        console.error('Error logging labor signs:', error);
-        toast({
-          title: "Contact Your Provider",
-          description: "Please call your healthcare provider immediately about these labor signs.",
-          variant: "destructive"
-        });
-      }
+      await autoTriggerEmergency(laborSigns);
     } else {
       toast({
         title: "Monitor Your Symptoms",
