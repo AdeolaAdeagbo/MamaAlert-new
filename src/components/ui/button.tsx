@@ -15,7 +15,7 @@ const buttonVariants = cva(
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-soft hover:shadow-medium",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
-        emergency: "bg-emergency text-emergency-foreground hover:bg-emergency/90 shadow-soft hover:shadow-medium emergency-pulse",
+        emergency: "bg-emergency text-emergency-foreground hover:bg-emergency/90 shadow-soft hover:shadow-medium",
         accent: "gradient-accent text-accent-foreground hover:opacity-90 shadow-soft hover:shadow-medium",
       },
       size: {

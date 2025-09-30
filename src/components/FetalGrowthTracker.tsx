@@ -5,6 +5,26 @@ import { Badge } from "@/components/ui/badge";
 import { usePregnancyProgress } from "@/hooks/usePregnancyProgress";
 import { Baby, Ruler, Heart, Eye, Brain, ChevronLeft, ChevronRight } from "lucide-react";
 
+// Dynamically load fetal images week-by-week (realistic ultrasound-style assets)
+const imageModules = import.meta.glob<{ default: string }>("/src/assets/fetal/week-*.jpg", { eager: true });
+const weekImageMap: Record<number, string> = {};
+for (const path in imageModules) {
+  const mod = imageModules[path] as { default: string };
+  const match = path.match(/week-(\d+)\.jpg$/);
+  if (match) {
+    weekImageMap[parseInt(match[1], 10)] = mod.default;
+  }
+}
+const maxAvailableWeek = Object.keys(weekImageMap).map(Number).sort((a, b) => a - b).pop() || 40;
+const getImageForWeek = (week: number) => {
+  const clamped = Math.min(Math.max(week, 1), maxAvailableWeek);
+  if (weekImageMap[clamped]) return weekImageMap[clamped];
+  for (let w = clamped; w >= 1; w--) {
+    if (weekImageMap[w]) return weekImageMap[w];
+  }
+  return weekImageMap[maxAvailableWeek];
+};
+
 interface FetalDevelopment {
   week: number;
   size: string;
@@ -24,10 +44,13 @@ export const FetalGrowthTracker = ({ userId }: FetalGrowthTrackerProps) => {
 
   // Auto-sync with pregnancy week
   useEffect(() => {
-    if (currentWeek && currentWeek !== selectedWeek) {
-      setSelectedWeek(currentWeek);
+    if (currentWeek) {
+      const clamped = Math.min(currentWeek, 40);
+      if (clamped !== selectedWeek) {
+        setSelectedWeek(clamped);
+      }
     }
-  }, [currentWeek]);
+  }, [currentWeek, selectedWeek]);
 
   const fetalDevelopmentData: FetalDevelopment[] = [
     {
@@ -208,10 +231,12 @@ export const FetalGrowthTracker = ({ userId }: FetalGrowthTrackerProps) => {
         {/* Current Development Display */}
         <div className="text-center space-y-4">
           <div className="w-32 h-32 mx-auto rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
-            <img 
-              src={currentDev.image} 
-              alt={`Fetal development at week ${currentDev.week}`}
+            <img
+              src={getImageForWeek(selectedWeek)}
+              alt={`Ultrasound-style fetal development at week ${Math.min(selectedWeek, 40)}`}
               className="w-full h-full object-cover"
+              loading="lazy"
+              decoding="async"
             />
           </div>
           <div className="space-y-2">

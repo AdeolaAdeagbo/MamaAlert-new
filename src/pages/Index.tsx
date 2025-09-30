@@ -88,37 +88,6 @@ const Index = () => {
               </div>
             </div>
 
-            {/* Right Column - Feature Cards */}
-            <div className="relative">
-              <div className="grid gap-4">
-                {/* Emergency Ready Card */}
-                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-rose-100 dark:border-rose-800">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-4 h-4 bg-green-500 rounded-full animate-pulse"></div>
-                    <span className="font-semibold text-foreground">Emergency Ready</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">24/7 instant alerts to your emergency contacts</p>
-                </div>
-                
-                {/* Real-time Tracking Card */}
-                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-blue-100 dark:border-blue-800">
-                  <div className="flex items-center gap-3 mb-3">
-                    <Baby className="h-5 w-5 text-blue-500" />
-                    <span className="font-semibold text-foreground">Fetal Growth Tracking</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">Week-by-week development insights</p>
-                </div>
-                
-                {/* Quick Response Card */}
-                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-purple-100 dark:border-purple-800">
-                  <div className="flex items-center gap-3 mb-3">
-                    <Clock className="h-5 w-5 text-purple-500" />
-                    <span className="font-semibold text-foreground">Quick Response</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">Average response time under 30 seconds</p>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </section>
