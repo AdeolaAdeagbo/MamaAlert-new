@@ -35,8 +35,8 @@ export const EmergencyAlertLogger = ({ userId, onAlertSent }: EmergencyAlertLogg
   };
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 bg-card/95 backdrop-blur-sm border border-border rounded-2xl p-4 shadow-2xl">
-      <div className="space-y-3">
+    <div className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-sm border-t border-border p-4 shadow-2xl">
+      <div className="max-w-4xl mx-auto space-y-3">
         <div className="text-center">
           <p className="text-sm text-muted-foreground leading-relaxed">
             In danger? Press this button to notify your emergency contacts and nearest healthcare center.
@@ -48,17 +48,17 @@ export const EmergencyAlertLogger = ({ userId, onAlertSent }: EmergencyAlertLogg
             onClick={handleEmergencyAlert}
             disabled={isEmergencyActive}
             variant="emergency"
-            className="w-full max-w-lg h-14 rounded-xl relative overflow-hidden shadow-xl hover:shadow-emergency transition-all duration-300 text-lg font-bold"
+            className="w-full max-w-md h-16 rounded-2xl relative overflow-hidden shadow-xl hover:shadow-emergency transition-all duration-300 text-xl font-bold landscape-button"
           >
-            <div className="relative z-10 flex items-center justify-center gap-3">
+            <div className="relative z-10 flex items-center justify-center gap-4">
               {isEmergencyActive ? (
                 <>
-                  <Loader2 className="h-5 w-5 animate-spin text-emergency-foreground" />
+                  <Loader2 className="h-6 w-6 animate-spin text-emergency-foreground" />
                   <span className="text-emergency-foreground">Sending Alert...</span>
                 </>
               ) : (
                 <>
-                  <AlertTriangle className="h-5 w-5 text-emergency-foreground" />
+                  <AlertTriangle className="h-6 w-6 text-emergency-foreground" />
                   <span className="text-emergency-foreground">EMERGENCY ALERT</span>
                 </>
               )}

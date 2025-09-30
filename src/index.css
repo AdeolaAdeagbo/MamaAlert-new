@@ -224,6 +224,12 @@
   box-shadow: 0 8px 25px -5px rgba(239, 68, 68, 0.4), 0 20px 40px -10px rgba(239, 68, 68, 0.1);
 }
 
+/* Landscape emergency button */
+.landscape-button {
+  min-width: 280px;
+  aspect-ratio: 3/1;
+}
+
 /* Gold color utilities */
 .gold-50 { color: hsl(48 100% 96%); }
 .gold-100 { color: hsl(48 96% 89%); }

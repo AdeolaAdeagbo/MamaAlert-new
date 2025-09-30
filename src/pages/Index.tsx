@@ -88,27 +88,34 @@ const Index = () => {
               </div>
             </div>
 
-            {/* Right Column - Hero Image */}
+            {/* Right Column - Feature Cards */}
             <div className="relative">
-              <div className="relative rounded-2xl overflow-hidden shadow-2xl">
-                <img 
-                  src={heroImage} 
-                  alt="African mother with newborn baby in hospital setting" 
-                  className="w-full h-96 lg:h-[500px] object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-              </div>
-              {/* Floating cards */}
-              <div className="absolute -top-4 -left-4 bg-white dark:bg-gray-800 rounded-lg p-3 shadow-lg">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                  <span className="text-sm font-medium">Emergency Ready</span>
+              <div className="grid gap-4">
+                {/* Emergency Ready Card */}
+                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-rose-100 dark:border-rose-800">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-4 h-4 bg-green-500 rounded-full animate-pulse"></div>
+                    <span className="font-semibold text-foreground">Emergency Ready</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">24/7 instant alerts to your emergency contacts</p>
                 </div>
-              </div>
-              <div className="absolute -bottom-4 -right-4 bg-white dark:bg-gray-800 rounded-lg p-3 shadow-lg">
-                <div className="text-sm">
-                  <div className="font-semibold text-rose-500">Instant Alert</div>
-                  <div className="text-muted-foreground">{"< 30 seconds"}</div>
+                
+                {/* Real-time Tracking Card */}
+                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-blue-100 dark:border-blue-800">
+                  <div className="flex items-center gap-3 mb-3">
+                    <Baby className="h-5 w-5 text-blue-500" />
+                    <span className="font-semibold text-foreground">Fetal Growth Tracking</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">Week-by-week development insights</p>
+                </div>
+                
+                {/* Quick Response Card */}
+                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-purple-100 dark:border-purple-800">
+                  <div className="flex items-center gap-3 mb-3">
+                    <Clock className="h-5 w-5 text-purple-500" />
+                    <span className="font-semibold text-foreground">Quick Response</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">Average response time under 30 seconds</p>
                 </div>
               </div>
             </div>
@@ -116,45 +123,77 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Trust Section */}
-      <section className="px-4 py-16 sm:px-6 lg:px-8 bg-white dark:bg-gray-900">
+      {/* Core Features Section */}
+      <section className="px-4 py-16 sm:px-6 lg:px-8 bg-gradient-to-br from-white to-rose-50/30 dark:from-gray-900 dark:to-rose-950/10">
         <div className="max-w-6xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-3xl font-bold text-foreground mb-6">
-                Trusted by Nigerian Mothers
-              </h2>
-              <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
-                Our healthcare team works 24/7 to ensure you receive immediate support 
-                when you need it most. Every alert is taken seriously, every mother matters.
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-foreground mb-4">
+              Core Features That Keep You Safe
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Everything you need for a safe pregnancy journey, designed specifically for Nigerian mothers.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Emergency Button Feature */}
+            <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-3xl p-8 shadow-xl border border-red-100 dark:border-red-800">
+              <div className="w-14 h-14 bg-red-100 dark:bg-red-900/30 rounded-2xl flex items-center justify-center mb-6">
+                <Phone className="h-7 w-7 text-red-600 dark:text-red-400" />
+              </div>
+              <h3 className="text-xl font-bold text-foreground mb-3">Emergency Alert Button</h3>
+              <p className="text-muted-foreground mb-4">
+                One-tap emergency alerts instantly notify your contacts and nearest healthcare centers when you need help most.
               </p>
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
-                    <div className="w-2 h-2 bg-white rounded-full"></div>
-                  </div>
-                  <span className="text-foreground">Instant emergency response</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
-                    <div className="w-2 h-2 bg-white rounded-full"></div>
-                  </div>
-                  <span className="text-foreground">24/7 healthcare support</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
-                    <div className="w-2 h-2 bg-white rounded-full"></div>
-                  </div>
-                  <span className="text-foreground">Local Nigerian healthcare network</span>
-                </div>
+              <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400 font-medium">
+                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                Always accessible, always ready
               </div>
             </div>
-            <div className="relative">
-              <img 
-                src={healthcareTeamImage} 
-                alt="Nigerian healthcare team" 
-                className="w-full h-80 object-cover rounded-2xl shadow-xl"
-              />
+
+            {/* Fetal Growth Tracker Feature */}
+            <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-3xl p-8 shadow-xl border border-blue-100 dark:border-blue-800">
+              <div className="w-14 h-14 bg-blue-100 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center mb-6">
+                <Baby className="h-7 w-7 text-blue-600 dark:text-blue-400" />
+              </div>
+              <h3 className="text-xl font-bold text-foreground mb-3">Fetal Growth Tracker</h3>
+              <p className="text-muted-foreground mb-4">
+                Watch your baby grow week by week with accurate development milestones and visual guides.
+              </p>
+              <div className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 font-medium">
+                <Heart className="h-4 w-4" />
+                Automatically syncs with your pregnancy
+              </div>
+            </div>
+
+            {/* Health Tips Feature */}
+            <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-3xl p-8 shadow-xl border border-purple-100 dark:border-purple-800">
+              <div className="w-14 h-14 bg-purple-100 dark:bg-purple-900/30 rounded-2xl flex items-center justify-center mb-6">
+                <Heart className="h-7 w-7 text-purple-600 dark:text-purple-400" />
+              </div>
+              <h3 className="text-xl font-bold text-foreground mb-3">Weekly Health Tips</h3>
+              <p className="text-muted-foreground mb-4">
+                Personalized health advice and tips tailored to your current pregnancy week and needs.
+              </p>
+              <div className="flex items-center gap-2 text-sm text-purple-600 dark:text-purple-400 font-medium">
+                <Shield className="h-4 w-4" />
+                Expert-reviewed content
+              </div>
+            </div>
+
+            {/* Community Support Feature */}
+            <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-3xl p-8 shadow-xl border border-green-100 dark:border-green-800">
+              <div className="w-14 h-14 bg-green-100 dark:bg-green-900/30 rounded-2xl flex items-center justify-center mb-6">
+                <MapPin className="h-7 w-7 text-green-600 dark:text-green-400" />
+              </div>
+              <h3 className="text-xl font-bold text-foreground mb-3">Healthcare Locator</h3>
+              <p className="text-muted-foreground mb-4">
+                Find verified maternal healthcare centers and specialists in your area across Nigeria.
+              </p>
+              <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400 font-medium">
+                <Clock className="h-4 w-4" />
+                Real-time availability updates
+              </div>
             </div>
           </div>
         </div>
