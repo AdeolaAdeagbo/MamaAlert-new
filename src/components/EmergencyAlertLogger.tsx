@@ -35,22 +35,23 @@ export const EmergencyAlertLogger = ({ userId, onAlertSent }: EmergencyAlertLogg
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-sm border-t border-border p-4 shadow-2xl">
+    <div className="w-full">
       <div className="max-w-4xl mx-auto space-y-3">
         <div className="text-center">
           <p className="text-sm text-muted-foreground leading-relaxed">
             In danger? Press this button to notify your emergency contacts and nearest healthcare center.
           </p>
         </div>
-        
+
         <div className="flex justify-center">
           <Button
             onClick={handleEmergencyAlert}
             disabled={isEmergencyActive}
+            aria-label="Emergency Alert"
             variant="emergency"
-            className="w-full max-w-md h-16 rounded-2xl relative overflow-hidden shadow-xl hover:shadow-emergency transition-all duration-300 text-xl font-bold landscape-button"
+            className="w-full max-w-md h-16 rounded-2xl text-xl font-bold btn-press transition-transform duration-200 will-change-transform"
           >
-            <div className="relative z-10 flex items-center justify-center gap-4">
+            <div className="flex items-center justify-center gap-4">
               {isEmergencyActive ? (
                 <>
                   <Loader2 className="h-6 w-6 animate-spin text-emergency-foreground" />

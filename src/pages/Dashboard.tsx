@@ -259,9 +259,9 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          {/* Emergency SOS Button - Fixed and Prominent */}
-          <div className="flex justify-center sticky top-20 z-40">
-            <Card className="bg-white dark:bg-gray-900 shadow-2xl rounded-3xl p-4 sm:p-6 lg:p-8 border-2 border-emergency/20">
+          {/* Emergency SOS Button - Static, Framed below Daily Health Tip */}
+          <div className="flex justify-center">
+            <Card className="bg-card shadow-medium rounded-3xl p-4 sm:p-6 lg:p-8 border border-border w-full">
               <EmergencyAlertLogger
                 userId={user?.id || ""}
                 onAlertSent={handleEmergencyAlert}

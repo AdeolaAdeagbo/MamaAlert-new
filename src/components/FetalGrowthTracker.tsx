@@ -137,12 +137,13 @@ export const FetalGrowthTracker = ({ userId }: FetalGrowthTrackerProps) => {
   ];
 
   const getCurrentDevelopment = () => {
-    return fetalDevelopmentData.find(dev => dev.week <= selectedWeek) || fetalDevelopmentData[0];
+    const eligible = fetalDevelopmentData.filter(dev => dev.week <= selectedWeek);
+    return eligible.length > 0 ? eligible[eligible.length - 1] : fetalDevelopmentData[0];
   };
-
+  
   const navigateWeek = (direction: 'prev' | 'next') => {
     const availableWeeks = fetalDevelopmentData.map(dev => dev.week);
-    const currentIndex = availableWeeks.indexOf(selectedWeek);
+    const currentIndex = availableWeeks.indexOf(getCurrentDevelopment().week);
     
     if (direction === 'prev' && currentIndex > 0) {
       setSelectedWeek(availableWeeks[currentIndex - 1]);
@@ -150,10 +151,10 @@ export const FetalGrowthTracker = ({ userId }: FetalGrowthTrackerProps) => {
       setSelectedWeek(availableWeeks[currentIndex + 1]);
     }
   };
-
+  
   const currentDev = getCurrentDevelopment();
   const availableWeeks = fetalDevelopmentData.map(dev => dev.week);
-  const currentIndex = availableWeeks.indexOf(selectedWeek);
+  const currentIndex = availableWeeks.indexOf(currentDev.week);
 
   return (
     <Card className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 border-blue-200 dark:border-blue-800">
@@ -252,16 +253,15 @@ export const FetalGrowthTracker = ({ userId }: FetalGrowthTrackerProps) => {
           </div>
         </div>
 
-        {/* Progress Indicator */}
         <div className="space-y-2">
           <div className="flex justify-between text-sm text-muted-foreground">
             <span>Pregnancy Progress</span>
-            <span>{Math.round((selectedWeek / 40) * 100)}%</span>
+            <span>{Math.round((Math.min(selectedWeek, 40) / 40) * 100)}%</span>
           </div>
           <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
             <div 
               className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all"
-              style={{ width: `${(selectedWeek / 40) * 100}%` }}
+              style={{ width: `${(Math.min(selectedWeek, 40) / 40) * 100}%` }}
             />
           </div>
         </div>
