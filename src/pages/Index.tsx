@@ -36,58 +36,54 @@ const Index = () => {
             className="w-full h-full object-cover"
           />
         </div>
-        <div className="relative max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            {/* Left Column - Content */}
-            <div className="text-center lg:text-left">
-              <div className="flex items-center justify-center lg:justify-start mb-6">
-                <img 
-                  src="/lovable-uploads/c1d146a9-2b02-45d8-acf9-01d2ff34c105.png" 
-                  alt="MamaAlert Logo" 
-                  className="h-12 w-auto mr-3"
-                />
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground">
-                  MamaAlert
-                </h1>
-              </div>
-              <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
-                Your trusted companion during pregnancy. Get instant emergency support, 
-                track symptoms, and stay connected with healthcare providers across Nigeria.
-              </p>
-              
-              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8">
-                <Link to="/auth">
-                  <Button size="lg" className="w-full sm:w-auto bg-rose-500 hover:bg-rose-600 text-white text-lg px-8 py-6 shadow-lg hover:shadow-xl transition-all">
-                    Join MamaAlert Today
-                  </Button>
-                </Link>
-                <Button 
-                  variant="outline" 
-                  size="lg" 
-                  className="w-full sm:w-auto text-lg px-8 py-6 border-rose-200 hover:bg-rose-50 dark:hover:bg-rose-950/20"
-                  onClick={scrollToFeatures}
-                >
-                  Learn More
+        <div className="relative max-w-4xl mx-auto">
+          <div className="text-center space-y-8">
+            <div className="flex items-center justify-center mb-6">
+              <img 
+                src="/lovable-uploads/c1d146a9-2b02-45d8-acf9-01d2ff34c105.png" 
+                alt="MamaAlert Logo" 
+                className="h-12 w-auto mr-3"
+              />
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground">
+                MamaAlert
+              </h1>
+            </div>
+            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed">
+              Your trusted companion during pregnancy. Get instant emergency support, 
+              track symptoms, and stay connected with healthcare providers across Nigeria.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+              <Link to="/auth">
+                <Button size="lg" className="w-full sm:w-auto bg-rose-500 hover:bg-rose-600 text-white text-lg px-8 py-6 shadow-lg hover:shadow-xl transition-all">
+                  Join MamaAlert Today
                 </Button>
-              </div>
-
-              {/* Trust Indicators */}
-              <div className="grid grid-cols-3 gap-6 max-w-md mx-auto lg:mx-0">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-rose-500 mb-1">24/7</div>
-                  <div className="text-sm text-muted-foreground">Emergency Support</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-rose-500 mb-1">5K+</div>
-                  <div className="text-sm text-muted-foreground">Mamas Protected</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-rose-500 mb-1">98%</div>
-                  <div className="text-sm text-muted-foreground">Alert Success</div>
-                </div>
-              </div>
+              </Link>
+              <Button 
+                variant="outline" 
+                size="lg" 
+                className="w-full sm:w-auto text-lg px-8 py-6 border-rose-200 hover:bg-rose-50 dark:hover:bg-rose-950/20"
+                onClick={scrollToFeatures}
+              >
+                Learn More
+              </Button>
             </div>
 
+            {/* Trust Indicators */}
+            <div className="grid grid-cols-3 gap-6 max-w-md mx-auto">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-rose-500 mb-1">24/7</div>
+                <div className="text-sm text-muted-foreground">Emergency Support</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-rose-500 mb-1">5K+</div>
+                <div className="text-sm text-muted-foreground">Mamas Protected</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-rose-500 mb-1">98%</div>
+                <div className="text-sm text-muted-foreground">Alert Success</div>
+              </div>
+            </div>
           </div>
         </div>
       </section>

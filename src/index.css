@@ -230,6 +230,20 @@
   aspect-ratio: 3/1;
 }
 
+/* Floating animation for fetal tracker */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-10px) scale(1.02);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
 /* Gold color utilities */
 .gold-50 { color: hsl(48 100% 96%); }
 .gold-100 { color: hsl(48 96% 89%); }

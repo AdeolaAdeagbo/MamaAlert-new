@@ -54,6 +54,32 @@ export const FetalGrowthTracker = ({ userId }: FetalGrowthTrackerProps) => {
 
   const fetalDevelopmentData: FetalDevelopment[] = [
     {
+      week: 4,
+      size: "0.2 cm",
+      weight: "0.5 grams",
+      comparison: "Size of a poppy seed",
+      developments: [
+        "Embryo implants in uterus",
+        "Cells dividing rapidly",
+        "Amniotic sac forming",
+        "Placenta begins to develop"
+      ],
+      image: "/src/assets/fetal/week-4.jpg"
+    },
+    {
+      week: 8,
+      size: "1.6 cm",
+      weight: "1 gram",
+      comparison: "Size of a raspberry",
+      developments: [
+        "Heart is beating steadily",
+        "Arms and legs are growing",
+        "Facial features developing",
+        "Major organs forming"
+      ],
+      image: "/src/assets/fetal/week-8.jpg"
+    },
+    {
       week: 12,
       size: "6 cm",
       weight: "14 grams",
@@ -180,17 +206,18 @@ export const FetalGrowthTracker = ({ userId }: FetalGrowthTrackerProps) => {
   const currentIndex = availableWeeks.indexOf(currentDev.week);
 
   return (
-    <Card className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 border-blue-200 dark:border-blue-800">
-      <CardHeader className="pb-4">
-        <CardTitle className="flex items-center gap-2 text-blue-800 dark:text-blue-200">
+    <Card className="relative overflow-hidden bg-gradient-to-br from-rose-100 via-pink-50 to-purple-100 dark:from-rose-950/30 dark:via-pink-950/20 dark:to-purple-950/30 border-rose-200 dark:border-rose-800">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-rose-200/20 via-transparent to-transparent dark:from-rose-900/20 pointer-events-none" />
+      <CardHeader className="pb-4 relative z-10">
+        <CardTitle className="flex items-center gap-2 text-rose-800 dark:text-rose-200">
           <Baby className="h-5 w-5" />
           Fetal Growth Tracker
-          <Badge variant="secondary" className="ml-auto">
+          <Badge variant="secondary" className="ml-auto bg-rose-200 dark:bg-rose-900 text-rose-900 dark:text-rose-100">
             Week {selectedWeek}
           </Badge>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 relative z-10">
         {/* Week Navigation */}
         <div className="flex items-center justify-between">
           <Button
@@ -230,30 +257,31 @@ export const FetalGrowthTracker = ({ userId }: FetalGrowthTrackerProps) => {
 
         {/* Current Development Display */}
         <div className="text-center space-y-4">
-          <div className="w-32 h-32 mx-auto rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
+          <div className="w-48 h-48 mx-auto rounded-full overflow-hidden bg-gradient-to-br from-rose-200/50 to-pink-300/50 dark:from-rose-900/30 dark:to-pink-900/30 backdrop-blur-sm border-4 border-rose-300/50 dark:border-rose-700/50 shadow-2xl relative">
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-rose-300/20 via-transparent to-transparent animate-pulse" />
             <img
               src={getImageForWeek(selectedWeek)}
               alt={`Ultrasound-style fetal development at week ${Math.min(selectedWeek, 40)}`}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover animate-float opacity-90 mix-blend-multiply dark:mix-blend-lighten relative z-10"
               loading="lazy"
               decoding="async"
             />
           </div>
           <div className="space-y-2">
-            <h3 className="text-xl font-bold text-blue-800 dark:text-blue-200">
+            <h3 className="text-xl font-bold text-rose-800 dark:text-rose-200">
               Week {currentDev.week}
             </h3>
-            <p className="text-lg text-blue-600 dark:text-blue-300 font-medium">
+            <p className="text-lg text-rose-600 dark:text-rose-300 font-medium">
               {currentDev.comparison}
             </p>
             <div className="flex justify-center gap-6 text-sm">
               <div className="flex items-center gap-1">
-                <Ruler className="h-4 w-4 text-blue-500" />
-                <span className="font-medium">{currentDev.size}</span>
+                <Ruler className="h-4 w-4 text-rose-500" />
+                <span className="font-medium text-foreground">{currentDev.size}</span>
               </div>
               <div className="flex items-center gap-1">
                 <Heart className="h-4 w-4 text-pink-500" />
-                <span className="font-medium">{currentDev.weight}</span>
+                <span className="font-medium text-foreground">{currentDev.weight}</span>
               </div>
             </div>
           </div>
@@ -261,7 +289,7 @@ export const FetalGrowthTracker = ({ userId }: FetalGrowthTrackerProps) => {
 
         {/* Development Milestones */}
         <div className="space-y-3">
-          <h4 className="font-semibold text-blue-800 dark:text-blue-200 flex items-center gap-2">
+          <h4 className="font-semibold text-rose-800 dark:text-rose-200 flex items-center gap-2">
             <Brain className="h-4 w-4" />
             Development This Week
           </h4>
@@ -269,9 +297,9 @@ export const FetalGrowthTracker = ({ userId }: FetalGrowthTrackerProps) => {
             {currentDev.developments.map((development, index) => (
               <div
                 key={index}
-                className="flex items-start gap-3 p-3 bg-white/60 dark:bg-gray-800/60 rounded-lg"
+                className="flex items-start gap-3 p-3 bg-white/60 dark:bg-rose-950/20 rounded-lg backdrop-blur-sm border border-rose-200/50 dark:border-rose-800/50"
               >
-                <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0" />
+                <div className="w-2 h-2 bg-rose-500 rounded-full mt-2 flex-shrink-0" />
                 <p className="text-sm text-gray-700 dark:text-gray-300">{development}</p>
               </div>
             ))}
@@ -285,19 +313,19 @@ export const FetalGrowthTracker = ({ userId }: FetalGrowthTrackerProps) => {
           </div>
           <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
             <div 
-              className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all"
-              style={{ width: `${(Math.min(selectedWeek, 40) / 40) * 100}%` }}
+              className="bg-gradient-to-r from-rose-500 to-pink-500 h-2 rounded-full transition-all"
+              style={{ width: `${Math.min((Math.min(selectedWeek, 40) / 40) * 100, 100)}%` }}
             />
           </div>
         </div>
 
         {selectedWeek === currentWeek && (
-          <div className="p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-            <div className="flex items-center gap-2 text-blue-800 dark:text-blue-200">
+          <div className="p-3 bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-800 rounded-lg backdrop-blur-sm">
+            <div className="flex items-center gap-2 text-rose-800 dark:text-rose-200">
               <Eye className="h-4 w-4" />
               <span className="font-semibold text-sm">This is your current week!</span>
             </div>
-            <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+            <p className="text-xs text-rose-700 dark:text-rose-300 mt-1">
               Your baby is developing these amazing features right now.
             </p>
           </div>
