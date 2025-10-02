@@ -58,26 +58,53 @@
   }
 
   .dark {
-    --background: 220 13% 9%;
+    /* Deep gray backgrounds for consistency */
+    --background: 222 20% 10%;
     --foreground: 220 14% 96%;
-    --card: 220 13% 11%;
+    --card: 222 20% 13%;
     --card-foreground: 220 14% 96%;
-    --popover: 220 13% 11%;
+    --popover: 222 20% 13%;
     --popover-foreground: 220 14% 96%;
+    
+    /* MamaAlert brand pink/red - consistent with light mode */
     --primary: 348 86% 65%;
+    --primary-light: 348 86% 75%;
+    --primary-dark: 348 86% 55%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 220 13% 16%;
+    
+    /* Dark mode secondary - subtle gray with light text */
+    --secondary: 222 20% 18%;
     --secondary-foreground: 220 14% 96%;
-    --muted: 220 13% 16%;
-    --muted-foreground: 220 9% 72%;
-    --accent: 220 13% 16%;
+    
+    /* Muted colors with better contrast */
+    --muted: 222 20% 18%;
+    --muted-foreground: 220 9% 75%;
+    
+    /* Accent colors adapted for dark mode */
+    --accent: 222 20% 20%;
+    --accent-gold: 43 84% 55%;
+    --accent-pink: 340 82% 70%;
     --accent-foreground: 220 14% 96%;
-    --border: 220 13% 16%;
-    --input: 220 13% 16%;
-    --ring: 348 86% 65%;
-    --success: 142 76% 36%;
-    --warning: 38 92% 50%;
+    
+    /* Semantic colors */
+    --success: 142 76% 45%;
+    --warning: 38 92% 60%;
     --emergency: 348 86% 65%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    
+    /* UI Elements */
+    --border: 222 20% 22%;
+    --input: 222 20% 18%;
+    --ring: 348 86% 65%;
+    
+    /* Custom Design Tokens for Dark Mode */
+    --shadow-soft: 0 2px 8px -2px hsl(0 0% 0% / 0.3);
+    --shadow-medium: 0 4px 16px -4px hsl(0 0% 0% / 0.4);
+    --shadow-large: 0 8px 24px -8px hsl(0 0% 0% / 0.5);
+    --gradient-primary: linear-gradient(135deg, hsl(348 86% 65%) 0%, hsl(348 86% 55%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(43 84% 45%) 0%, hsl(43 84% 55%) 100%);
+    --gradient-card: linear-gradient(135deg, hsl(222 20% 13%) 0%, hsl(222 20% 15%) 100%);
   }
 }
 
@@ -244,16 +271,45 @@
   animation: float 3s ease-in-out infinite;
 }
 
-/* Gold color utilities */
-.gold-50 { color: hsl(48 100% 96%); }
-.gold-100 { color: hsl(48 96% 89%); }
-.gold-200 { color: hsl(48 97% 77%); }
-.gold-500 { color: hsl(45 93% 47%); }
-.gold-700 { color: hsl(32 95% 44%); }
-.gold-800 { color: hsl(32 95% 44%); }
+/* Gold/Amber color utilities with dark mode support */
+.gold-50,
+.dark .gold-50 { color: hsl(48 100% 96%); }
+.dark .gold-50 { color: hsl(48 100% 20%); }
 
-.bg-gold-50 { background-color: hsl(48 100% 96%); }
-.bg-gold-500 { background-color: hsl(45 93% 47%); }
-.border-gold-200 { border-color: hsl(48 97% 77%); }
-.text-gold-700 { color: hsl(32 95% 44%); }
-.text-gold-800 { color: hsl(32 95% 44%); }
+.gold-100,
+.dark .gold-100 { color: hsl(48 96% 89%); }
+.dark .gold-100 { color: hsl(48 96% 30%); }
+
+.gold-200,
+.dark .gold-200 { color: hsl(48 97% 77%); }
+.dark .gold-200 { color: hsl(48 97% 40%); }
+
+.gold-500,
+.dark .gold-500 { color: hsl(45 93% 47%); }
+
+.gold-700,
+.dark .gold-700 { color: hsl(32 95% 44%); }
+.dark .gold-700 { color: hsl(32 95% 60%); }
+
+.gold-800,
+.dark .gold-800 { color: hsl(32 95% 44%); }
+.dark .gold-800 { color: hsl(32 95% 70%); }
+
+.bg-gold-50,
+.dark .bg-gold-50 { background-color: hsl(48 100% 96%); }
+.dark .bg-gold-50 { background-color: hsl(48 100% 15%); }
+
+.bg-gold-500,
+.dark .bg-gold-500 { background-color: hsl(45 93% 47%); }
+
+.border-gold-200,
+.dark .border-gold-200 { border-color: hsl(48 97% 77%); }
+.dark .border-gold-200 { border-color: hsl(48 97% 30%); }
+
+.text-gold-700,
+.dark .text-gold-700 { color: hsl(32 95% 44%); }
+.dark .text-gold-700 { color: hsl(32 95% 65%); }
+
+.text-gold-800,
+.dark .text-gold-800 { color: hsl(32 95% 44%); }
+.dark .text-gold-800 { color: hsl(32 95% 75%); }

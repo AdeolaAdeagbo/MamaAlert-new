@@ -182,7 +182,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 via-pink-50 to-orange-50">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 via-pink-50 to-orange-50 dark:from-background dark:via-background dark:to-card">
       <Navbar />
       
       <OnboardingPrompt 
@@ -236,19 +236,19 @@ const Dashboard = () => {
           </Card>
 
           {/* Daily Health Tip */}
-          <Card className="bg-gradient-to-br from-gold-50 to-yellow-50 border-gold-200 overflow-hidden relative shadow-medium">
+          <Card className="bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-amber-950/30 dark:to-yellow-950/30 border-amber-200 dark:border-amber-800 overflow-hidden relative shadow-medium">
             <div 
               className="absolute right-0 top-0 h-full w-1/4 sm:w-1/3 opacity-30 bg-cover bg-center"
               style={{ backgroundImage: `url(${healthTipsImage})` }}
             />
             <CardContent className="pt-3 sm:pt-4 pb-3 sm:pb-4 relative z-10">
               <div className="flex items-start gap-2 sm:gap-3 pr-12 sm:pr-16">
-                <div className="p-2 bg-gold-500 text-white rounded-full shadow-lg flex-shrink-0">
+                <div className="p-2 bg-amber-500 text-white rounded-full shadow-lg flex-shrink-0">
                   <Lightbulb className="h-3 w-3 sm:h-4 sm:w-4" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-gold-800 mb-1 text-xs sm:text-sm">Daily Health Tip</h3>
-                  <p className="text-gold-700 text-xs leading-relaxed">
+                  <h3 className="font-semibold text-amber-800 dark:text-amber-200 mb-1 text-xs sm:text-sm">Daily Health Tip</h3>
+                  <p className="text-amber-700 dark:text-amber-300 text-xs leading-relaxed">
                     {currentMode === 'pregnancy' 
                       ? "Stay hydrated! Aim for 8-10 glasses of water daily. Proper hydration helps with morning sickness and supports your baby's development."
                       : "Rest when your baby rests. Your body is still recovering, and adequate sleep is crucial for healing and milk production."
@@ -274,7 +274,7 @@ const Dashboard = () => {
             <Button
               onClick={() => navigate("/emergency-contacts")}
               variant="outline"
-              className="h-14 sm:h-16 lg:h-20 flex flex-col items-center justify-center gap-1 bg-white/80 hover:bg-white text-xs p-2"
+              className="h-14 sm:h-16 lg:h-20 flex flex-col items-center justify-center gap-1 bg-card hover:bg-accent text-xs p-2"
             >
               <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-emergency flex-shrink-0" />
               <span className="font-medium text-center leading-tight">Emergency Contacts</span>
@@ -283,7 +283,7 @@ const Dashboard = () => {
             <Button
               onClick={() => navigate("/healthcare-centers")}
               variant="outline"
-              className="h-14 sm:h-16 lg:h-20 flex flex-col items-center justify-center gap-1 bg-white/80 hover:bg-white text-xs p-2"
+              className="h-14 sm:h-16 lg:h-20 flex flex-col items-center justify-center gap-1 bg-card hover:bg-accent text-xs p-2"
             >
               <Hospital className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
               <span className="font-medium text-center leading-tight">Healthcare Centers</span>
@@ -292,7 +292,7 @@ const Dashboard = () => {
             <Button
               onClick={() => navigate("/ai-nurse")}
               variant="outline"
-              className="h-14 sm:h-16 lg:h-20 flex flex-col items-center justify-center gap-1 bg-white/80 hover:bg-white text-xs p-2"
+              className="h-14 sm:h-16 lg:h-20 flex flex-col items-center justify-center gap-1 bg-card hover:bg-accent text-xs p-2"
             >
               <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
               <span className="font-medium text-center leading-tight">AI Nurse Chat</span>
@@ -301,7 +301,7 @@ const Dashboard = () => {
             <Button
               onClick={() => navigate(isPostpartum ? "/symptom-logger?mode=postpartum" : "/symptom-logger?mode=pregnancy")}
               variant="outline"
-              className="h-14 sm:h-16 lg:h-20 flex flex-col items-center justify-center gap-1 bg-white/80 hover:bg-white text-xs p-2"
+              className="h-14 sm:h-16 lg:h-20 flex flex-col items-center justify-center gap-1 bg-card hover:bg-accent text-xs p-2"
             >
               <Activity className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
               <span className="font-medium text-center leading-tight">Log Symptoms</span>
@@ -369,7 +369,7 @@ const Dashboard = () => {
               <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
                 {/* Full Term Labor Watch */}
                 {currentWeek >= 35 && (
-                  <Card className="bg-white/90 shadow-large overflow-hidden relative">
+                  <Card className="bg-card shadow-large overflow-hidden relative">
                     <div 
                       className="absolute right-0 top-0 h-full w-1/3 opacity-20 bg-cover bg-center"
                       style={{ backgroundImage: `url(${laborWatchImage})` }}
@@ -382,7 +382,7 @@ const Dashboard = () => {
 
                 {/* Hospital Bag Checklist */}
                 {currentWeek >= 32 && (
-                  <Card className="bg-white/90 shadow-large overflow-hidden relative">
+                  <Card className="bg-card shadow-large overflow-hidden relative">
                     <div 
                       className="absolute right-0 top-0 h-full w-1/3 opacity-20 bg-cover bg-center"
                       style={{ backgroundImage: `url(${hospitalBagImage})` }}
@@ -394,7 +394,7 @@ const Dashboard = () => {
                 )}
 
                 {/* Fetal Growth Tracker */}
-                <Card className="bg-white/90 shadow-large overflow-hidden relative lg:col-span-2 xl:col-span-1">
+                <Card className="bg-card shadow-large overflow-hidden relative lg:col-span-2 xl:col-span-1">
                   <div 
                     className="absolute right-0 top-0 h-full w-1/3 opacity-20 bg-cover bg-center"
                     style={{ backgroundImage: `url(${fetalDevImage})` }}
@@ -405,7 +405,7 @@ const Dashboard = () => {
                 </Card>
 
                 {/* Appointments Card */}
-                <Card className="bg-white/90 shadow-large">
+                <Card className="bg-card shadow-large">
                   <CardHeader className="pb-3">
                     <CardTitle className="flex items-center gap-2 text-base">
                       <Calendar className="h-5 w-5 text-primary" />
@@ -418,7 +418,7 @@ const Dashboard = () => {
                 </Card>
 
                 {/* Health Alerts Card */}
-                <Card className="bg-white/90 shadow-large">
+                <Card className="bg-card shadow-large">
                   <CardHeader className="pb-3">
                     <CardTitle className="flex items-center gap-2 text-base">
                       <Activity className="h-5 w-5 text-success" />
@@ -431,7 +431,7 @@ const Dashboard = () => {
                 </Card>
 
                 {/* Weekly Health Tips Card */}
-                <Card className="bg-white/90 shadow-large lg:col-span-2 xl:col-span-1">
+                <Card className="bg-card shadow-large lg:col-span-2 xl:col-span-1">
                   <CardHeader className="pb-3">
                     <CardTitle className="flex items-center gap-2 text-base">
                       <MessageCircle className="h-5 w-5 text-accent-gold" />
@@ -446,16 +446,16 @@ const Dashboard = () => {
 
               {/* Onboarding Alert for Pregnancy Mode */}
               {!hasPregnancyData && (
-                <Card className="border-warning/20 bg-gradient-to-r from-warning/5 to-accent/10 shadow-soft">
+                <Card className="border-warning/20 dark:border-warning/30 bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950/30 dark:to-yellow-950/30 shadow-soft">
                   <CardContent className="pt-4 sm:pt-6">
                     <div className="text-center">
-                      <h2 className="text-lg sm:text-xl font-semibold text-warning mb-2 sm:mb-4">Complete Your Pregnancy Profile</h2>
+                      <h2 className="text-lg sm:text-xl font-semibold text-amber-700 dark:text-amber-300 mb-2 sm:mb-4">Complete Your Pregnancy Profile</h2>
                       <p className="text-muted-foreground mb-3 sm:mb-4 text-xs sm:text-sm">
                         Help us provide personalized care by sharing your pregnancy details.
                       </p>
                       <Button 
                         onClick={() => navigate('/pregnancy-details')}
-                        className="bg-warning hover:bg-warning/90 text-warning-foreground"
+                        className="bg-warning hover:bg-warning/90 text-white"
                       >
                         Complete Profile
                       </Button>

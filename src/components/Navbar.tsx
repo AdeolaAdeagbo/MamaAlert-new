@@ -16,7 +16,7 @@ export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
-    <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+    <nav className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 shadow-soft">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo - Fixed size to prevent collision */}
@@ -109,7 +109,7 @@ export function Navbar() {
 
         {/* Mobile menu */}
         {user && isMobileMenuOpen && (
-          <div className="xl:hidden border-t bg-background/95 backdrop-blur">
+          <div className="xl:hidden border-t border-border bg-card/95 backdrop-blur shadow-soft">
             <div className="px-4 py-4 space-y-3">
               <Link 
                 to="/dashboard" 
