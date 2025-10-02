@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.12 (cd3cf9e)"
@@ -464,6 +464,66 @@ export type Database = {
         }
         Relationships: []
       }
+      transport_requests: {
+        Row: {
+          created_at: string
+          destination: string
+          destination_latitude: number | null
+          destination_longitude: number | null
+          driver_name: string | null
+          driver_phone: string | null
+          id: string
+          notes: string | null
+          pickup_latitude: number | null
+          pickup_location: string
+          pickup_longitude: number | null
+          status: string
+          transport_type: string
+          updated_at: string
+          urgency: string
+          user_id: string
+          vehicle_number: string | null
+        }
+        Insert: {
+          created_at?: string
+          destination: string
+          destination_latitude?: number | null
+          destination_longitude?: number | null
+          driver_name?: string | null
+          driver_phone?: string | null
+          id?: string
+          notes?: string | null
+          pickup_latitude?: number | null
+          pickup_location: string
+          pickup_longitude?: number | null
+          status?: string
+          transport_type: string
+          updated_at?: string
+          urgency: string
+          user_id: string
+          vehicle_number?: string | null
+        }
+        Update: {
+          created_at?: string
+          destination?: string
+          destination_latitude?: number | null
+          destination_longitude?: number | null
+          driver_name?: string | null
+          driver_phone?: string | null
+          id?: string
+          notes?: string | null
+          pickup_latitude?: number | null
+          pickup_location?: string
+          pickup_longitude?: number | null
+          status?: string
+          transport_type?: string
+          updated_at?: string
+          urgency?: string
+          user_id?: string
+          vehicle_number?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -538,7 +598,7 @@ export type Database = {
       has_role: {
         Args:
           | Record<PropertyKey, never>
-          | { _user_id: string; _role: Database["public"]["Enums"]["app_role"] }
+          | { _role: Database["public"]["Enums"]["app_role"]; _user_id: string }
         Returns: boolean
       }
       send_vaccine_reminders: {

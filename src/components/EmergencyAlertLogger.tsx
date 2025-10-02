@@ -1,8 +1,17 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, Loader2 } from "lucide-react";
+import { AlertTriangle, Loader2, Ambulance } from "lucide-react";
 import { useEmergencyAlert } from "@/hooks/useEmergencyAlert";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { TransportRequestDialog } from "./TransportRequestDialog";
+import { TransportRequestStatus } from "./TransportRequestStatus";
 
 interface EmergencyAlert {
   id: string;
@@ -20,18 +29,42 @@ interface EmergencyAlertLoggerProps {
 
 export const EmergencyAlertLogger = ({ userId, onAlertSent }: EmergencyAlertLoggerProps) => {
   const [isEmergencyActive, setIsEmergencyActive] = useState(false);
+  const [showTransportDialog, setShowTransportDialog] = useState(false);
+  const [showTransportQuestion, setShowTransportQuestion] = useState(false);
+  const [showStatusDialog, setShowStatusDialog] = useState(false);
+  const [currentRequestId, setCurrentRequestId] = useState<string | null>(null);
   const { triggerEmergencyAlert } = useEmergencyAlert();
 
-  const handleEmergencyAlert = async () => {
-    setIsEmergencyActive(true);
+  const handleEmergencyClick = () => {
+    setShowTransportQuestion(true);
+  };
+
+  const handleTransportResponse = async (needsTransport: boolean) => {
+    setShowTransportQuestion(false);
     
-    const success = await triggerEmergencyAlert(userId, "Emergency alert triggered by user", "Location not available", onAlertSent);
-    
-    if (success) {
-      setTimeout(() => setIsEmergencyActive(false), 3000);
+    if (needsTransport) {
+      setShowTransportDialog(true);
     } else {
-      setIsEmergencyActive(false);
+      // Continue with normal emergency alert
+      setIsEmergencyActive(true);
+      const success = await triggerEmergencyAlert(
+        userId, 
+        "Emergency alert triggered by user", 
+        "Location not available", 
+        onAlertSent
+      );
+      
+      if (success) {
+        setTimeout(() => setIsEmergencyActive(false), 3000);
+      } else {
+        setIsEmergencyActive(false);
+      }
     }
+  };
+
+  const handleTransportRequestSubmitted = (requestId: string) => {
+    setCurrentRequestId(requestId);
+    setShowStatusDialog(true);
   };
 
   return (
@@ -45,7 +78,7 @@ export const EmergencyAlertLogger = ({ userId, onAlertSent }: EmergencyAlertLogg
 
         <div className="flex justify-center">
           <Button
-            onClick={handleEmergencyAlert}
+            onClick={handleEmergencyClick}
             disabled={isEmergencyActive}
             aria-label="Emergency Alert"
             variant="emergency"
@@ -73,6 +106,49 @@ export const EmergencyAlertLogger = ({ userId, onAlertSent }: EmergencyAlertLogg
           </p>
         )}
       </div>
+
+      {/* Transport Question Dialog */}
+      <AlertDialog open={showTransportQuestion} onOpenChange={setShowTransportQuestion}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Do you need transport?</AlertDialogTitle>
+            <AlertDialogDescription>
+              We can arrange emergency transport to get you to a healthcare facility quickly.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex gap-3 mt-4">
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => handleTransportResponse(false)}
+            >
+              No, just alert
+            </Button>
+            <Button
+              className="flex-1 gap-2"
+              onClick={() => handleTransportResponse(true)}
+            >
+              <Ambulance className="h-4 w-4" />
+              Yes, request transport
+            </Button>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Transport Request Form */}
+      <TransportRequestDialog
+        open={showTransportDialog}
+        onOpenChange={setShowTransportDialog}
+        userId={userId}
+        onRequestSubmitted={handleTransportRequestSubmitted}
+      />
+
+      {/* Transport Status Tracker */}
+      <TransportRequestStatus
+        open={showStatusDialog}
+        onOpenChange={setShowStatusDialog}
+        requestId={currentRequestId}
+      />
     </div>
   );
 };
