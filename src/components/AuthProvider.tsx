@@ -20,8 +20,6 @@ interface AuthContextType {
   session: Session | null;
   login: (email: string, password: string) => Promise<{ error?: any }>;
   signup: (email: string, password: string, firstName: string, lastName: string) => Promise<{ error?: any }>;
-  loginWithPhone?: (phone: string, otp: string) => Promise<{ error?: any }>;
-  signupWithPhone?: (phone: string, firstName: string, lastName: string) => Promise<{ error?: any }>;
   logout: () => Promise<void>;
   isLoading: boolean;
   refreshUserData: () => Promise<void>;
@@ -234,59 +232,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const loginWithPhone = async (phone: string, otp: string) => {
-    try {
-      // In production, this would verify OTP with Supabase
-      // For demo, we'll create a session with phone number as identifier
-      const phoneEmail = `${phone.replace(/\D/g, '')}@phone.mamaalert.app`;
-      
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: phoneEmail,
-        password: otp + phone,
-      });
-      
-      if (error) {
-        console.error('Phone login error:', error);
-        return { error };
-      }
-      
-      return { error: null };
-    } catch (error) {
-      console.error('Phone login exception:', error);
-      return { error };
-    }
-  };
-
-  const signupWithPhone = async (phone: string, firstName: string, lastName: string) => {
-    try {
-      const redirectUrl = `${window.location.origin}/dashboard`;
-      const phoneEmail = `${phone.replace(/\D/g, '')}@phone.mamaalert.app`;
-      
-      const { data, error } = await supabase.auth.signUp({
-        email: phoneEmail,
-        password: '123456' + phone,
-        options: {
-          emailRedirectTo: redirectUrl,
-          data: {
-            first_name: firstName,
-            last_name: lastName,
-            phone: phone,
-          },
-        },
-      });
-      
-      if (error) {
-        console.error('Phone signup error:', error);
-        return { error };
-      }
-      
-      return { error: null };
-    } catch (error) {
-      console.error('Phone signup exception:', error);
-      return { error };
-    }
-  };
-
   const logout = async () => {
     console.log('Logout attempt');
     try {
@@ -303,8 +248,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     session,
     login,
     signup,
-    loginWithPhone,
-    signupWithPhone,
     logout,
     isLoading,
     refreshUserData

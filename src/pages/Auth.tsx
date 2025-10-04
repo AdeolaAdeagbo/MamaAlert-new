@@ -8,23 +8,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Navigate, Link, useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
-import { Loader2, Mail, Phone } from "lucide-react";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Loader2 } from "lucide-react";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
-  const [authMethod, setAuthMethod] = useState<"email" | "phone">("email");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [otp, setOtp] = useState("");
-  const [otpSent, setOtpSent] = useState(false);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const { user, login, signup, loginWithPhone, signupWithPhone, isLoading } = useAuth();
+  const { user, login, signup, isLoading } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -84,127 +78,12 @@ const Auth = () => {
     return message;
   };
 
-  const handleSendOTP = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (isSubmitting) return;
-
-    if (!phoneNumber) {
-      toast({
-        title: "Missing Information",
-        description: "Please enter your phone number.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      // For demo purposes, we'll simulate OTP sending
-      // In production, this would call Supabase phone auth
-      toast({
-        title: "OTP Sent",
-        description: `A verification code has been sent to ${phoneNumber}. For testing, use code: 123456`,
-      });
-      setOtpSent(true);
-    } catch (error) {
-      console.error('OTP error:', error);
-      toast({
-        title: "Failed to Send OTP",
-        description: "Unable to send verification code. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleVerifyOTP = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (isSubmitting) return;
-
-    if (otp.length !== 6) {
-      toast({
-        title: "Invalid OTP",
-        description: "Please enter the 6-digit verification code.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!isLogin && (!firstName || !lastName)) {
-      toast({
-        title: "Missing Information",
-        description: "Please enter your first and last name.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      // For demo purposes, accept 123456 as valid OTP
-      if (otp === "123456") {
-        let result;
-        
-        if (isLogin) {
-          result = await loginWithPhone?.(phoneNumber, otp);
-        } else {
-          result = await signupWithPhone?.(phoneNumber, firstName, lastName);
-        }
-
-        if (!result?.error) {
-          toast({
-            title: isLogin ? "Welcome back!" : "Account Created!",
-            description: isLogin 
-              ? "Successfully logged in to your MamaAlert account."
-              : "Welcome to MamaAlert! You can now access your dashboard.",
-          });
-          return;
-        }
-
-        if (result?.error) {
-          toast({
-            title: "Authentication Failed",
-            description: getErrorMessage(result.error),
-            variant: "destructive",
-          });
-        }
-      } else {
-        toast({
-          title: "Invalid OTP",
-          description: "The verification code you entered is incorrect. Please try again.",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error('Verification error:', error);
-      toast({
-        title: "Verification Failed",
-        description: "Unable to verify your code. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (isSubmitting) return;
-
-    if (authMethod === "phone") {
-      if (!otpSent) {
-        await handleSendOTP(e);
-      } else {
-        await handleVerifyOTP(e);
-      }
-      return;
-    }
     
-    // Email authentication
+    // Basic validation
     if (!email || !password) {
       toast({
         title: "Missing Information",
@@ -237,6 +116,7 @@ const Auth = () => {
             title: "Welcome back!",
             description: "Successfully logged in to your MamaAlert account.",
           });
+          // Navigation will be handled by useEffect above
           return;
         }
       } else {
@@ -248,6 +128,7 @@ const Auth = () => {
             title: "Account Created!",
             description: "Welcome to MamaAlert! You can now access your dashboard.",
           });
+          // Navigation will be handled by useEffect above
           return;
         }
       }
@@ -297,211 +178,88 @@ const Auth = () => {
             </p>
           </div>
 
-          <Card className="border-rose-200 dark:border-rose-800">
+          <Card className="border-rose-200">
             <CardHeader>
               <CardTitle className="text-center">
                 {isLogin ? "Sign In" : "Create Your Account"}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <Tabs value={authMethod} onValueChange={(v) => {
-                setAuthMethod(v as "email" | "phone");
-                setOtpSent(false);
-                setOtp("");
-              }} className="mb-6">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="email" className="flex items-center gap-2">
-                    <Mail className="h-4 w-4" />
-                    Email
-                  </TabsTrigger>
-                  <TabsTrigger value="phone" className="flex items-center gap-2">
-                    <Phone className="h-4 w-4" />
-                    Phone
-                  </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="email" className="mt-6">
-                  <form onSubmit={handleSubmit} className="space-y-4">
-                    {!isLogin && (
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="firstName">First Name</Label>
-                          <Input
-                            id="firstName"
-                            type="text"
-                            value={firstName}
-                            onChange={(e) => setFirstName(e.target.value)}
-                            required={!isLogin}
-                            disabled={isSubmitting}
-                            placeholder="Enter your first name"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="lastName">Last Name</Label>
-                          <Input
-                            id="lastName"
-                            type="text"
-                            value={lastName}
-                            onChange={(e) => setLastName(e.target.value)}
-                            required={!isLogin}
-                            disabled={isSubmitting}
-                            placeholder="Enter your last name"
-                          />
-                        </div>
-                      </div>
-                    )}
-
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {!isLogin && (
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="email">Email</Label>
+                      <Label htmlFor="firstName">First Name</Label>
                       <Input
-                        id="email"
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
+                        id="firstName"
+                        type="text"
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                        required={!isLogin}
                         disabled={isSubmitting}
-                        placeholder="Enter your email address"
-                        autoComplete={isLogin ? "email" : "username"}
+                        placeholder="Enter your first name"
                       />
                     </div>
-
                     <div>
-                      <Label htmlFor="password">Password</Label>
+                      <Label htmlFor="lastName">Last Name</Label>
                       <Input
-                        id="password"
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
+                        id="lastName"
+                        type="text"
+                        value={lastName}
+                        onChange={(e) => setLastName(e.target.value)}
+                        required={!isLogin}
                         disabled={isSubmitting}
-                        placeholder={isLogin ? "Enter your password" : "Create a password (min 6 characters)"}
-                        autoComplete={isLogin ? "current-password" : "new-password"}
+                        placeholder="Enter your last name"
                       />
                     </div>
+                  </div>
+                )}
 
-                    <Button
-                      type="submit"
-                      className="w-full bg-rose-500 hover:bg-rose-600"
-                      disabled={isSubmitting}
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          {isLogin ? "Signing in..." : "Creating account..."}
-                        </>
-                      ) : (
-                        <>
-                          {isLogin ? "Sign In" : "Create Account"}
-                        </>
-                      )}
-                    </Button>
-                  </form>
-                </TabsContent>
+                <div>
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    disabled={isSubmitting}
+                    placeholder="Enter your email address"
+                    autoComplete={isLogin ? "email" : "username"}
+                  />
+                </div>
 
-                <TabsContent value="phone" className="mt-6">
-                  <form onSubmit={handleSubmit} className="space-y-4">
-                    {!isLogin && !otpSent && (
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="firstName-phone">First Name</Label>
-                          <Input
-                            id="firstName-phone"
-                            type="text"
-                            value={firstName}
-                            onChange={(e) => setFirstName(e.target.value)}
-                            required={!isLogin}
-                            disabled={isSubmitting || otpSent}
-                            placeholder="Enter your first name"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="lastName-phone">Last Name</Label>
-                          <Input
-                            id="lastName-phone"
-                            type="text"
-                            value={lastName}
-                            onChange={(e) => setLastName(e.target.value)}
-                            required={!isLogin}
-                            disabled={isSubmitting || otpSent}
-                            placeholder="Enter your last name"
-                          />
-                        </div>
-                      </div>
-                    )}
+                <div>
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    disabled={isSubmitting}
+                    placeholder={isLogin ? "Enter your password" : "Create a password (min 6 characters)"}
+                    autoComplete={isLogin ? "current-password" : "new-password"}
+                  />
+                </div>
 
-                    <div>
-                      <Label htmlFor="phone">Phone Number</Label>
-                      <Input
-                        id="phone"
-                        type="tel"
-                        value={phoneNumber}
-                        onChange={(e) => setPhoneNumber(e.target.value)}
-                        required
-                        disabled={isSubmitting || otpSent}
-                        placeholder="+234 XXX XXX XXXX"
-                      />
-                    </div>
-
-                    {otpSent && (
-                      <div className="space-y-2">
-                        <Label htmlFor="otp">Verification Code</Label>
-                        <div className="flex justify-center">
-                          <InputOTP
-                            maxLength={6}
-                            value={otp}
-                            onChange={(value) => setOtp(value)}
-                            disabled={isSubmitting}
-                          >
-                            <InputOTPGroup>
-                              <InputOTPSlot index={0} />
-                              <InputOTPSlot index={1} />
-                              <InputOTPSlot index={2} />
-                              <InputOTPSlot index={3} />
-                              <InputOTPSlot index={4} />
-                              <InputOTPSlot index={5} />
-                            </InputOTPGroup>
-                          </InputOTP>
-                        </div>
-                        <p className="text-xs text-muted-foreground text-center">
-                          For testing, use code: 123456
-                        </p>
-                      </div>
-                    )}
-
-                    <Button
-                      type="submit"
-                      className="w-full bg-rose-500 hover:bg-rose-600"
-                      disabled={isSubmitting}
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          {otpSent ? "Verifying..." : "Sending OTP..."}
-                        </>
-                      ) : (
-                        <>
-                          {otpSent ? "Verify Code" : "Send Verification Code"}
-                        </>
-                      )}
-                    </Button>
-
-                    {otpSent && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        className="w-full"
-                        onClick={() => {
-                          setOtpSent(false);
-                          setOtp("");
-                        }}
-                        disabled={isSubmitting}
-                      >
-                        Change Phone Number
-                      </Button>
-                    )}
-                  </form>
-                </TabsContent>
-              </Tabs>
+                <Button
+                  type="submit"
+                  className="w-full bg-rose-500 hover:bg-rose-600"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      {isLogin ? "Signing in..." : "Creating account..."}
+                    </>
+                  ) : (
+                    <>
+                      {isLogin ? "Sign In" : "Create Account"}
+                    </>
+                  )}
+                </Button>
+              </form>
 
               <div className="mt-6 text-center">
                 <button
@@ -510,13 +268,10 @@ const Auth = () => {
                     setIsLogin(!isLogin);
                     setEmail("");
                     setPassword("");
-                    setPhoneNumber("");
-                    setOtp("");
-                    setOtpSent(false);
                     setFirstName("");
                     setLastName("");
                   }}
-                  className="text-sm text-rose-600 dark:text-rose-400 hover:underline"
+                  className="text-sm text-rose-600 hover:underline"
                   disabled={isSubmitting}
                 >
                   {isLogin
