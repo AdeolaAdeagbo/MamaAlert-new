@@ -257,23 +257,15 @@ export const FetalGrowthTracker = ({ userId }: FetalGrowthTrackerProps) => {
 
         {/* Current Development Display */}
         <div className="text-center space-y-4">
-          <div className="w-64 h-64 mx-auto rounded-lg overflow-hidden bg-black border-4 border-gray-800 dark:border-gray-600 shadow-2xl relative">
-            <div className="absolute top-2 left-2 text-xs font-mono text-green-400 z-20">
-              WEEK {selectedWeek}
-            </div>
-            <div className="absolute top-2 right-2 text-xs font-mono text-green-400 z-20">
-              {currentDev.size}
-            </div>
+          <div className="w-72 h-72 sm:w-80 sm:h-80 mx-auto rounded-2xl overflow-hidden bg-gradient-to-br from-blue-50 via-pink-50 to-purple-50 dark:from-blue-950/20 dark:via-pink-950/20 dark:to-purple-950/20 border-4 border-rose-200/50 dark:border-rose-800/50 shadow-xl relative">
+            <div className="absolute inset-0 bg-gradient-to-t from-white/40 to-transparent dark:from-black/40 pointer-events-none z-10" />
             <img
               src={getImageForWeek(selectedWeek)}
-              alt={`Ultrasound scan of fetal development at week ${Math.min(selectedWeek, 40)}`}
-              className="w-full h-full object-cover grayscale contrast-125 brightness-110 relative z-10"
+              alt={`Baby development at week ${Math.min(selectedWeek, 40)}`}
+              className="w-full h-full object-contain p-4 relative z-5"
               loading="lazy"
               decoding="async"
             />
-            <div className="absolute bottom-2 left-2 text-xs font-mono text-green-400 z-20">
-              {currentDev.weight}
-            </div>
           </div>
           <div className="space-y-2">
             <h3 className="text-xl font-bold text-rose-800 dark:text-rose-200">
