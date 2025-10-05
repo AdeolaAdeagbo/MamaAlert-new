@@ -257,12 +257,12 @@ export const FetalGrowthTracker = ({ userId }: FetalGrowthTrackerProps) => {
 
         {/* Current Development Display */}
         <div className="text-center space-y-4">
-          <div className="w-56 h-56 mx-auto rounded-full overflow-hidden bg-gradient-to-br from-rose-50/80 to-pink-50/80 dark:from-rose-950/40 dark:to-pink-950/40 backdrop-blur-sm border-4 border-rose-200/30 dark:border-rose-800/30 shadow-xl relative p-4">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-transparent via-rose-100/10 to-transparent" />
+          <div className="w-48 h-48 mx-auto rounded-full overflow-hidden bg-gradient-to-br from-rose-200/50 to-pink-300/50 dark:from-rose-900/30 dark:to-pink-900/30 backdrop-blur-sm border-4 border-rose-300/50 dark:border-rose-700/50 shadow-2xl relative">
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-rose-300/20 via-transparent to-transparent animate-pulse" />
             <img
               src={getImageForWeek(selectedWeek)}
-              alt={`Medical illustration of fetal development at week ${Math.min(selectedWeek, 40)}`}
-              className="w-full h-full object-contain relative z-10"
+              alt={`Ultrasound-style fetal development at week ${Math.min(selectedWeek, 40)}`}
+              className="w-full h-full object-cover animate-float opacity-90 mix-blend-multiply dark:mix-blend-lighten relative z-10"
               loading="lazy"
               decoding="async"
             />
