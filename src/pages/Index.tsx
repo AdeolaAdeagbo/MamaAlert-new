@@ -6,7 +6,7 @@ import { Link, Navigate } from "react-router-dom";
 import { Heart, Shield, Phone, MapPin, Clock, Baby } from "lucide-react";
 import heroImage from '@/assets/hero-maternal-care-new.jpg';
 import healthcareTeamImage from '@/assets/healthcare-team.jpg';
-import pregnantWomanImage from '@/assets/pregnant-woman-phone.jpg';
+import maternalBondingImage from '@/assets/maternal-bonding.jpg';
 
 const Index = () => {
   const { user } = useAuth();
@@ -286,8 +286,8 @@ const Index = () => {
             </div>
             <div className="relative">
               <img 
-                src={pregnantWomanImage} 
-                alt="Pregnant woman using MamaAlert app" 
+                src={maternalBondingImage} 
+                alt="Mother bonding with newborn baby in peaceful hospital setting" 
                 className="w-full h-80 object-cover rounded-2xl shadow-2xl"
               />
               <div className="absolute -top-4 -right-4 bg-white rounded-lg p-3 shadow-lg">
