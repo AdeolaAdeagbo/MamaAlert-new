@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { useMode } from "@/contexts/ModeContext";
 import { Navbar } from "@/components/Navbar";
+import { BottomNav } from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
@@ -33,7 +34,8 @@ import {
   Shield,
   Hospital,
   Calendar,
-  Lightbulb
+  Lightbulb,
+  MapPin
 } from "lucide-react";
 import heroImage from '@/assets/dashboard-hero.jpg';
 import healthTipsImage from '@/assets/health-tips-card.jpg';
@@ -182,53 +184,53 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 via-pink-50 to-orange-50 dark:from-background dark:via-background dark:to-card">
-      <Navbar />
-      
-      <OnboardingPrompt 
-        isOpen={showOnboarding}
-        onClose={() => setShowOnboarding(false)}
-      />
-      
-      <WelcomeModal 
-        isOpen={showWelcomeModal}
-        onClose={handleWelcomeModalClose}
-        userName={user.firstName || 'there'}
-      />
-      
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 lg:px-8 lg:py-8">
-        <div className="space-y-4 sm:space-y-6">
+    <>
+      <div className="min-h-screen bg-gradient-to-br from-red-50 via-pink-50 to-orange-50 dark:from-background dark:via-background dark:to-card pb-20">
+        <Navbar />
+        
+        <OnboardingPrompt 
+          isOpen={showOnboarding}
+          onClose={() => setShowOnboarding(false)}
+        />
+        
+        <WelcomeModal 
+          isOpen={showWelcomeModal}
+          onClose={handleWelcomeModalClose}
+          userName={user.firstName || 'there'}
+        />
+        
+        <div className="mobile-container py-4 space-y-4">
           {/* Welcome Section */}
-          <Card className="gradient-primary text-white border-0 overflow-hidden relative shadow-xl">
+          <Card className="gradient-primary text-white border-0 overflow-hidden relative shadow-lg">
             <div 
               className="absolute inset-0 opacity-20 bg-cover bg-center bg-no-repeat"
               style={{ backgroundImage: `url(${heroImage})` }}
             />
             <div className="absolute inset-0 bg-gradient-to-r from-red-600/80 to-red-700/60" />
-            <CardContent className="pt-4 pb-4 sm:pt-6 sm:pb-6 relative z-10">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-                <div className="space-y-1 sm:space-y-2">
-                  <h1 className="text-lg sm:text-xl lg:text-2xl font-bold drop-shadow-lg">
+            <CardContent className="pt-5 pb-5 relative z-10">
+              <div className="space-y-3">
+                <div className="space-y-1">
+                  <h1 className="text-xl font-bold drop-shadow-lg">
                     Good {getTimeOfDay()}, {profile?.first_name || 'Mama'}! 💕
                   </h1>
-                  <p className="text-white/90 text-xs sm:text-sm drop-shadow">
+                  <p className="text-white/90 text-sm drop-shadow">
                     {currentMode === 'pregnancy' 
                       ? `Week ${currentWeek} of your pregnancy journey`
                       : 'Your postpartum care dashboard'
                     }
                   </p>
                 </div>
-                <div className="flex flex-col sm:text-right gap-2">
-                  <Badge variant="secondary" className="bg-white/20 text-white border-white/30 backdrop-blur-sm self-start sm:self-end text-xs">
+                <div className="flex items-center justify-between">
+                  <Badge variant="secondary" className="bg-white/20 text-white border-white/30 backdrop-blur-sm">
                     {currentMode === 'pregnancy' ? '🤰 Pregnancy' : '👶 Postpartum'}
                   </Badge>
                   <Button 
                     variant="ghost" 
                     size="sm" 
                     onClick={handleSwitchMode}
-                    className="text-white hover:bg-white/20 text-xs backdrop-blur-sm w-fit self-start sm:self-end h-7"
+                    className="text-white hover:bg-white/20 backdrop-blur-sm h-8 px-3 text-xs"
                   >
-                    Switch to {currentMode === 'pregnancy' ? 'Postpartum' : 'Pregnancy'}
+                    Switch Mode
                   </Button>
                 </div>
               </div>
@@ -236,18 +238,14 @@ const Dashboard = () => {
           </Card>
 
           {/* Daily Health Tip */}
-          <Card className="bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-amber-950/30 dark:to-yellow-950/30 border-amber-200 dark:border-amber-800 overflow-hidden relative shadow-medium">
-            <div 
-              className="absolute right-0 top-0 h-full w-1/4 sm:w-1/3 opacity-30 bg-cover bg-center"
-              style={{ backgroundImage: `url(${healthTipsImage})` }}
-            />
-            <CardContent className="pt-3 sm:pt-4 pb-3 sm:pb-4 relative z-10">
-              <div className="flex items-start gap-2 sm:gap-3 pr-12 sm:pr-16">
+          <Card className="bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-amber-950/30 dark:to-yellow-950/30 border-amber-200 dark:border-amber-800 overflow-hidden relative shadow-lg">
+            <CardContent className="pt-4 pb-4 relative z-10">
+              <div className="flex items-start gap-3">
                 <div className="p-2 bg-amber-500 text-white rounded-full shadow-lg flex-shrink-0">
-                  <Lightbulb className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <Lightbulb className="h-4 w-4" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-amber-800 dark:text-amber-200 mb-1 text-xs sm:text-sm">Daily Health Tip</h3>
+                  <h3 className="font-semibold text-amber-800 dark:text-amber-200 mb-1 text-sm">Daily Health Tip</h3>
                   <p className="text-amber-700 dark:text-amber-300 text-xs leading-relaxed">
                     {currentMode === 'pregnancy' 
                       ? "Stay hydrated! Aim for 8-10 glasses of water daily. Proper hydration helps with morning sickness and supports your baby's development."
@@ -259,52 +257,32 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          {/* Emergency SOS Button - Static, Framed below Daily Health Tip */}
-          <div className="flex justify-center">
-            <Card className="bg-card shadow-medium rounded-3xl p-4 sm:p-6 lg:p-8 border border-border w-full">
-              <EmergencyAlertLogger
-                userId={user?.id || ""}
-                onAlertSent={handleEmergencyAlert}
-              />
-            </Card>
-          </div>
+          {/* Emergency SOS Button - Optimized for mobile one-hand use */}
+          <Card className="bg-card shadow-lg rounded-3xl p-5 border border-border">
+            <EmergencyAlertLogger
+              userId={user?.id || ""}
+              onAlertSent={handleEmergencyAlert}
+            />
+          </Card>
 
-          {/* Quick Actions */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
+          {/* Quick Actions - Mobile optimized */}
+          <div className="grid grid-cols-2 gap-3">
             <Button
               onClick={() => navigate("/emergency-contacts")}
               variant="outline"
-              className="h-14 sm:h-16 lg:h-20 flex flex-col items-center justify-center gap-1 bg-card hover:bg-accent text-xs p-2"
+              className="h-20 flex flex-col items-center justify-center gap-2 bg-card hover:bg-accent touch-target active:scale-95 transition-transform"
             >
-              <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-emergency flex-shrink-0" />
-              <span className="font-medium text-center leading-tight">Emergency Contacts</span>
+              <Shield className="h-6 w-6 text-emergency" />
+              <span className="font-medium text-xs text-center leading-tight">Emergency<br/>Contacts</span>
             </Button>
             
             <Button
               onClick={() => navigate("/healthcare-centers")}
               variant="outline"
-              className="h-14 sm:h-16 lg:h-20 flex flex-col items-center justify-center gap-1 bg-card hover:bg-accent text-xs p-2"
+              className="h-20 flex flex-col items-center justify-center gap-2 bg-card hover:bg-accent touch-target active:scale-95 transition-transform"
             >
-              <Hospital className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
-              <span className="font-medium text-center leading-tight">Healthcare Centers</span>
-            </Button>
-            
-            <Button
-              onClick={() => navigate("/ai-nurse")}
-              variant="outline"
-              className="h-14 sm:h-16 lg:h-20 flex flex-col items-center justify-center gap-1 bg-card hover:bg-accent text-xs p-2"
-            >
-              <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
-              <span className="font-medium text-center leading-tight">AI Nurse Chat</span>
-            </Button>
-            
-            <Button
-              onClick={() => navigate(isPostpartum ? "/symptom-logger?mode=postpartum" : "/symptom-logger?mode=pregnancy")}
-              variant="outline"
-              className="h-14 sm:h-16 lg:h-20 flex flex-col items-center justify-center gap-1 bg-card hover:bg-accent text-xs p-2"
-            >
-              <Activity className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
-              <span className="font-medium text-center leading-tight">Log Symptoms</span>
+              <MapPin className="h-6 w-6 text-primary" />
+              <span className="font-medium text-xs text-center leading-tight">Find<br/>Healthcare</span>
             </Button>
           </div>
 
@@ -467,7 +445,9 @@ const Dashboard = () => {
           )}
         </div>
       </div>
-    </div>
+      
+      <BottomNav />
+    </>
   );
 };
 
