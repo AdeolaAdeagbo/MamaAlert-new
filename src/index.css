@@ -3,77 +3,58 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Mobile-first optimizations */
-@layer base {
-  * {
-    -webkit-tap-highlight-color: transparent;
-  }
-  
-  html {
-    font-size: 16px;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-  
-  body {
-    overscroll-behavior-y: none;
-  }
-}
-
 /* MamaAlert Maternal Health Design System - Modern & Professional */
 
 @layer base {
   :root {
-    /* Background Colors - Warm, clean white */
-    --background: 30 20% 99%;
+    /* Background Colors */
+    --background: 0 0% 99%;
     --foreground: 220 13% 18%;
     --card: 0 0% 100%;
     --card-foreground: 220 13% 18%;
     --popover: 0 0% 100%;
     --popover-foreground: 220 13% 18%;
     
-    /* Primary Brand - Warm maternal rose */
-    --primary: 345 75% 62%;
-    --primary-light: 345 75% 72%;
-    --primary-dark: 345 75% 52%;
+    /* Primary Brand - Soft Vibrant Red */
+    --primary: 348 86% 65%;
+    --primary-light: 348 86% 75%;
+    --primary-dark: 348 86% 55%;
     --primary-foreground: 0 0% 100%;
     
-    /* Secondary Colors - Soft lavender/purple */
-    --secondary: 270 40% 96%;
-    --secondary-foreground: 270 20% 30%;
+    /* Secondary Colors - Warm Neutrals */
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 220 13% 18%;
     
-    /* Muted Colors - Warm neutrals */
-    --muted: 30 20% 96%;
-    --muted-foreground: 30 8% 46%;
+    /* Muted Colors */
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
     
-    /* Accent Colors - Peach & Soft Pink */
-    --accent: 15 85% 92%;
-    --accent-gold: 38 84% 68%;
-    --accent-pink: 340 80% 94%;
+    /* Accent Colors - Gold & Soft Pink */
+    --accent: 38 95% 85%;
+    --accent-gold: 43 84% 65%;
+    --accent-pink: 340 82% 90%;
     --accent-foreground: 220 13% 18%;
     
     /* Semantic Colors */
-    --success: 142 71% 45%;
+    --success: 142 76% 36%;
     --warning: 38 92% 50%;
     --destructive: 0 84% 60%;
-    --emergency: 345 75% 62%;
+    --emergency: 348 86% 65%;
     --destructive-foreground: 0 0% 98%;
     
     /* UI Elements */
-    --border: 30 15% 92%;
-    --input: 30 20% 97%;
-    --ring: 345 75% 62%;
-    --radius: 1.25rem;
+    --border: 220 13% 91%;
+    --input: 220 13% 96%;
+    --ring: 348 86% 65%;
+    --radius: 1rem;
     
-    /* Custom Design Tokens - Modern & Warm */
-    --shadow-soft: 0 2px 12px -2px hsl(345 75% 62% / 0.08);
-    --shadow-medium: 0 4px 20px -4px hsl(345 75% 62% / 0.12);
-    --shadow-large: 0 8px 32px -8px hsl(345 75% 62% / 0.16);
-    --shadow-card: 0 4px 24px -4px hsl(30 20% 20% / 0.06);
-    --gradient-primary: linear-gradient(135deg, hsl(345 75% 62%) 0%, hsl(345 75% 72%) 100%);
-    --gradient-secondary: linear-gradient(135deg, hsl(270 40% 96%) 0%, hsl(340 80% 94%) 100%);
-    --gradient-warm: linear-gradient(135deg, hsl(15 85% 92%) 0%, hsl(340 80% 94%) 100%);
-    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(30 20% 99%) 100%);
+    /* Custom Design Tokens */
+    --shadow-soft: 0 2px 8px -2px hsl(220 13% 18% / 0.08);
+    --shadow-medium: 0 4px 16px -4px hsl(220 13% 18% / 0.12);
+    --shadow-large: 0 8px 24px -8px hsl(220 13% 18% / 0.16);
+    --gradient-primary: linear-gradient(135deg, hsl(348 86% 65%) 0%, hsl(348 86% 55%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(38 95% 85%) 0%, hsl(43 84% 65%) 100%);
+    --gradient-card: linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(220 14% 98%) 100%);
   }
 
   .dark {
@@ -258,34 +239,6 @@
       transform: scale(1.05);
       box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
     }
-  }
-  
-  /* Mobile-first utilities */
-  .mobile-container {
-    @apply max-w-md mx-auto px-4;
-  }
-  
-  .touch-target {
-    @apply min-h-[44px] min-w-[44px];
-  }
-  
-  .safe-bottom {
-    padding-bottom: env(safe-area-inset-bottom);
-  }
-  
-  .safe-top {
-    padding-top: env(safe-area-inset-top);
-  }
-  
-  /* Bottom navigation */
-  .bottom-nav {
-    @apply fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-md border-t border-border z-50;
-    padding-bottom: env(safe-area-inset-bottom);
-  }
-  
-  /* Native-like transitions */
-  .native-transition {
-    @apply transition-all duration-200 ease-out;
   }
 }
 

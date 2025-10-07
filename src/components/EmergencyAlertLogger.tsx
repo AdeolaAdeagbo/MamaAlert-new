@@ -82,17 +82,17 @@ export const EmergencyAlertLogger = ({ userId, onAlertSent }: EmergencyAlertLogg
             disabled={isEmergencyActive}
             aria-label="Emergency Alert"
             variant="emergency"
-            className="w-full h-24 rounded-2xl text-lg font-extrabold btn-press transition-transform duration-200 will-change-transform touch-target active:scale-95"
+            className="w-full max-w-md h-16 rounded-2xl text-xl font-bold btn-press transition-transform duration-200 will-change-transform"
           >
-            <div className="flex items-center justify-center gap-3">
+            <div className="flex items-center justify-center gap-4">
               {isEmergencyActive ? (
                 <>
-                  <Loader2 className="h-7 w-7 animate-spin text-emergency-foreground" />
+                  <Loader2 className="h-6 w-6 animate-spin text-emergency-foreground" />
                   <span className="text-emergency-foreground">Sending Alert...</span>
                 </>
               ) : (
                 <>
-                  <AlertTriangle className="h-7 w-7 text-emergency-foreground" />
+                  <AlertTriangle className="h-6 w-6 text-emergency-foreground" />
                   <span className="text-emergency-foreground">EMERGENCY ALERT</span>
                 </>
               )}
