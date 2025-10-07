@@ -35,6 +35,10 @@
     --accent-pink: 340 82% 90%;
     --accent-foreground: 220 13% 18%;
     
+    /* Peach Tones */
+    --peach-50: 25 100% 97%;
+    --peach-100: 25 100% 94%;
+    
     /* Semantic Colors */
     --success: 142 76% 36%;
     --warning: 38 92% 50%;
