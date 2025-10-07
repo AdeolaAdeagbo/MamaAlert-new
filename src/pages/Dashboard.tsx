@@ -4,16 +4,13 @@ import { useMode } from "@/contexts/ModeContext";
 import { Navbar } from "@/components/Navbar";
 import { BottomNav } from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Navigate, useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { EmergencyAlertLogger } from "@/components/EmergencyAlertLogger";
 import { WelcomeModal } from "@/components/WelcomeModal";
 import { OnboardingPrompt } from "@/components/OnboardingPrompt";
-import { AppointmentReminder } from "@/components/AppointmentReminder";
-import { HealthAlerts } from "@/components/HealthAlerts";
-import { WeeklyHealthTips } from "@/components/WeeklyHealthTips";
 import { usePregnancyProgress } from "@/hooks/usePregnancyProgress";
 import { supabase } from "@/integrations/supabase/client";
 import { BabyProfileSetup } from "@/components/BabyProfileSetup";
@@ -22,26 +19,17 @@ import { InfantHealthMonitor } from "@/components/InfantHealthMonitor";
 import { PostpartumMoodTracker } from "@/components/PostpartumMoodTracker";
 import { VaccinationSchedule } from "@/components/VaccinationSchedule";
 import { PostpartumFeatureCard } from "@/components/PostpartumFeatureCard";
-import { FullTermLaborWatch } from "@/components/FullTermLaborWatch";
 import { HospitalBagChecklist } from "@/components/HospitalBagChecklist";
 import { FetalGrowthTracker } from "@/components/FetalGrowthTracker";
+import { LearnAndGrow } from "@/components/LearnAndGrow";
 import { 
   Heart, 
   Baby,
   MessageCircle,
   Activity,
   Loader2,
-  Shield,
-  Hospital,
-  Calendar,
-  Lightbulb,
-  MapPin
+  Lightbulb
 } from "lucide-react";
-import heroImage from '@/assets/dashboard-hero.jpg';
-import healthTipsImage from '@/assets/health-tips-card.jpg';
-import fetalDevImage from '@/assets/fetal-development.jpg';
-import hospitalBagImage from '@/assets/hospital-bag.jpg';
-import laborWatchImage from '@/assets/labor-watch.jpg';
 
 interface EmergencyAlert {
   id: string;
@@ -52,37 +40,27 @@ interface EmergencyAlert {
   location?: string;
 }
 
-interface SymptomLog {
-  id: string;
-  symptom_type: string;
-  severity: number;
-  description: string;
-  timestamp: string;
-}
-
 const Dashboard = () => {
-  const { user, refreshUserData, isLoading: authLoading } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const { currentMode, switchToPostpartum, switchToPregnancy } = useMode();
   const { toast } = useToast();
   const navigate = useNavigate();
   
   const isPostpartum = currentMode === "postpartum";
   const [emergencyAlerts, setEmergencyAlerts] = useState<EmergencyAlert[]>([]);
-  const [recentSymptoms, setRecentSymptoms] = useState<SymptomLog[]>([]);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [loading, setLoading] = useState(true);
   const [dataLoaded, setDataLoaded] = useState(false);
   const [profile, setProfile] = useState<any>(null);
 
-  const { pregnancyData, currentWeek, loading: pregnancyLoading, refreshData } = usePregnancyProgress(user?.id || '');
+  const { pregnancyData, currentWeek, loading: pregnancyLoading } = usePregnancyProgress(user?.id || '');
 
   const loadDashboardData = async () => {
     if (!user?.id) return;
     
     setLoading(true);
     try {
-      // Load user profile
       const { data: profileData } = await supabase
         .from('profiles')
         .select('*')
@@ -91,7 +69,6 @@ const Dashboard = () => {
       
       setProfile(profileData);
 
-      // Load emergency alerts
       const { data: alertsData } = await supabase
         .from('emergency_alerts')
         .select('*')
@@ -100,16 +77,6 @@ const Dashboard = () => {
         .limit(5);
 
       if (alertsData) setEmergencyAlerts(alertsData);
-
-      // Load recent symptoms
-      const { data: symptomsData } = await supabase
-        .from('symptom_logs')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('timestamp', { ascending: false })
-        .limit(10);
-
-      if (symptomsData) setRecentSymptoms(symptomsData);
       setDataLoaded(true);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
@@ -171,13 +138,10 @@ const Dashboard = () => {
 
   if (authLoading || !user) {
     return (
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
-          <div className="text-center">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-            <p className="text-muted-foreground">Loading your dashboard...</p>
-          </div>
+      <div className="min-h-screen bg-gradient-to-br from-accent-pink via-background to-accent flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
+          <p className="text-muted-foreground">Loading your dashboard...</p>
         </div>
       </div>
     );
@@ -185,7 +149,7 @@ const Dashboard = () => {
 
   return (
     <>
-      <div className="min-h-screen bg-gradient-to-br from-red-50 via-pink-50 to-orange-50 dark:from-background dark:via-background dark:to-card pb-20">
+      <div className="min-h-screen bg-gradient-to-br from-accent-pink via-background to-accent pb-20 animate-fade-in">
         <Navbar />
         
         <OnboardingPrompt 
@@ -200,56 +164,39 @@ const Dashboard = () => {
         />
         
         <div className="mobile-container py-4 space-y-4">
-          {/* Welcome Section */}
-          <Card className="gradient-primary text-white border-0 overflow-hidden relative shadow-lg">
-            <div 
-              className="absolute inset-0 opacity-20 bg-cover bg-center bg-no-repeat"
-              style={{ backgroundImage: `url(${heroImage})` }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-red-600/80 to-red-700/60" />
-            <CardContent className="pt-5 pb-5 relative z-10">
-              <div className="space-y-3">
-                <div className="space-y-1">
-                  <h1 className="text-xl font-bold drop-shadow-lg">
-                    Good {getTimeOfDay()}, {profile?.first_name || 'Mama'}! 💕
-                  </h1>
-                  <p className="text-white/90 text-sm drop-shadow">
-                    {currentMode === 'pregnancy' 
-                      ? `Week ${currentWeek} of your pregnancy journey`
-                      : 'Your postpartum care dashboard'
-                    }
-                  </p>
-                </div>
-                <div className="flex items-center justify-between">
-                  <Badge variant="secondary" className="bg-white/20 text-white border-white/30 backdrop-blur-sm">
-                    {currentMode === 'pregnancy' ? '🤰 Pregnancy' : '👶 Postpartum'}
-                  </Badge>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={handleSwitchMode}
-                    className="text-white hover:bg-white/20 backdrop-blur-sm h-8 px-3 text-xs"
-                  >
-                    Switch Mode
-                  </Button>
-                </div>
+          {/* Welcome Header */}
+          <div className="px-1 space-y-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-display font-bold text-foreground">
+                  Good {getTimeOfDay()}, {profile?.first_name || 'Mama'}!
+                </h1>
+                <p className="text-muted-foreground text-sm">
+                  {currentMode === 'pregnancy' 
+                    ? `Week ${currentWeek} of your pregnancy`
+                    : 'Your postpartum journey'
+                  }
+                </p>
               </div>
-            </CardContent>
-          </Card>
+              <Badge variant="secondary" className="px-3 py-1.5 rounded-full text-xs font-medium">
+                {currentMode === 'pregnancy' ? '🤰 Pregnancy' : '👶 Postpartum'}
+              </Badge>
+            </div>
+          </div>
 
           {/* Daily Health Tip */}
-          <Card className="bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-amber-950/30 dark:to-yellow-950/30 border-amber-200 dark:border-amber-800 overflow-hidden relative shadow-lg">
-            <CardContent className="pt-4 pb-4 relative z-10">
+          <Card className="bg-gradient-warm border-0 shadow-card overflow-hidden">
+            <CardContent className="pt-4 pb-4">
               <div className="flex items-start gap-3">
-                <div className="p-2 bg-amber-500 text-white rounded-full shadow-lg flex-shrink-0">
-                  <Lightbulb className="h-4 w-4" />
+                <div className="p-2.5 bg-primary/10 rounded-2xl flex-shrink-0">
+                  <Lightbulb className="h-5 w-5 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-amber-800 dark:text-amber-200 mb-1 text-sm">Daily Health Tip</h3>
-                  <p className="text-amber-700 dark:text-amber-300 text-xs leading-relaxed">
+                  <h3 className="font-semibold text-foreground mb-1.5 text-sm">Today's Health Tip</h3>
+                  <p className="text-muted-foreground text-xs leading-relaxed">
                     {currentMode === 'pregnancy' 
-                      ? "Stay hydrated! Aim for 8-10 glasses of water daily. Proper hydration helps with morning sickness and supports your baby's development."
-                      : "Rest when your baby rests. Your body is still recovering, and adequate sleep is crucial for healing and milk production."
+                      ? "Stay hydrated! Aim for 8-10 glasses of water daily to support your baby's development."
+                      : "Rest when your baby rests. Adequate sleep is crucial for recovery and milk production."
                     }
                   </p>
                 </div>
@@ -257,48 +204,24 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          {/* Emergency SOS Button - Optimized for mobile one-hand use */}
-          <Card className="bg-card shadow-lg rounded-3xl p-5 border border-border">
-            <EmergencyAlertLogger
-              userId={user?.id || ""}
-              onAlertSent={handleEmergencyAlert}
-            />
+          {/* Emergency SOS Button - Pinned at top */}
+          <Card className="shadow-card border-2 border-primary/10">
+            <CardContent className="pt-5 pb-5">
+              <EmergencyAlertLogger
+                userId={user?.id || ""}
+                onAlertSent={handleEmergencyAlert}
+              />
+            </CardContent>
           </Card>
-
-          {/* Quick Actions - Mobile optimized */}
-          <div className="grid grid-cols-2 gap-3">
-            <Button
-              onClick={() => navigate("/emergency-contacts")}
-              variant="outline"
-              className="h-20 flex flex-col items-center justify-center gap-2 bg-card hover:bg-accent touch-target active:scale-95 transition-transform"
-            >
-              <Shield className="h-6 w-6 text-emergency" />
-              <span className="font-medium text-xs text-center leading-tight">Emergency<br/>Contacts</span>
-            </Button>
-            
-            <Button
-              onClick={() => navigate("/healthcare-centers")}
-              variant="outline"
-              className="h-20 flex flex-col items-center justify-center gap-2 bg-card hover:bg-accent touch-target active:scale-95 transition-transform"
-            >
-              <MapPin className="h-6 w-6 text-primary" />
-              <span className="font-medium text-xs text-center leading-tight">Find<br/>Healthcare</span>
-            </Button>
-          </div>
 
           {/* Content based on mode */}
           {isPostpartum ? (
-            <div className="space-y-4 sm:space-y-6">
-              <div className="text-center space-y-1 sm:space-y-2">
-                <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-foreground">Postpartum & Baby Care</h2>
-                <p className="text-muted-foreground text-xs sm:text-sm">All your postpartum tools in one place</p>
-              </div>
-              
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
+            <div className="space-y-4">
+              <div className="space-y-4">
                 <PostpartumFeatureCard
                   title="Baby Profile Setup"
-                  icon={<Baby className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />}
-                  description="Manage your baby's profile and basic information"
+                  icon={<Baby className="h-5 w-5 text-primary" />}
+                  description="Manage your baby's profile and information"
                   defaultExpanded={true}
                 >
                   <BabyProfileSetup />
@@ -306,134 +229,72 @@ const Dashboard = () => {
                 
                 <PostpartumFeatureCard
                   title="Breastfeeding Tracker"
-                  icon={<Heart className="h-5 w-5 sm:h-6 sm:w-6 text-accent-pink" />}
-                  description="Track nursing sessions and feeding patterns"
+                  icon={<Heart className="h-5 w-5 text-primary" />}
+                  description="Track nursing sessions and patterns"
                 >
                   <BreastfeedingTracker />
                 </PostpartumFeatureCard>
                 
                 <PostpartumFeatureCard
                   title="Baby Health Monitor"
-                  icon={<Activity className="h-5 w-5 sm:h-6 sm:w-6 text-success" />}
-                  description="Monitor growth, milestones, and health metrics"
+                  icon={<Activity className="h-5 w-5 text-success" />}
+                  description="Monitor growth and milestones"
                 >
                   <InfantHealthMonitor />
                 </PostpartumFeatureCard>
                 
                 <PostpartumFeatureCard
                   title="Mood Tracker"
-                  icon={<MessageCircle className="h-5 w-5 sm:h-6 sm:w-6 text-accent-gold" />}
-                  description="Track your postpartum mental health and recovery"
+                  icon={<MessageCircle className="h-5 w-5 text-primary" />}
+                  description="Track your postpartum mental health"
                 >
                   <PostpartumMoodTracker />
                 </PostpartumFeatureCard>
 
                 <PostpartumFeatureCard
                   title="Vaccination Schedule"
-                  icon={<Shield className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />}
-                  description="Track and manage your baby's vaccination schedule"
+                  icon={<Activity className="h-5 w-5 text-primary" />}
+                  description="Manage baby's vaccination schedule"
                 >
                   <VaccinationSchedule userId={user?.id || ""} />
                 </PostpartumFeatureCard>
               </div>
             </div>
           ) : (
-            <div className="space-y-4 sm:space-y-6">
-              <div className="text-center space-y-1 sm:space-y-2">
-                <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-foreground">Pregnancy Journey</h2>
-                <p className="text-muted-foreground text-xs sm:text-sm">Track your pregnancy milestones and stay healthy</p>
-              </div>
-              
-              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-                {/* Full Term Labor Watch */}
-                {currentWeek >= 35 && (
-                  <Card className="bg-card shadow-large overflow-hidden relative">
-                    <div 
-                      className="absolute right-0 top-0 h-full w-1/3 opacity-20 bg-cover bg-center"
-                      style={{ backgroundImage: `url(${laborWatchImage})` }}
-                    />
-                    <CardContent className="pt-6 relative z-10">
-                      <FullTermLaborWatch userId={user?.id || ""} />
-                    </CardContent>
-                  </Card>
-                )}
+            <div className="space-y-4">
+              {/* Fetal Growth Tracker - Dominant Hero Section */}
+              <Card className="shadow-large border-0 bg-gradient-card overflow-hidden">
+                <CardContent className="pt-6 pb-6">
+                  <FetalGrowthTracker userId={user?.id || ""} />
+                </CardContent>
+              </Card>
 
-                {/* Hospital Bag Checklist */}
-                {currentWeek >= 32 && (
-                  <Card className="bg-card shadow-large overflow-hidden relative">
-                    <div 
-                      className="absolute right-0 top-0 h-full w-1/3 opacity-20 bg-cover bg-center"
-                      style={{ backgroundImage: `url(${hospitalBagImage})` }}
-                    />
-                    <CardContent className="pt-6 relative z-10">
-                      <HospitalBagChecklist userId={user?.id || ""} />
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* Fetal Growth Tracker */}
-                <Card className="bg-card shadow-large overflow-hidden relative lg:col-span-2 xl:col-span-1">
-                  <div 
-                    className="absolute right-0 top-0 h-full w-1/3 opacity-20 bg-cover bg-center"
-                    style={{ backgroundImage: `url(${fetalDevImage})` }}
-                  />
-                  <CardContent className="pt-6 relative z-10">
-                    <FetalGrowthTracker userId={user?.id || ""} />
+              {/* Hospital Bag Checklist */}
+              {currentWeek >= 32 && (
+                <Card className="shadow-card">
+                  <CardContent className="pt-6 pb-6">
+                    <HospitalBagChecklist userId={user?.id || ""} />
                   </CardContent>
                 </Card>
+              )}
 
-                {/* Appointments Card */}
-                <Card className="bg-card shadow-large">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="flex items-center gap-2 text-base">
-                      <Calendar className="h-5 w-5 text-primary" />
-                      Upcoming Appointments
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <AppointmentReminder userId={user?.id || ""} />
-                  </CardContent>
-                </Card>
+              {/* Learn & Grow Section */}
+              <LearnAndGrow />
 
-                {/* Health Alerts Card */}
-                <Card className="bg-card shadow-large">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="flex items-center gap-2 text-base">
-                      <Activity className="h-5 w-5 text-success" />
-                      Health Alerts
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <HealthAlerts userId={user?.id || ""} />
-                  </CardContent>
-                </Card>
-
-                {/* Weekly Health Tips Card */}
-                <Card className="bg-card shadow-large lg:col-span-2 xl:col-span-1">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="flex items-center gap-2 text-base">
-                      <MessageCircle className="h-5 w-5 text-accent-gold" />
-                      Weekly Health Tips
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <WeeklyHealthTips pregnancyWeek={currentWeek} />
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Onboarding Alert for Pregnancy Mode */}
+              {/* Complete Profile Prompt */}
               {!hasPregnancyData && (
-                <Card className="border-warning/20 dark:border-warning/30 bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950/30 dark:to-yellow-950/30 shadow-soft">
-                  <CardContent className="pt-4 sm:pt-6">
-                    <div className="text-center">
-                      <h2 className="text-lg sm:text-xl font-semibold text-amber-700 dark:text-amber-300 mb-2 sm:mb-4">Complete Your Pregnancy Profile</h2>
-                      <p className="text-muted-foreground mb-3 sm:mb-4 text-xs sm:text-sm">
-                        Help us provide personalized care by sharing your pregnancy details.
+                <Card className="border-primary/20 bg-gradient-secondary shadow-card">
+                  <CardContent className="pt-5 pb-5">
+                    <div className="text-center space-y-3">
+                      <h3 className="text-lg font-display font-semibold text-foreground">
+                        Complete Your Pregnancy Profile
+                      </h3>
+                      <p className="text-muted-foreground text-sm">
+                        Help us provide personalized care for you and your baby
                       </p>
                       <Button 
                         onClick={() => navigate('/pregnancy-details')}
-                        className="bg-warning hover:bg-warning/90 text-white"
+                        className="w-full h-12 rounded-2xl bg-primary hover:bg-primary-dark shadow-medium native-transition"
                       >
                         Complete Profile
                       </Button>
@@ -443,6 +304,16 @@ const Dashboard = () => {
               )}
             </div>
           )}
+
+          {/* Mode Switch Option */}
+          <div className="pt-4 pb-2 text-center">
+            <button
+              onClick={handleSwitchMode}
+              className="text-sm text-muted-foreground hover:text-primary native-transition font-medium"
+            >
+              Switch to {currentMode === 'pregnancy' ? 'Postpartum' : 'Pregnancy'} Mode
+            </button>
+          </div>
         </div>
       </div>
       
