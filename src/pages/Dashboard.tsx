@@ -369,12 +369,12 @@ const Dashboard = () => {
               <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
                 {/* Full Term Labor Watch */}
                 {currentWeek >= 35 && (
-                  <Card className="bg-card shadow-large overflow-hidden relative">
+                  <Card className="bg-card shadow-medium overflow-hidden relative">
                     <div 
                       className="absolute right-0 top-0 h-full w-1/3 opacity-20 bg-cover bg-center"
                       style={{ backgroundImage: `url(${laborWatchImage})` }}
                     />
-                    <CardContent className="pt-6 relative z-10">
+                    <CardContent className="pt-4 pb-4 relative z-10">
                       <FullTermLaborWatch userId={user?.id || ""} />
                     </CardContent>
                   </Card>
@@ -382,63 +382,45 @@ const Dashboard = () => {
 
                 {/* Hospital Bag Checklist */}
                 {currentWeek >= 32 && (
-                  <Card className="bg-card shadow-large overflow-hidden relative">
+                  <Card className="bg-card shadow-medium overflow-hidden relative">
                     <div 
                       className="absolute right-0 top-0 h-full w-1/3 opacity-20 bg-cover bg-center"
                       style={{ backgroundImage: `url(${hospitalBagImage})` }}
                     />
-                    <CardContent className="pt-6 relative z-10">
+                    <CardContent className="pt-4 pb-4 relative z-10">
                       <HospitalBagChecklist userId={user?.id || ""} />
                     </CardContent>
                   </Card>
                 )}
 
                 {/* Fetal Growth Tracker */}
-                <Card className="bg-card shadow-large overflow-hidden relative lg:col-span-2 xl:col-span-1">
+                <Card className="bg-card shadow-medium overflow-hidden relative lg:col-span-2 xl:col-span-1">
                   <div 
                     className="absolute right-0 top-0 h-full w-1/3 opacity-20 bg-cover bg-center"
                     style={{ backgroundImage: `url(${fetalDevImage})` }}
                   />
-                  <CardContent className="pt-6 relative z-10">
+                  <CardContent className="pt-4 pb-4 relative z-10">
                     <FetalGrowthTracker userId={user?.id || ""} />
                   </CardContent>
                 </Card>
 
                 {/* Appointments Card */}
-                <Card className="bg-card shadow-large">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="flex items-center gap-2 text-base">
-                      <Calendar className="h-5 w-5 text-primary" />
-                      Upcoming Appointments
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-0">
+                <Card className="bg-card shadow-medium">
+                  <CardContent className="pt-4 pb-4">
                     <AppointmentReminder userId={user?.id || ""} />
                   </CardContent>
                 </Card>
 
                 {/* Health Alerts Card */}
-                <Card className="bg-card shadow-large">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="flex items-center gap-2 text-base">
-                      <Activity className="h-5 w-5 text-success" />
-                      Health Alerts
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <HealthAlerts userId={user?.id || ""} />
+                <Card className="bg-card shadow-medium">
+                  <CardContent className="pt-4 pb-4">
+                    <HealthAlerts userId={user?.id || ""} recentSymptoms={recentSymptoms} />
                   </CardContent>
                 </Card>
 
                 {/* Weekly Health Tips Card */}
-                <Card className="bg-card shadow-large lg:col-span-2 xl:col-span-1">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="flex items-center gap-2 text-base">
-                      <MessageCircle className="h-5 w-5 text-accent-gold" />
-                      Weekly Health Tips
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-0">
+                <Card className="bg-card shadow-medium lg:col-span-2 xl:col-span-1">
+                  <CardContent className="pt-4 pb-4">
                     <WeeklyHealthTips pregnancyWeek={currentWeek} />
                   </CardContent>
                 </Card>

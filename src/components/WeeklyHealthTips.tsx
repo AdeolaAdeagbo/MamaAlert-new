@@ -146,53 +146,45 @@ export const WeeklyHealthTips = ({ pregnancyWeek, isProgressive = true }: Weekly
 
   if (!currentTip) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Heart className="h-5 w-5 text-rose-500" />
-            Weekly Health Tip
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">
-            Add your pregnancy details to get personalized weekly health tips!
-          </p>
-        </CardContent>
-      </Card>
+      <div className="space-y-3">
+        <h3 className="text-base font-semibold flex items-center gap-2">
+          <Heart className="h-4 w-4 text-rose-500" />
+          Weekly Health Tip
+        </h3>
+        <p className="text-muted-foreground text-sm">
+          Add your pregnancy details to get personalized weekly health tips!
+        </p>
+      </div>
     );
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Heart className="h-5 w-5 text-rose-500" />
-          <div className="flex items-center gap-2">
-            <span>Daily Health Tip</span>
-            <Calendar className="h-4 w-4 text-primary" />
-          </div>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="p-4 bg-rose-50 dark:bg-rose-950/30 rounded-lg border border-rose-100 dark:border-rose-900">
-          <div className="flex items-center justify-between mb-2">
-            <h4 className="font-medium text-rose-800 dark:text-rose-200">{currentTip.title}</h4>
-            <span className="text-xs bg-rose-200 dark:bg-rose-900 text-rose-700 dark:text-rose-100 px-2 py-1 rounded">
-              {currentTip.category}
-            </span>
-          </div>
-          <p className="text-sm text-rose-700 dark:text-rose-300">
-            {currentTip.content}
-          </p>
-          {isProgressive && (
-            <div className="mt-3 pt-2 border-t border-rose-200 dark:border-rose-900">
-              <p className="text-xs text-rose-600 dark:text-rose-400">
-                💡 New tip every day • Week {currentTip.week} • Day {dayOfWeek}
-              </p>
-            </div>
-          )}
+    <div className="space-y-3">
+      <div className="flex items-center gap-2">
+        <h3 className="text-base font-semibold flex items-center gap-2">
+          <Heart className="h-4 w-4 text-rose-500" />
+          Daily Health Tip
+        </h3>
+        <Calendar className="h-4 w-4 text-primary" />
+      </div>
+      <div className="p-3 bg-rose-50 dark:bg-rose-950/30 rounded-lg border border-rose-100 dark:border-rose-900">
+        <div className="flex items-center justify-between mb-2">
+          <h4 className="font-medium text-sm text-rose-800 dark:text-rose-200">{currentTip.title}</h4>
+          <span className="text-xs bg-rose-200 dark:bg-rose-900 text-rose-700 dark:text-rose-100 px-2 py-1 rounded">
+            {currentTip.category}
+          </span>
         </div>
-      </CardContent>
-    </Card>
+        <p className="text-xs text-rose-700 dark:text-rose-300">
+          {currentTip.content}
+        </p>
+        {isProgressive && (
+          <div className="mt-2 pt-2 border-t border-rose-200 dark:border-rose-900">
+            <p className="text-xs text-rose-600 dark:text-rose-400">
+              💡 New tip every day • Week {currentTip.week} • Day {dayOfWeek}
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
   );
 };

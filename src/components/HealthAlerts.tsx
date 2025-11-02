@@ -183,51 +183,43 @@ export const HealthAlerts = ({ userId, recentSymptoms = [] }: HealthAlertsProps)
 
   if (alerts.length === 0) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Heart className="h-5 w-5 text-rose-500" />
-            Health Alerts
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground text-center py-4">
-            No health alerts at this time. Keep logging your symptoms for personalized insights!
-          </p>
-        </CardContent>
-      </Card>
+      <div className="space-y-3">
+        <h3 className="text-base font-semibold flex items-center gap-2">
+          <Heart className="h-4 w-4 text-rose-500" />
+          Health Alerts
+        </h3>
+        <p className="text-muted-foreground text-center py-4 text-sm">
+          No health alerts at this time. Keep logging your symptoms for personalized insights!
+        </p>
+      </div>
     );
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Heart className="h-5 w-5 text-rose-500" />
-          Health Alerts
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {alerts.map((alert) => (
-            <div
-              key={alert.id}
-              className={`p-4 rounded-lg border ${getAlertColor(alert.type)}`}
-            >
-              <div className="flex items-start gap-3">
-                {getAlertIcon(alert.type)}
-                <div className="flex-1">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-medium">{alert.title}</h4>
-                    {getPriorityBadge(alert.priority)}
-                  </div>
-                  <p className="text-sm text-muted-foreground">{alert.message}</p>
+    <div className="space-y-3">
+      <h3 className="text-base font-semibold flex items-center gap-2">
+        <Heart className="h-4 w-4 text-rose-500" />
+        Health Alerts
+      </h3>
+      <div className="space-y-3">
+        {alerts.map((alert) => (
+          <div
+            key={alert.id}
+            className={`p-3 rounded-lg border ${getAlertColor(alert.type)}`}
+          >
+            <div className="flex items-start gap-2">
+              {getAlertIcon(alert.type)}
+              <div className="flex-1">
+                <div className="flex items-center justify-between mb-1">
+                  <h4 className="font-medium text-sm">{alert.title}</h4>
+                  {getPriorityBadge(alert.priority)}
                 </div>
+                <p className="text-xs text-muted-foreground">{alert.message}</p>
               </div>
             </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 };

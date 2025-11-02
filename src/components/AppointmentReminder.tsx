@@ -209,164 +209,162 @@ From MamaAlert - Your Pregnancy Companion`;
 
   return (
     <div className="space-y-4">
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Bell className="h-4 w-4 text-blue-500" />
-              Appointment Reminders
-            </CardTitle>
-            <Dialog open={isOpen} onOpenChange={setIsOpen}>
-              <DialogTrigger asChild>
-                <Button size="sm" className="text-xs h-8">
-                  <Calendar className="h-3 w-3 mr-1" />
-                  Add
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Set Appointment Reminder</DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-base font-semibold flex items-center gap-2">
+            <Bell className="h-4 w-4 text-blue-500" />
+            Appointment Reminders
+          </h3>
+          <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="text-xs h-8">
+                <Calendar className="h-3 w-3 mr-1" />
+                Add
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Set Appointment Reminder</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <Label htmlFor="hospitalName">Hospital/Clinic Name *</Label>
+                  <Input
+                    id="hospitalName"
+                    value={reminderData.hospitalName}
+                    onChange={(e) => setReminderData(prev => ({
+                      ...prev,
+                      hospitalName: e.target.value
+                    }))}
+                    placeholder="Lagos University Teaching Hospital"
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="hospitalName">Hospital/Clinic Name *</Label>
+                    <Label htmlFor="date">Date *</Label>
                     <Input
-                      id="hospitalName"
-                      value={reminderData.hospitalName}
+                      id="date"
+                      type="date"
+                      value={reminderData.date}
                       onChange={(e) => setReminderData(prev => ({
                         ...prev,
-                        hospitalName: e.target.value
+                        date: e.target.value
                       }))}
-                      placeholder="Lagos University Teaching Hospital"
+                      required
+                      min={new Date().toISOString().split('T')[0]}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="time">Time *</Label>
+                    <Input
+                      id="time"
+                      type="time"
+                      value={reminderData.time}
+                      onChange={(e) => setReminderData(prev => ({
+                        ...prev,
+                        time: e.target.value
+                      }))}
                       required
                     />
                   </div>
+                </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="date">Date *</Label>
-                      <Input
-                        id="date"
-                        type="date"
-                        value={reminderData.date}
-                        onChange={(e) => setReminderData(prev => ({
-                          ...prev,
-                          date: e.target.value
-                        }))}
-                        required
-                        min={new Date().toISOString().split('T')[0]}
-                      />
-                    </div>
+                <div>
+                  <Label htmlFor="notes">Notes</Label>
+                  <Textarea
+                    id="notes"
+                    value={reminderData.notes}
+                    onChange={(e) => setReminderData(prev => ({
+                      ...prev,
+                      notes: e.target.value
+                    }))}
+                    placeholder="Any special notes about this appointment..."
+                    rows={3}
+                  />
+                </div>
 
-                    <div>
-                      <Label htmlFor="time">Time *</Label>
-                      <Input
-                        id="time"
-                        type="time"
-                        value={reminderData.time}
-                        onChange={(e) => setReminderData(prev => ({
-                          ...prev,
-                          time: e.target.value
-                        }))}
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="notes">Notes</Label>
-                    <Textarea
-                      id="notes"
-                      value={reminderData.notes}
-                      onChange={(e) => setReminderData(prev => ({
-                        ...prev,
-                        notes: e.target.value
-                      }))}
-                      placeholder="Any special notes about this appointment..."
-                      rows={3}
-                    />
-                  </div>
-
-                  <div className="flex gap-2">
-                    <Button type="submit" disabled={loading} className="flex-1">
-                      {loading ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Saving...
-                        </>
-                      ) : (
-                        "Set Reminder"
-                      )}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setIsOpen(false)}
-                      className="flex-1"
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                </form>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {appointments.length > 0 ? (
-            <div className="space-y-4">
-              {appointments.map((appointment) => (
-                <div key={appointment.id} className="p-4 border rounded-lg">
-                  <div className="flex justify-between items-start mb-2">
-                    <h4 className="font-medium">{appointment.hospital_name}</h4>
-                    <div className="flex gap-2">
-                      <span className="text-sm text-muted-foreground">
-                        {new Date(appointment.appointment_date).toLocaleDateString()}
-                      </span>
-                      <span className="text-sm text-muted-foreground">
-                        {appointment.appointment_time}
-                      </span>
-                    </div>
-                  </div>
-                  
-                  {appointment.notes && (
-                    <p className="text-sm text-muted-foreground mb-2">
-                      {appointment.notes}
-                    </p>
-                  )}
-                  
-                  <div className="flex justify-between items-center">
-                    <span className={`text-xs px-2 py-1 rounded ${
-                      appointment.reminder_sent 
-                        ? 'bg-green-100 text-green-700' 
-                        : 'bg-yellow-100 text-yellow-700'
-                    }`}>
-                      {appointment.reminder_sent ? 'Reminder Sent' : 'Reminder Pending'}
+                <div className="flex gap-2">
+                  <Button type="submit" disabled={loading} className="flex-1">
+                    {loading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      "Set Reminder"
+                    )}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsOpen(false)}
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
+        
+        {appointments.length > 0 ? (
+          <div className="space-y-3">
+            {appointments.map((appointment) => (
+              <div key={appointment.id} className="p-3 border rounded-lg bg-card">
+                <div className="flex justify-between items-start mb-2">
+                  <h4 className="font-medium text-sm">{appointment.hospital_name}</h4>
+                  <div className="flex gap-2 text-xs">
+                    <span className="text-muted-foreground">
+                      {new Date(appointment.appointment_date).toLocaleDateString()}
                     </span>
-                    
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedAppointment(appointment.id);
-                        setFeedbackOpen(true);
-                      }}
-                    >
-                      Add Feedback
-                    </Button>
+                    <span className="text-muted-foreground">
+                      {appointment.appointment_time}
+                    </span>
                   </div>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>No upcoming appointments scheduled.</p>
-              <p className="text-xs mt-2">Add an appointment to receive SMS reminders.</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                
+                {appointment.notes && (
+                  <p className="text-xs text-muted-foreground mb-2">
+                    {appointment.notes}
+                  </p>
+                )}
+                
+                <div className="flex justify-between items-center">
+                  <span className={`text-xs px-2 py-1 rounded ${
+                    appointment.reminder_sent 
+                      ? 'bg-green-100 text-green-700' 
+                      : 'bg-yellow-100 text-yellow-700'
+                  }`}>
+                    {appointment.reminder_sent ? 'Reminder Sent' : 'Reminder Pending'}
+                  </span>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedAppointment(appointment.id);
+                      setFeedbackOpen(true);
+                    }}
+                    className="text-xs h-7"
+                  >
+                    Add Feedback
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-6 text-muted-foreground">
+            <Calendar className="h-10 w-10 mx-auto mb-3 opacity-50" />
+            <p className="text-sm">No upcoming appointments scheduled.</p>
+            <p className="text-xs mt-1">Add an appointment to receive SMS reminders.</p>
+          </div>
+        )}
+      </div>
 
       <Dialog open={feedbackOpen} onOpenChange={setFeedbackOpen}>
         <DialogContent>

@@ -41,6 +41,7 @@ interface FetalGrowthTrackerProps {
 export const FetalGrowthTracker = ({ userId }: FetalGrowthTrackerProps) => {
   const { pregnancyData, currentWeek } = usePregnancyProgress(userId);
   const [selectedWeek, setSelectedWeek] = useState(currentWeek || 12);
+  const [showDetails, setShowDetails] = useState(false);
 
   // Auto-sync with pregnancy week
   useEffect(() => {
@@ -206,135 +207,145 @@ export const FetalGrowthTracker = ({ userId }: FetalGrowthTrackerProps) => {
   const currentIndex = availableWeeks.indexOf(currentDev.week);
 
   return (
-    <Card className="relative overflow-hidden bg-gradient-to-br from-rose-100 via-pink-50 to-purple-100 dark:from-rose-950/30 dark:via-pink-950/20 dark:to-purple-950/30 border-rose-200 dark:border-rose-800">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-rose-200/20 via-transparent to-transparent dark:from-rose-900/20 pointer-events-none" />
-      <CardHeader className="pb-4 relative z-10">
-        <CardTitle className="flex items-center gap-2 text-rose-800 dark:text-rose-200">
-          <Baby className="h-5 w-5" />
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h3 className="text-base font-semibold text-rose-800 dark:text-rose-200 flex items-center gap-2">
+          <Baby className="h-4 w-4" />
           Fetal Growth Tracker
-          <Badge variant="secondary" className="ml-auto bg-rose-200 dark:bg-rose-900 text-rose-900 dark:text-rose-100">
-            Week {selectedWeek}
-          </Badge>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6 relative z-10">
-        {/* Week Navigation */}
-        <div className="flex items-center justify-between">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigateWeek('prev')}
-            disabled={currentIndex === 0}
-          >
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            Previous
-          </Button>
-          
-          <div className="flex gap-1">
-            {availableWeeks.map((week) => (
-              <Button
-                key={week}
-                variant={selectedWeek === week ? "default" : "ghost"}
-                size="sm"
-                onClick={() => setSelectedWeek(week)}
-                className="text-xs px-2 py-1 h-8"
-              >
-                {week}
-              </Button>
-            ))}
-          </div>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigateWeek('next')}
-            disabled={currentIndex === availableWeeks.length - 1}
-          >
-            Next
-            <ChevronRight className="h-4 w-4 ml-1" />
-          </Button>
-        </div>
+        </h3>
+        <Badge variant="secondary" className="bg-rose-200 dark:bg-rose-900 text-rose-900 dark:text-rose-100">
+          Week {selectedWeek}
+        </Badge>
+      </div>
 
-        {/* Current Development Display */}
-        <div className="text-center space-y-4">
-          <div className="w-48 h-48 mx-auto rounded-full overflow-hidden bg-gradient-to-br from-rose-200/50 to-pink-300/50 dark:from-rose-900/30 dark:to-pink-900/30 backdrop-blur-sm border-4 border-rose-300/50 dark:border-rose-700/50 shadow-2xl relative">
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-rose-300/20 via-transparent to-transparent animate-pulse" />
-            <img
-              src={getImageForWeek(selectedWeek)}
-              alt={`Ultrasound-style fetal development at week ${Math.min(selectedWeek, 40)}`}
-              className="w-full h-full object-cover animate-float opacity-90 mix-blend-multiply dark:mix-blend-lighten relative z-10"
-              loading="lazy"
-              decoding="async"
-            />
+      {/* Pregnancy Progress Bar */}
+      <div className="space-y-2">
+        <div className="flex justify-between text-sm text-muted-foreground">
+          <span>Pregnancy Progress</span>
+          <span>{Math.round((Math.min(selectedWeek, 40) / 40) * 100)}%</span>
+        </div>
+        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+          <div 
+            className="bg-gradient-to-r from-rose-500 to-pink-500 h-2.5 rounded-full transition-all"
+            style={{ width: `${Math.min((Math.min(selectedWeek, 40) / 40) * 100, 100)}%` }}
+          />
+        </div>
+      </div>
+
+      {/* Show More Button */}
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => setShowDetails(!showDetails)}
+        className="w-full"
+      >
+        {showDetails ? 'Show Less' : 'Show More Details'}
+      </Button>
+
+      {/* Collapsible Details */}
+      {showDetails && (
+        <div className="space-y-4 pt-2 animate-in fade-in slide-in-from-top-2">
+          {/* Week Navigation */}
+          <div className="flex items-center justify-between">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigateWeek('prev')}
+              disabled={currentIndex === 0}
+            >
+              <ChevronLeft className="h-4 w-4 mr-1" />
+              Previous
+            </Button>
+            
+            <div className="flex gap-1 flex-wrap justify-center">
+              {availableWeeks.map((week) => (
+                <Button
+                  key={week}
+                  variant={selectedWeek === week ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setSelectedWeek(week)}
+                  className="text-xs px-2 py-1 h-8"
+                >
+                  {week}
+                </Button>
+              ))}
+            </div>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigateWeek('next')}
+              disabled={currentIndex === availableWeeks.length - 1}
+            >
+              Next
+              <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
           </div>
+
+          {/* Current Development Display */}
+          <div className="text-center space-y-3">
+            <div className="w-32 h-32 mx-auto rounded-full overflow-hidden bg-gradient-to-br from-rose-200/50 to-pink-300/50 dark:from-rose-900/30 dark:to-pink-900/30 backdrop-blur-sm border-4 border-rose-300/50 dark:border-rose-700/50 shadow-xl relative">
+              <img
+                src={getImageForWeek(selectedWeek)}
+                alt={`Fetal development at week ${Math.min(selectedWeek, 40)}`}
+                className="w-full h-full object-cover opacity-90 mix-blend-multiply dark:mix-blend-lighten relative z-10"
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+            <div className="space-y-1">
+              <h4 className="text-lg font-bold text-rose-800 dark:text-rose-200">
+                Week {currentDev.week}
+              </h4>
+              <p className="text-base text-rose-600 dark:text-rose-300 font-medium">
+                {currentDev.comparison}
+              </p>
+              <div className="flex justify-center gap-4 text-sm">
+                <div className="flex items-center gap-1">
+                  <Ruler className="h-4 w-4 text-rose-500" />
+                  <span className="font-medium text-foreground">{currentDev.size}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Heart className="h-4 w-4 text-pink-500" />
+                  <span className="font-medium text-foreground">{currentDev.weight}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Development Milestones */}
           <div className="space-y-2">
-            <h3 className="text-xl font-bold text-rose-800 dark:text-rose-200">
-              Week {currentDev.week}
-            </h3>
-            <p className="text-lg text-rose-600 dark:text-rose-300 font-medium">
-              {currentDev.comparison}
-            </p>
-            <div className="flex justify-center gap-6 text-sm">
-              <div className="flex items-center gap-1">
-                <Ruler className="h-4 w-4 text-rose-500" />
-                <span className="font-medium text-foreground">{currentDev.size}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Heart className="h-4 w-4 text-pink-500" />
-                <span className="font-medium text-foreground">{currentDev.weight}</span>
-              </div>
+            <h4 className="font-semibold text-rose-800 dark:text-rose-200 flex items-center gap-2 text-sm">
+              <Brain className="h-4 w-4" />
+              Development This Week
+            </h4>
+            <div className="grid gap-2">
+              {currentDev.developments.map((development, index) => (
+                <div
+                  key={index}
+                  className="flex items-start gap-2 p-2 bg-white/60 dark:bg-rose-950/20 rounded-lg backdrop-blur-sm border border-rose-200/50 dark:border-rose-800/50"
+                >
+                  <div className="w-1.5 h-1.5 bg-rose-500 rounded-full mt-1.5 flex-shrink-0" />
+                  <p className="text-xs text-gray-700 dark:text-gray-300">{development}</p>
+                </div>
+              ))}
             </div>
           </div>
-        </div>
 
-        {/* Development Milestones */}
-        <div className="space-y-3">
-          <h4 className="font-semibold text-rose-800 dark:text-rose-200 flex items-center gap-2">
-            <Brain className="h-4 w-4" />
-            Development This Week
-          </h4>
-          <div className="grid gap-2">
-            {currentDev.developments.map((development, index) => (
-              <div
-                key={index}
-                className="flex items-start gap-3 p-3 bg-white/60 dark:bg-rose-950/20 rounded-lg backdrop-blur-sm border border-rose-200/50 dark:border-rose-800/50"
-              >
-                <div className="w-2 h-2 bg-rose-500 rounded-full mt-2 flex-shrink-0" />
-                <p className="text-sm text-gray-700 dark:text-gray-300">{development}</p>
+          {selectedWeek === currentWeek && (
+            <div className="p-2 bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-800 rounded-lg backdrop-blur-sm">
+              <div className="flex items-center gap-2 text-rose-800 dark:text-rose-200">
+                <Eye className="h-3 w-3" />
+                <span className="font-semibold text-xs">This is your current week!</span>
               </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm text-muted-foreground">
-            <span>Pregnancy Progress</span>
-            <span>{Math.round((Math.min(selectedWeek, 40) / 40) * 100)}%</span>
-          </div>
-          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-            <div 
-              className="bg-gradient-to-r from-rose-500 to-pink-500 h-2 rounded-full transition-all"
-              style={{ width: `${Math.min((Math.min(selectedWeek, 40) / 40) * 100, 100)}%` }}
-            />
-          </div>
-        </div>
-
-        {selectedWeek === currentWeek && (
-          <div className="p-3 bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-800 rounded-lg backdrop-blur-sm">
-            <div className="flex items-center gap-2 text-rose-800 dark:text-rose-200">
-              <Eye className="h-4 w-4" />
-              <span className="font-semibold text-sm">This is your current week!</span>
             </div>
-            <p className="text-xs text-rose-700 dark:text-rose-300 mt-1">
-              Your baby is developing these amazing features right now.
-            </p>
-          </div>
-        )}
+          )}
 
-        <p className="text-xs text-muted-foreground text-center">
-          Every pregnancy is unique. These are general milestones - your baby may develop at their own pace.
-        </p>
-      </CardContent>
-    </Card>
+          <p className="text-xs text-muted-foreground text-center">
+            Every pregnancy is unique. These are general milestones.
+          </p>
+        </div>
+      )}
+    </div>
   );
 };
