@@ -232,6 +232,34 @@ export const FetalGrowthTracker = ({ userId }: FetalGrowthTrackerProps) => {
         </div>
       </div>
 
+      {/* Current Development Display - Always Visible */}
+      <div className="text-center space-y-3">
+        <div className="w-32 h-32 mx-auto rounded-full overflow-hidden bg-gradient-to-br from-rose-200/50 to-pink-300/50 dark:from-rose-900/30 dark:to-pink-900/30 backdrop-blur-sm border-4 border-rose-300/50 dark:border-rose-700/50 shadow-xl relative">
+          <img
+            src={getImageForWeek(selectedWeek)}
+            alt={`Fetal development at week ${Math.min(selectedWeek, 40)}`}
+            className="w-full h-full object-cover opacity-90 mix-blend-multiply dark:mix-blend-lighten relative z-10"
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+        <div className="space-y-1">
+          <p className="text-base text-rose-600 dark:text-rose-300 font-medium">
+            {currentDev.comparison}
+          </p>
+          <div className="flex justify-center gap-4 text-sm">
+            <div className="flex items-center gap-1">
+              <Ruler className="h-4 w-4 text-rose-500" />
+              <span className="font-medium text-foreground">{currentDev.size}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Heart className="h-4 w-4 text-pink-500" />
+              <span className="font-medium text-foreground">{currentDev.weight}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Show More Button */}
       <Button
         variant="outline"
@@ -282,35 +310,11 @@ export const FetalGrowthTracker = ({ userId }: FetalGrowthTrackerProps) => {
             </Button>
           </div>
 
-          {/* Current Development Display */}
-          <div className="text-center space-y-3">
-            <div className="w-32 h-32 mx-auto rounded-full overflow-hidden bg-gradient-to-br from-rose-200/50 to-pink-300/50 dark:from-rose-900/30 dark:to-pink-900/30 backdrop-blur-sm border-4 border-rose-300/50 dark:border-rose-700/50 shadow-xl relative">
-              <img
-                src={getImageForWeek(selectedWeek)}
-                alt={`Fetal development at week ${Math.min(selectedWeek, 40)}`}
-                className="w-full h-full object-cover opacity-90 mix-blend-multiply dark:mix-blend-lighten relative z-10"
-                loading="lazy"
-                decoding="async"
-              />
-            </div>
-            <div className="space-y-1">
-              <h4 className="text-lg font-bold text-rose-800 dark:text-rose-200">
-                Week {currentDev.week}
-              </h4>
-              <p className="text-base text-rose-600 dark:text-rose-300 font-medium">
-                {currentDev.comparison}
-              </p>
-              <div className="flex justify-center gap-4 text-sm">
-                <div className="flex items-center gap-1">
-                  <Ruler className="h-4 w-4 text-rose-500" />
-                  <span className="font-medium text-foreground">{currentDev.size}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Heart className="h-4 w-4 text-pink-500" />
-                  <span className="font-medium text-foreground">{currentDev.weight}</span>
-                </div>
-              </div>
-            </div>
+          {/* Weekly Details */}
+          <div className="text-center space-y-1">
+            <h4 className="text-lg font-bold text-rose-800 dark:text-rose-200">
+              Week {currentDev.week}
+            </h4>
           </div>
 
           {/* Development Milestones */}

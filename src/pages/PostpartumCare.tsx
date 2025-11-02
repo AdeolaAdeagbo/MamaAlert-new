@@ -7,13 +7,13 @@ import { Baby, Heart, Activity, Brain } from 'lucide-react';
 
 export default function PostpartumCare() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
       <div className="container mx-auto py-8">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-4">
+          <h1 className="text-4xl font-bold text-gray-800 dark:text-gray-100 mb-4">
             Postpartum & Baby Care
           </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
             Comprehensive care for new mothers and their babies. Track feeding, health, mood, and development.
           </p>
         </div>

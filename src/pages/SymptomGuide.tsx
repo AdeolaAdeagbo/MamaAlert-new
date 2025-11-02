@@ -269,13 +269,13 @@ const SymptomGuide = () => {
   const getCategoryColor = (category: string) => {
     switch (category) {
       case "normal":
-        return "bg-green-100 text-green-800 border-green-200";
+        return "bg-green-100 text-green-800 border-green-200 dark:bg-green-950/30 dark:text-green-200 dark:border-green-800";
       case "monitor":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+        return "bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-950/30 dark:text-yellow-200 dark:border-yellow-800";
       case "emergency":
-        return "bg-red-100 text-red-800 border-red-200";
+        return "bg-red-100 text-red-800 border-red-200 dark:bg-red-950/30 dark:text-red-200 dark:border-red-800";
       default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
+        return "bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-950/30 dark:text-gray-200 dark:border-gray-800";
     }
   };
 
@@ -362,8 +362,8 @@ const SymptomGuide = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <h4 className="font-medium text-sm mb-2 text-red-600">⚠️ When to worry:</h4>
-                  <ul className="text-sm space-y-1">
+                  <h4 className="font-medium text-sm mb-2 text-red-600 dark:text-red-400">⚠️ When to worry:</h4>
+                  <ul className="text-sm space-y-1 text-foreground">
                     {symptom.whenToWorry.map((worry, idx) => (
                       <li key={idx} className="flex items-start gap-2">
                         <span className="text-red-500 mt-1">•</span>
@@ -374,8 +374,8 @@ const SymptomGuide = () => {
                 </div>
 
                 <div>
-                  <h4 className="font-medium text-sm mb-2 text-green-600">💚 Self-care tips:</h4>
-                  <ul className="text-sm space-y-1">
+                  <h4 className="font-medium text-sm mb-2 text-green-600 dark:text-green-400">💚 Self-care tips:</h4>
+                  <ul className="text-sm space-y-1 text-foreground">
                     {symptom.selfCare.map((tip, idx) => (
                       <li key={idx} className="flex items-start gap-2">
                         <span className="text-green-500 mt-1">•</span>
@@ -386,12 +386,12 @@ const SymptomGuide = () => {
                 </div>
 
                 <div className={`p-3 rounded-lg ${
-                  symptom.category === "emergency" ? "bg-red-50 border border-red-200" :
-                  symptom.category === "monitor" ? "bg-yellow-50 border border-yellow-200" :
-                  "bg-green-50 border border-green-200"
+                  symptom.category === "emergency" ? "bg-red-50 border border-red-200 dark:bg-red-950/30 dark:border-red-800" :
+                  symptom.category === "monitor" ? "bg-yellow-50 border border-yellow-200 dark:bg-yellow-950/30 dark:border-yellow-800" :
+                  "bg-green-50 border border-green-200 dark:bg-green-950/30 dark:border-green-800"
                 }`}>
-                  <h4 className="font-medium text-sm mb-1">🏥 When to seek help:</h4>
-                  <p className="text-sm">{symptom.whenToSeekHelp}</p>
+                  <h4 className="font-medium text-sm mb-1 text-foreground">🏥 When to seek help:</h4>
+                  <p className="text-sm text-foreground">{symptom.whenToSeekHelp}</p>
                 </div>
               </CardContent>
             </Card>
@@ -411,13 +411,13 @@ const SymptomGuide = () => {
         )}
 
         {/* Emergency Disclaimer */}
-        <Card className="mt-8 border-red-200 bg-red-50">
+        <Card className="mt-8 border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/30">
           <CardContent className="pt-6">
             <div className="flex items-start gap-3">
-              <AlertTriangle className="h-6 w-6 text-red-500 mt-1" />
+              <AlertTriangle className="h-6 w-6 text-red-500 dark:text-red-400 mt-1" />
               <div>
-                <h3 className="font-medium text-red-800 mb-2">Important Medical Disclaimer</h3>
-                <p className="text-sm text-red-700">
+                <h3 className="font-medium text-red-800 dark:text-red-200 mb-2">Important Medical Disclaimer</h3>
+                <p className="text-sm text-red-700 dark:text-red-300">
                   This guide is for educational purposes only and should not replace professional medical advice. 
                   Always consult with your healthcare provider about any symptoms or concerns during pregnancy. 
                   In case of emergency, call your local emergency number immediately.

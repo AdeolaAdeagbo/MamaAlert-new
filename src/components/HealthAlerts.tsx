@@ -162,11 +162,11 @@ export const HealthAlerts = ({ userId, recentSymptoms = [] }: HealthAlertsProps)
   const getAlertColor = (type: string) => {
     switch (type) {
       case "warning":
-        return "border-amber-200 bg-amber-50";
+        return "border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30";
       case "success":
-        return "border-green-200 bg-green-50";
+        return "border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/30";
       default:
-        return "border-blue-200 bg-blue-50";
+        return "border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30";
     }
   };
 
@@ -211,10 +211,10 @@ export const HealthAlerts = ({ userId, recentSymptoms = [] }: HealthAlertsProps)
               {getAlertIcon(alert.type)}
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-1">
-                  <h4 className="font-medium text-sm">{alert.title}</h4>
+                  <h4 className="font-medium text-sm text-foreground">{alert.title}</h4>
                   {getPriorityBadge(alert.priority)}
                 </div>
-                <p className="text-xs text-muted-foreground">{alert.message}</p>
+                <p className="text-xs text-foreground/80">{alert.message}</p>
               </div>
             </div>
           </div>

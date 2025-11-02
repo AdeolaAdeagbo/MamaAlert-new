@@ -144,12 +144,12 @@ const HealthcareCenters = () => {
                     </Badge>
                   </div>
                   
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-2 text-sm text-foreground/80">
                     <MapPin className="h-4 w-4" />
                     <span>{center.address}</span>
                   </div>
 
-                  <div className="flex items-center gap-4 text-sm">
+                  <div className="flex items-center gap-4 text-sm text-foreground">
                     {center.rating > 0 && (
                       <div className="flex items-center gap-1">
                         <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
@@ -165,7 +165,7 @@ const HealthcareCenters = () => {
 
                   <div className="flex items-center gap-2">
                     <Clock className="h-4 w-4" />
-                    <span className={`text-sm ${center.isOpen ? 'text-green-600' : 'text-red-600'}`}>
+                    <span className={`text-sm ${center.isOpen ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                       {center.isOpen ? 'Open' : 'Closed'}
                     </span>
                   </div>
@@ -210,13 +210,13 @@ const HealthcareCenters = () => {
         )}
 
         {/* Emergency Notice */}
-        <Card className="mt-8 border-red-200 bg-red-50">
+        <Card className="mt-8 border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/30">
           <CardContent className="pt-6">
             <div className="text-center">
-              <h3 className="text-lg font-bold text-red-800 mb-2">
+              <h3 className="text-lg font-bold text-red-800 dark:text-red-200 mb-2">
                 Medical Emergency?
               </h3>
-              <p className="text-red-700 mb-4">
+              <p className="text-red-700 dark:text-red-300 mb-4">
                 If you're experiencing a medical emergency, don't wait. Call emergency services immediately.
               </p>
               <div className="flex justify-center gap-4">
