@@ -284,6 +284,33 @@ export type Database = {
         }
         Relationships: []
       }
+      emergency_planning: {
+        Row: {
+          checklist_items: string | null
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+          weekly_reminders: boolean
+        }
+        Insert: {
+          checklist_items?: string | null
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+          weekly_reminders?: boolean
+        }
+        Update: {
+          checklist_items?: string | null
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+          weekly_reminders?: boolean
+        }
+        Relationships: []
+      }
       infant_symptoms: {
         Row: {
           baby_id: string
@@ -524,6 +551,39 @@ export type Database = {
         }
         Relationships: []
       }
+      trusted_transport: {
+        Row: {
+          created_at: string
+          driver_name: string
+          id: string
+          notes: string | null
+          phone_number: string
+          updated_at: string
+          user_id: string
+          vehicle_info: string | null
+        }
+        Insert: {
+          created_at?: string
+          driver_name: string
+          id?: string
+          notes?: string | null
+          phone_number: string
+          updated_at?: string
+          user_id: string
+          vehicle_info?: string | null
+        }
+        Update: {
+          created_at?: string
+          driver_name?: string
+          id?: string
+          notes?: string | null
+          phone_number?: string
+          updated_at?: string
+          user_id?: string
+          vehicle_info?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -595,16 +655,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      has_role: {
-        Args:
-          | Record<PropertyKey, never>
-          | { _role: Database["public"]["Enums"]["app_role"]; _user_id: string }
-        Returns: boolean
-      }
-      send_vaccine_reminders: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      has_role:
+        | { Args: never; Returns: boolean }
+        | {
+            Args: {
+              _role: Database["public"]["Enums"]["app_role"]
+              _user_id: string
+            }
+            Returns: boolean
+          }
+      send_vaccine_reminders: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "user"
