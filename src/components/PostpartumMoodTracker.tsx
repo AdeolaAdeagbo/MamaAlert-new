@@ -407,7 +407,7 @@ export const PostpartumMoodTracker = () => {
           </p>
           <Button 
             variant="destructive" 
-            className="w-full"
+            className="w-full text-sm sm:text-base px-3 py-2"
             onClick={() => {
               toast({
                 title: "Emergency Resources",
@@ -416,8 +416,8 @@ export const PostpartumMoodTracker = () => {
               });
             }}
           >
-            <Heart className="h-4 w-4 mr-2" />
-            Get Emergency Mental Health Support
+            <Heart className="h-4 w-4 mr-2 flex-shrink-0" />
+            <span className="truncate">Get Emergency Support</span>
           </Button>
         </CardContent>
       </Card>

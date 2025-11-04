@@ -356,7 +356,7 @@ export const BreastfeedingTracker = () => {
           </p>
           <Button 
             variant="destructive" 
-            className="w-full"
+            className="w-full text-sm sm:text-base px-3 py-2"
             onClick={() => {
               // This could trigger an emergency alert
               toast({
@@ -366,8 +366,8 @@ export const BreastfeedingTracker = () => {
               });
             }}
           >
-            <Heart className="h-4 w-4 mr-2" />
-            Emergency - Need Help with Feeding
+            <Heart className="h-4 w-4 mr-2 flex-shrink-0" />
+            <span className="truncate">Emergency Help</span>
           </Button>
         </CardContent>
       </Card>

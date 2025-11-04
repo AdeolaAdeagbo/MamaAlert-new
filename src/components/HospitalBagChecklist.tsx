@@ -22,6 +22,7 @@ interface HospitalBagChecklistProps {
 export const HospitalBagChecklist = ({ userId }: HospitalBagChecklistProps) => {
   const { pregnancyData, currentWeek } = usePregnancyProgress(userId);
   const { toast } = useToast();
+  const [showDetails, setShowDetails] = useState(false);
   
   const [checklistItems, setChecklistItems] = useState<ChecklistItem[]>([
     // Mom items
@@ -138,7 +139,7 @@ export const HospitalBagChecklist = ({ userId }: HospitalBagChecklistProps) => {
           </Badge>
         </CardTitle>
         <div className="space-y-2">
-          <div className="flex justify-between text-sm">
+          <div className="flex justify-between text-sm text-purple-700 dark:text-purple-300">
             <span>Essential Items</span>
             <span className="font-medium">{progress.essential.completed}/{progress.essential.total}</span>
           </div>
@@ -151,10 +152,19 @@ export const HospitalBagChecklist = ({ userId }: HospitalBagChecklistProps) => {
           <div className="text-xs text-muted-foreground">
             {progress.all.completed}/{progress.all.total} total items packed ({progress.all.percentage}%)
           </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowDetails(!showDetails)}
+            className="w-full mt-2 text-purple-700 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900/30"
+          >
+            {showDetails ? "Hide Details" : "Show More"}
+          </Button>
         </div>
       </CardHeader>
-      <CardContent className="space-y-6">
-        {categories.map((category) => {
+      {showDetails && (
+        <CardContent className="space-y-6">
+          {categories.map((category) => {
           const categoryItems = checklistItems.filter(item => item.category === category.key);
           const checkedItems = categoryItems.filter(item => item.isChecked).length;
           
@@ -214,10 +224,11 @@ export const HospitalBagChecklist = ({ userId }: HospitalBagChecklistProps) => {
           </div>
         )}
 
-        <p className="text-xs text-muted-foreground text-center">
-          Pack your hospital bag by week 37. Keep it ready for when labor begins.
-        </p>
-      </CardContent>
+          <p className="text-xs text-muted-foreground text-center">
+            Pack your hospital bag by week 37. Keep it ready for when labor begins.
+          </p>
+        </CardContent>
+      )}
     </Card>
   );
 };

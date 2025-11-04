@@ -3,9 +3,15 @@ import { BreastfeedingTracker } from '@/components/BreastfeedingTracker';
 import { InfantHealthMonitor } from '@/components/InfantHealthMonitor';
 import { PostpartumMoodTracker } from '@/components/PostpartumMoodTracker';
 import { BabyProfileSetup } from '@/components/BabyProfileSetup';
-import { Baby, Heart, Activity, Brain } from 'lucide-react';
+import { VaccinationSchedule } from '@/components/VaccinationSchedule';
+import { TrustedTransport } from '@/components/TrustedTransport';
+import { EmergencyPlanning } from '@/components/EmergencyPlanning';
+import { useAuth } from '@/components/AuthProvider';
+import { Baby, Heart, Activity, Brain, Shield, Car } from 'lucide-react';
 
 export default function PostpartumCare() {
+  const { user } = useAuth();
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
       <div className="container mx-auto py-8">
@@ -19,7 +25,7 @@ export default function PostpartumCare() {
         </div>
 
         <Tabs defaultValue="setup" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 max-w-3xl mx-auto">
+          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-7 max-w-5xl mx-auto">
             <TabsTrigger value="setup" className="flex items-center gap-2">
               <Baby className="h-4 w-4" />
               <span className="hidden sm:inline">Setup</span>
@@ -35,6 +41,18 @@ export default function PostpartumCare() {
             <TabsTrigger value="mood" className="flex items-center gap-2">
               <Brain className="h-4 w-4" />
               <span className="hidden sm:inline">Mood</span>
+            </TabsTrigger>
+            <TabsTrigger value="vaccines" className="flex items-center gap-2">
+              <Shield className="h-4 w-4" />
+              <span className="hidden lg:inline">Vaccines</span>
+            </TabsTrigger>
+            <TabsTrigger value="transport" className="flex items-center gap-2">
+              <Car className="h-4 w-4" />
+              <span className="hidden lg:inline">Transport</span>
+            </TabsTrigger>
+            <TabsTrigger value="emergency" className="flex items-center gap-2">
+              <Shield className="h-4 w-4" />
+              <span className="hidden lg:inline">Emergency</span>
             </TabsTrigger>
           </TabsList>
 
@@ -52,6 +70,24 @@ export default function PostpartumCare() {
 
           <TabsContent value="mood">
             <PostpartumMoodTracker />
+          </TabsContent>
+
+          <TabsContent value="vaccines">
+            <div className="max-w-4xl mx-auto">
+              {user && <VaccinationSchedule userId={user.id} />}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="transport">
+            <div className="max-w-4xl mx-auto">
+              {user && <TrustedTransport userId={user.id} />}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="emergency">
+            <div className="max-w-4xl mx-auto">
+              {user && <EmergencyPlanning userId={user.id} />}
+            </div>
           </TabsContent>
         </Tabs>
       </div>
