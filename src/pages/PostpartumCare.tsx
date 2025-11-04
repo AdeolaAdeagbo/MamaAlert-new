@@ -4,10 +4,8 @@ import { InfantHealthMonitor } from '@/components/InfantHealthMonitor';
 import { PostpartumMoodTracker } from '@/components/PostpartumMoodTracker';
 import { BabyProfileSetup } from '@/components/BabyProfileSetup';
 import { VaccinationSchedule } from '@/components/VaccinationSchedule';
-import { TrustedTransport } from '@/components/TrustedTransport';
-import { EmergencyPlanning } from '@/components/EmergencyPlanning';
 import { useAuth } from '@/components/AuthProvider';
-import { Baby, Heart, Activity, Brain, Shield, Car } from 'lucide-react';
+import { Baby, Heart, Activity, Brain, Shield } from 'lucide-react';
 
 export default function PostpartumCare() {
   const { user } = useAuth();
@@ -25,7 +23,7 @@ export default function PostpartumCare() {
         </div>
 
         <Tabs defaultValue="setup" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-7 max-w-5xl mx-auto">
+          <TabsList className="grid w-full grid-cols-5 max-w-5xl mx-auto">
             <TabsTrigger value="setup" className="flex items-center gap-2">
               <Baby className="h-4 w-4" />
               <span className="hidden sm:inline">Setup</span>
@@ -44,15 +42,7 @@ export default function PostpartumCare() {
             </TabsTrigger>
             <TabsTrigger value="vaccines" className="flex items-center gap-2">
               <Shield className="h-4 w-4" />
-              <span className="hidden lg:inline">Vaccines</span>
-            </TabsTrigger>
-            <TabsTrigger value="transport" className="flex items-center gap-2">
-              <Car className="h-4 w-4" />
-              <span className="hidden lg:inline">Transport</span>
-            </TabsTrigger>
-            <TabsTrigger value="emergency" className="flex items-center gap-2">
-              <Shield className="h-4 w-4" />
-              <span className="hidden lg:inline">Emergency</span>
+              <span className="hidden sm:inline">Vaccines</span>
             </TabsTrigger>
           </TabsList>
 
@@ -75,18 +65,6 @@ export default function PostpartumCare() {
           <TabsContent value="vaccines">
             <div className="max-w-4xl mx-auto">
               {user && <VaccinationSchedule userId={user.id} />}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="transport">
-            <div className="max-w-4xl mx-auto">
-              {user && <TrustedTransport userId={user.id} />}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="emergency">
-            <div className="max-w-4xl mx-auto">
-              {user && <EmergencyPlanning userId={user.id} />}
             </div>
           </TabsContent>
         </Tabs>
