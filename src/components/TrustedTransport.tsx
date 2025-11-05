@@ -128,11 +128,11 @@ export const TrustedTransport = ({ userId }: TrustedTransportProps) => {
   }
 
   return (
-    <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20 border-blue-200 dark:border-blue-800">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-blue-800 dark:text-blue-200">
-          <div className="p-2 rounded-full bg-blue-100 dark:bg-blue-900/30">
-            <Car className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+    <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20 border-blue-200 dark:border-blue-800 shadow-md">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-blue-800 dark:text-blue-200 text-base">
+          <div className="p-1.5 rounded-full bg-blue-100 dark:bg-blue-900/30">
+            <Car className="h-4 w-4 text-blue-600 dark:text-blue-400" />
           </div>
           Trusted Transport
           {transport && !isEditing && (
@@ -140,23 +140,23 @@ export const TrustedTransport = ({ userId }: TrustedTransportProps) => {
               variant="ghost"
               size="sm"
               onClick={() => setIsEditing(true)}
-              className="ml-auto text-blue-700 dark:text-blue-300"
+              className="ml-auto text-blue-700 dark:text-blue-300 h-7 w-7 p-0"
             >
-              <Edit className="h-4 w-4" />
+              <Edit className="h-3.5 w-3.5" />
             </Button>
           )}
         </CardTitle>
       </CardHeader>
       <CardContent>
         {!isEditing && transport ? (
-          <div className="space-y-4">
-            <div className="flex items-center gap-3 p-3 bg-white/50 dark:bg-gray-800/50 rounded-lg">
-              <Shield className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-              <div className="flex-1">
-                <p className="font-semibold text-blue-900 dark:text-blue-100">{transport.driver_name}</p>
-                <div className="flex items-center gap-2 mt-1">
-                  <Phone className="h-3 w-3 text-blue-600 dark:text-blue-400" />
-                  <a href={`tel:${transport.phone_number}`} className="text-sm text-blue-700 dark:text-blue-300 hover:underline">
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 p-2.5 bg-white/50 dark:bg-gray-800/50 rounded-lg shadow-sm">
+              <Shield className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-sm text-blue-900 dark:text-blue-100 truncate">{transport.driver_name}</p>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <Phone className="h-3 w-3 text-blue-600 dark:text-blue-400 shrink-0" />
+                  <a href={`tel:${transport.phone_number}`} className="text-xs text-blue-700 dark:text-blue-300 hover:underline truncate">
                     {transport.phone_number}
                   </a>
                 </div>
@@ -164,78 +164,78 @@ export const TrustedTransport = ({ userId }: TrustedTransportProps) => {
             </div>
             
             {transport.vehicle_info && (
-              <div className="p-3 bg-white/50 dark:bg-gray-800/50 rounded-lg">
-                <p className="text-xs text-muted-foreground mb-1">Vehicle Information</p>
-                <p className="text-sm text-foreground">{transport.vehicle_info}</p>
+              <div className="p-2.5 bg-white/50 dark:bg-gray-800/50 rounded-lg shadow-sm">
+                <p className="text-xs text-muted-foreground mb-0.5">Vehicle Information</p>
+                <p className="text-xs text-foreground">{transport.vehicle_info}</p>
               </div>
             )}
             
             {transport.notes && (
-              <div className="p-3 bg-white/50 dark:bg-gray-800/50 rounded-lg">
-                <p className="text-xs text-muted-foreground mb-1">Notes</p>
-                <p className="text-sm text-foreground">{transport.notes}</p>
+              <div className="p-2.5 bg-white/50 dark:bg-gray-800/50 rounded-lg shadow-sm">
+                <p className="text-xs text-muted-foreground mb-0.5">Notes</p>
+                <p className="text-xs text-foreground">{transport.notes}</p>
               </div>
             )}
             
             <Button 
-              className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
+              className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 h-8 text-xs"
               onClick={() => window.location.href = `tel:${transport.phone_number}`}
             >
-              <Phone className="h-4 w-4 mr-2" />
+              <Phone className="h-3.5 w-3.5 mr-1.5" />
               Call Transport
             </Button>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div>
-              <label className="text-sm font-medium mb-2 block text-blue-900 dark:text-blue-100">Driver Name *</label>
+              <label className="text-xs font-medium mb-1.5 block text-blue-900 dark:text-blue-100">Driver Name *</label>
               <Input
                 placeholder="Enter driver's name"
                 value={formData.driver_name}
                 onChange={(e) => setFormData({ ...formData, driver_name: e.target.value })}
-                className="bg-white dark:bg-gray-800"
+                className="bg-white dark:bg-gray-800 h-9 text-sm"
               />
             </div>
             
             <div>
-              <label className="text-sm font-medium mb-2 block text-blue-900 dark:text-blue-100">Phone Number *</label>
+              <label className="text-xs font-medium mb-1.5 block text-blue-900 dark:text-blue-100">Phone Number *</label>
               <Input
                 type="tel"
                 placeholder="+234..."
                 value={formData.phone_number}
                 onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
-                className="bg-white dark:bg-gray-800"
+                className="bg-white dark:bg-gray-800 h-9 text-sm"
               />
             </div>
             
             <div>
-              <label className="text-sm font-medium mb-2 block text-blue-900 dark:text-blue-100">Vehicle Information</label>
+              <label className="text-xs font-medium mb-1.5 block text-blue-900 dark:text-blue-100">Vehicle Information</label>
               <Input
                 placeholder="e.g., Red Toyota Corolla, Plate: ABC-123"
                 value={formData.vehicle_info}
                 onChange={(e) => setFormData({ ...formData, vehicle_info: e.target.value })}
-                className="bg-white dark:bg-gray-800"
+                className="bg-white dark:bg-gray-800 h-9 text-sm"
               />
             </div>
             
             <div>
-              <label className="text-sm font-medium mb-2 block text-blue-900 dark:text-blue-100">Additional Notes</label>
+              <label className="text-xs font-medium mb-1.5 block text-blue-900 dark:text-blue-100">Additional Notes</label>
               <Textarea
                 placeholder="Any additional information..."
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                className="bg-white dark:bg-gray-800"
+                className="bg-white dark:bg-gray-800 text-sm min-h-[60px]"
               />
             </div>
             
             <div className="flex gap-2">
-              <Button onClick={saveTransport} className="flex-1 bg-blue-600 hover:bg-blue-700">
-                <Save className="h-4 w-4 mr-2" />
+              <Button onClick={saveTransport} className="flex-1 bg-blue-600 hover:bg-blue-700 h-8 text-xs">
+                <Save className="h-3.5 w-3.5 mr-1.5" />
                 Save
               </Button>
               {transport && (
-                <Button onClick={() => setIsEditing(false)} variant="outline" className="flex-1">
-                  <X className="h-4 w-4 mr-2" />
+                <Button onClick={() => setIsEditing(false)} variant="outline" className="flex-1 h-8 text-xs">
+                  <X className="h-3.5 w-3.5 mr-1.5" />
                   Cancel
                 </Button>
               )}

@@ -196,29 +196,34 @@ export const HealthAlerts = ({ userId, recentSymptoms = [] }: HealthAlertsProps)
   }
 
   return (
-    <div className="space-y-3">
-      <h3 className="text-base font-semibold flex items-center gap-2">
+    <div className="space-y-2">
+      <h3 className="text-sm font-semibold flex items-center gap-2">
         <Heart className="h-4 w-4 text-rose-500" />
         Health Alerts
       </h3>
-      <div className="space-y-3">
-        {alerts.map((alert) => (
+      <div className="space-y-2 max-h-[240px] overflow-y-auto pr-1">
+        {alerts.slice(0, 2).map((alert) => (
           <div
             key={alert.id}
-            className={`p-3 rounded-lg border ${getAlertColor(alert.type)}`}
+            className={`p-3 rounded-lg border ${getAlertColor(alert.type)} shadow-sm`}
           >
             <div className="flex items-start gap-2">
               {getAlertIcon(alert.type)}
-              <div className="flex-1">
-                <div className="flex items-center justify-between mb-1">
-                  <h4 className="font-medium text-sm text-foreground">{alert.title}</h4>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between mb-1 gap-2">
+                  <h4 className="font-medium text-sm text-foreground truncate">{alert.title}</h4>
                   {getPriorityBadge(alert.priority)}
                 </div>
-                <p className="text-xs text-foreground/80">{alert.message}</p>
+                <p className="text-xs text-foreground/80 leading-relaxed">{alert.message}</p>
               </div>
             </div>
           </div>
         ))}
+        {alerts.length > 2 && (
+          <div className="text-center py-1">
+            <span className="text-xs text-muted-foreground">+{alerts.length - 2} more alerts</span>
+          </div>
+        )}
       </div>
     </div>
   );

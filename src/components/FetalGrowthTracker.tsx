@@ -207,34 +207,34 @@ export const FetalGrowthTracker = ({ userId }: FetalGrowthTrackerProps) => {
   const currentIndex = availableWeeks.indexOf(currentDev.week);
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <h3 className="text-base font-semibold text-rose-800 dark:text-rose-200 flex items-center gap-2">
+        <h3 className="text-sm font-semibold text-rose-800 dark:text-rose-200 flex items-center gap-2">
           <Baby className="h-4 w-4" />
           Fetal Growth Tracker
         </h3>
-        <Badge variant="secondary" className="bg-rose-200 dark:bg-rose-900 text-rose-900 dark:text-rose-100">
+        <Badge variant="secondary" className="bg-rose-200 dark:bg-rose-900 text-rose-900 dark:text-rose-100 text-xs px-2 py-0.5">
           Week {selectedWeek}
         </Badge>
       </div>
 
       {/* Pregnancy Progress Bar */}
-      <div className="space-y-2">
-        <div className="flex justify-between text-sm text-muted-foreground">
+      <div className="space-y-1.5">
+        <div className="flex justify-between text-xs text-muted-foreground">
           <span>Pregnancy Progress</span>
           <span>{Math.round((Math.min(selectedWeek, 40) / 40) * 100)}%</span>
         </div>
-        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
           <div 
-            className="bg-gradient-to-r from-rose-500 to-pink-500 h-2.5 rounded-full transition-all"
+            className="bg-gradient-to-r from-rose-500 to-pink-500 h-2 rounded-full transition-all"
             style={{ width: `${Math.min((Math.min(selectedWeek, 40) / 40) * 100, 100)}%` }}
           />
         </div>
       </div>
 
       {/* Current Development Display - Always Visible */}
-      <div className="text-center space-y-3">
-        <div className="w-32 h-32 mx-auto rounded-full overflow-hidden bg-gradient-to-br from-rose-200/50 to-pink-300/50 dark:from-rose-900/30 dark:to-pink-900/30 backdrop-blur-sm border-4 border-rose-300/50 dark:border-rose-700/50 shadow-xl relative">
+      <div className="text-center space-y-2">
+        <div className="w-24 h-24 mx-auto rounded-full overflow-hidden bg-gradient-to-br from-rose-200/50 to-pink-300/50 dark:from-rose-900/30 dark:to-pink-900/30 backdrop-blur-sm border-4 border-rose-300/50 dark:border-rose-700/50 shadow-lg relative">
           <img
             src={getImageForWeek(selectedWeek)}
             alt={`Fetal development at week ${Math.min(selectedWeek, 40)}`}
@@ -244,16 +244,16 @@ export const FetalGrowthTracker = ({ userId }: FetalGrowthTrackerProps) => {
           />
         </div>
         <div className="space-y-1">
-          <p className="text-base text-rose-600 dark:text-rose-300 font-medium">
+          <p className="text-sm text-rose-600 dark:text-rose-300 font-medium">
             {currentDev.comparison}
           </p>
-          <div className="flex justify-center gap-4 text-sm">
+          <div className="flex justify-center gap-3 text-xs">
             <div className="flex items-center gap-1">
-              <Ruler className="h-4 w-4 text-rose-500" />
+              <Ruler className="h-3.5 w-3.5 text-rose-500" />
               <span className="font-medium text-foreground">{currentDev.size}</span>
             </div>
             <div className="flex items-center gap-1">
-              <Heart className="h-4 w-4 text-pink-500" />
+              <Heart className="h-3.5 w-3.5 text-pink-500" />
               <span className="font-medium text-foreground">{currentDev.weight}</span>
             </div>
           </div>
@@ -265,7 +265,7 @@ export const FetalGrowthTracker = ({ userId }: FetalGrowthTrackerProps) => {
         variant="outline"
         size="sm"
         onClick={() => setShowDetails(!showDetails)}
-        className="w-full"
+        className="w-full h-8 text-xs"
       >
         {showDetails ? 'Show Less' : 'Show More Details'}
       </Button>

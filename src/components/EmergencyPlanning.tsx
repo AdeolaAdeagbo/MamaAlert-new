@@ -256,34 +256,34 @@ export const EmergencyPlanning = ({ userId }: EmergencyPlanningProps) => {
   const unlockedItems = checklist.filter(item => item.week <= currentWeek);
 
   return (
-    <Card className="bg-gradient-to-br from-coral-50 to-rose-50 dark:from-coral-950/20 dark:to-rose-950/20 border-coral-200 dark:border-coral-800 shadow-medium">
-      <CardHeader>
-        <div className="flex items-center justify-between mb-2">
-          <CardTitle className="flex items-center gap-2 text-coral-800 dark:text-coral-200">
-            <div className="p-2 rounded-full bg-coral-100 dark:bg-coral-900/30">
-              <AlertCircle className="h-5 w-5 text-coral-600 dark:text-coral-400" />
+    <Card className="bg-gradient-to-br from-coral-50 to-rose-50 dark:from-coral-950/20 dark:to-rose-950/20 border-coral-200 dark:border-coral-800 shadow-md">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between mb-1.5">
+          <CardTitle className="flex items-center gap-2 text-coral-800 dark:text-coral-200 text-base">
+            <div className="p-1.5 rounded-full bg-coral-100 dark:bg-coral-900/30">
+              <AlertCircle className="h-4 w-4 text-coral-600 dark:text-coral-400" />
             </div>
             Emergency Planning
           </CardTitle>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             {badge && (
-              <Badge variant="secondary" className={`${badge.color} font-semibold`}>
+              <Badge variant="secondary" className={`${badge.color} font-semibold text-xs px-2 py-0.5`}>
                 {badge.icon} {badge.name}
               </Badge>
             )}
-            <Badge variant="outline">Week {currentWeek}</Badge>
+            <Badge variant="outline" className="text-xs px-2 py-0.5">Week {currentWeek}</Badge>
           </div>
         </div>
-        <p className="text-sm text-coral-700 dark:text-coral-300 italic">
+        <p className="text-xs text-coral-700 dark:text-coral-300 italic">
           "Prepared today, protected tomorrow." 💕
         </p>
         
-        <div className="space-y-3 mt-4">
-          <div className="flex justify-between text-sm text-coral-800 dark:text-coral-200">
+        <div className="space-y-2 mt-3">
+          <div className="flex justify-between text-xs text-coral-800 dark:text-coral-200">
             <span>Overall Progress</span>
             <span className="font-medium">{progress.completed}/{progress.total}</span>
           </div>
-          <Progress value={progress.percentage} className="h-3 bg-coral-100 dark:bg-coral-900/30" />
+          <Progress value={progress.percentage} className="h-2 bg-coral-100 dark:bg-coral-900/30" />
           <div className="flex justify-between text-xs">
             <span className="text-muted-foreground">{progress.percentage}% complete</span>
             <span className="text-muted-foreground">{progress.completedWeeks}/36 weeks</span>
@@ -294,39 +294,39 @@ export const EmergencyPlanning = ({ userId }: EmergencyPlanningProps) => {
           variant="outline"
           size="sm"
           onClick={toggleReminders}
-          className="mt-4 w-full border-coral-300 dark:border-coral-700 text-coral-800 dark:text-coral-200 hover:bg-coral-100 dark:hover:bg-coral-900/30"
+          className="mt-3 w-full border-coral-300 dark:border-coral-700 text-coral-800 dark:text-coral-200 hover:bg-coral-100 dark:hover:bg-coral-900/30 h-8 text-xs"
         >
           {weeklyReminders ? (
             <>
-              <BellOff className="h-4 w-4 mr-2" />
+              <BellOff className="h-3.5 w-3.5 mr-1.5" />
               Disable Weekly Reminders
             </>
           ) : (
             <>
-              <Bell className="h-4 w-4 mr-2" />
+              <Bell className="h-3.5 w-3.5 mr-1.5" />
               Enable Weekly Reminders
             </>
           )}
         </Button>
       </CardHeader>
       
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-4">
         {/* This Week's Goals */}
         {weeklyItems.length > 0 && (
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <Unlock className="h-4 w-4 text-green-600 dark:text-green-400" />
-              <h4 className="font-semibold text-sm text-foreground">This Week's Safety Goals</h4>
-              <Badge variant="outline" className="text-xs bg-green-50 dark:bg-green-950/20 border-green-300 dark:border-green-700">
+          <div className="space-y-2">
+            <div className="flex items-center gap-1.5">
+              <Unlock className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
+              <h4 className="font-semibold text-xs text-foreground">This Week's Safety Goals</h4>
+              <Badge variant="outline" className="text-xs px-1.5 py-0 bg-green-50 dark:bg-green-950/20 border-green-300 dark:border-green-700">
                 Week {currentWeek}
               </Badge>
             </div>
             
-            <div className="space-y-2 ml-6">
+            <div className="space-y-1.5 ml-5">
               {weeklyItems.map((item) => (
                 <div
                   key={item.id}
-                  className="flex items-center space-x-3 p-3 rounded-lg bg-white/70 dark:bg-gray-800/70 border border-coral-200 dark:border-coral-800 hover:bg-white dark:hover:bg-gray-800 transition-colors"
+                  className="flex items-center space-x-2 p-2 rounded-lg bg-white/70 dark:bg-gray-800/70 border border-coral-200 dark:border-coral-800 hover:bg-white dark:hover:bg-gray-800 transition-colors shadow-sm"
                 >
                   <Checkbox
                     id={item.id}
@@ -336,7 +336,7 @@ export const EmergencyPlanning = ({ userId }: EmergencyPlanningProps) => {
                   />
                   <label
                     htmlFor={item.id}
-                    className={`text-sm flex-1 cursor-pointer flex items-center gap-2 ${
+                    className={`text-xs flex-1 cursor-pointer flex items-center gap-1.5 ${
                       item.isChecked ? 'line-through text-muted-foreground' : 'text-foreground font-medium'
                     }`}
                   >
@@ -351,19 +351,19 @@ export const EmergencyPlanning = ({ userId }: EmergencyPlanningProps) => {
 
         {/* Upcoming Tasks */}
         {upcomingItems.length > 0 && (
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <Lock className="h-4 w-4 text-muted-foreground" />
-              <h4 className="font-medium text-sm text-muted-foreground">Coming Soon</h4>
+          <div className="space-y-2">
+            <div className="flex items-center gap-1.5">
+              <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+              <h4 className="font-medium text-xs text-muted-foreground">Coming Soon</h4>
             </div>
             
-            <div className="space-y-2 ml-6 opacity-60">
+            <div className="space-y-1 ml-5 opacity-60">
               {upcomingItems.map((item) => (
                 <div
                   key={item.id}
-                  className="flex items-center space-x-3 p-2 rounded-lg"
+                  className="flex items-center space-x-2 p-1.5 rounded-lg"
                 >
-                  <div className="text-sm flex items-center gap-2 text-muted-foreground">
+                  <div className="text-xs flex items-center gap-1.5 text-muted-foreground">
                     {item.emoji && <span className="grayscale">{item.emoji}</span>}
                     <span>Week {item.week}: {item.label}</span>
                   </div>
@@ -374,19 +374,19 @@ export const EmergencyPlanning = ({ userId }: EmergencyPlanningProps) => {
         )}
 
         {/* Milestone Badges */}
-        <div className="grid grid-cols-3 gap-3 pt-4 border-t border-coral-200 dark:border-coral-800">
-          <div className={`text-center p-3 rounded-lg ${progress.completedWeeks >= 12 ? 'bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800' : 'bg-gray-50 dark:bg-gray-900/20 opacity-50'}`}>
-            <div className="text-2xl mb-1">🥉</div>
+        <div className="grid grid-cols-3 gap-2 pt-3 border-t border-coral-200 dark:border-coral-800">
+          <div className={`text-center p-2 rounded-lg ${progress.completedWeeks >= 12 ? 'bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800' : 'bg-gray-50 dark:bg-gray-900/20 opacity-50'}`}>
+            <div className="text-xl mb-0.5">🥉</div>
             <div className="text-xs font-medium">Bronze</div>
             <div className="text-xs text-muted-foreground">Week 12</div>
           </div>
-          <div className={`text-center p-3 rounded-lg ${progress.completedWeeks >= 24 ? 'bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700' : 'bg-gray-50 dark:bg-gray-900/20 opacity-50'}`}>
-            <div className="text-2xl mb-1">🥈</div>
+          <div className={`text-center p-2 rounded-lg ${progress.completedWeeks >= 24 ? 'bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700' : 'bg-gray-50 dark:bg-gray-900/20 opacity-50'}`}>
+            <div className="text-xl mb-0.5">🥈</div>
             <div className="text-xs font-medium">Silver</div>
             <div className="text-xs text-muted-foreground">Week 24</div>
           </div>
-          <div className={`text-center p-3 rounded-lg ${progress.completedWeeks >= 36 ? 'bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800' : 'bg-gray-50 dark:bg-gray-900/20 opacity-50'}`}>
-            <div className="text-2xl mb-1">🏆</div>
+          <div className={`text-center p-2 rounded-lg ${progress.completedWeeks >= 36 ? 'bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800' : 'bg-gray-50 dark:bg-gray-900/20 opacity-50'}`}>
+            <div className="text-xl mb-0.5">🏆</div>
             <div className="text-xs font-medium">Gold</div>
             <div className="text-xs text-muted-foreground">Week 36</div>
           </div>
@@ -394,12 +394,12 @@ export const EmergencyPlanning = ({ userId }: EmergencyPlanningProps) => {
 
         {/* Completion Message */}
         {progress.percentage === 100 && (
-          <div className="p-4 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border border-green-200 dark:border-green-800 rounded-lg animate-scale-in">
-            <div className="flex items-center gap-2 text-green-800 dark:text-green-200 mb-2">
-              <CheckCircle className="h-5 w-5" />
-              <span className="font-bold">You're Emergency-Ready! 🎉</span>
+          <div className="p-3 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border border-green-200 dark:border-green-800 rounded-lg animate-scale-in">
+            <div className="flex items-center gap-2 text-green-800 dark:text-green-200 mb-1">
+              <CheckCircle className="h-4 w-4" />
+              <span className="font-bold text-xs">You're Emergency-Ready! 🎉</span>
             </div>
-            <p className="text-sm text-green-700 dark:text-green-300">
+            <p className="text-xs text-green-700 dark:text-green-300 leading-relaxed">
               Excellent work, Mama! You've completed all 36 weeks of emergency planning. You're fully prepared for your delivery journey. 💕
             </p>
           </div>

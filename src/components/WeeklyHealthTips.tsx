@@ -159,26 +159,26 @@ export const WeeklyHealthTips = ({ pregnancyWeek, isProgressive = true }: Weekly
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       <div className="flex items-center gap-2">
-        <h3 className="text-base font-semibold flex items-center gap-2">
+        <h3 className="text-sm font-semibold flex items-center gap-2">
           <Heart className="h-4 w-4 text-rose-500" />
           Daily Health Tip
         </h3>
-        <Calendar className="h-4 w-4 text-primary" />
+        <Calendar className="h-3.5 w-3.5 text-primary" />
       </div>
-      <div className="p-3 bg-rose-50 dark:bg-rose-950/30 rounded-lg border border-rose-100 dark:border-rose-900">
-        <div className="flex items-center justify-between mb-2">
+      <div className="p-3 bg-rose-50 dark:bg-rose-950/30 rounded-lg border border-rose-100 dark:border-rose-900 shadow-sm">
+        <div className="flex items-center justify-between mb-1.5">
           <h4 className="font-medium text-sm text-rose-800 dark:text-rose-200">{currentTip.title}</h4>
-          <span className="text-xs bg-rose-200 dark:bg-rose-900 text-rose-700 dark:text-rose-100 px-2 py-1 rounded">
+          <span className="text-xs bg-rose-200 dark:bg-rose-900 text-rose-700 dark:text-rose-100 px-2 py-0.5 rounded">
             {currentTip.category}
           </span>
         </div>
-        <p className="text-xs text-rose-700 dark:text-rose-300">
+        <p className="text-xs text-rose-700 dark:text-rose-300 leading-relaxed">
           {currentTip.content}
         </p>
         {isProgressive && (
-          <div className="mt-2 pt-2 border-t border-rose-200 dark:border-rose-900">
+          <div className="mt-2 pt-1.5 border-t border-rose-200 dark:border-rose-900">
             <p className="text-xs text-rose-600 dark:text-rose-400">
               💡 New tip every day • Week {currentTip.week} • Day {dayOfWeek}
             </p>

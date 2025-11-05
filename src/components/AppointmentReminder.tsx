@@ -208,16 +208,16 @@ From MamaAlert - Your Pregnancy Companion`;
   };
 
   return (
-    <div className="space-y-4">
-      <div className="space-y-3">
+    <div className="space-y-3">
+      <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <h3 className="text-base font-semibold flex items-center gap-2">
+          <h3 className="text-sm font-semibold flex items-center gap-2">
             <Bell className="h-4 w-4 text-blue-500" />
             Appointment Reminders
           </h3>
           <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
-              <Button size="sm" className="text-xs h-8">
+              <Button size="sm" className="text-xs h-7 px-2">
                 <Calendar className="h-3 w-3 mr-1" />
                 Add
               </Button>
@@ -312,14 +312,14 @@ From MamaAlert - Your Pregnancy Companion`;
         </div>
         
         {appointments.length > 0 ? (
-          <div className="space-y-3">
-            {appointments.map((appointment) => (
-              <div key={appointment.id} className="p-3 border rounded-lg bg-card">
-                <div className="flex justify-between items-start mb-2">
-                  <h4 className="font-medium text-sm">{appointment.hospital_name}</h4>
-                  <div className="flex gap-2 text-xs">
+          <div className="space-y-2 max-h-[260px] overflow-y-auto pr-1">
+            {appointments.slice(0, 2).map((appointment) => (
+              <div key={appointment.id} className="p-3 border rounded-lg bg-card shadow-sm">
+                <div className="flex justify-between items-start mb-1.5">
+                  <h4 className="font-medium text-sm truncate pr-2">{appointment.hospital_name}</h4>
+                  <div className="flex gap-1.5 text-xs shrink-0">
                     <span className="text-muted-foreground">
-                      {new Date(appointment.appointment_date).toLocaleDateString()}
+                      {new Date(appointment.appointment_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                     </span>
                     <span className="text-muted-foreground">
                       {appointment.appointment_time}
@@ -328,18 +328,18 @@ From MamaAlert - Your Pregnancy Companion`;
                 </div>
                 
                 {appointment.notes && (
-                  <p className="text-xs text-muted-foreground mb-2">
+                  <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
                     {appointment.notes}
                   </p>
                 )}
                 
-                <div className="flex justify-between items-center">
-                  <span className={`text-xs px-2 py-1 rounded ${
+                <div className="flex justify-between items-center gap-2">
+                  <span className={`text-xs px-2 py-0.5 rounded ${
                     appointment.reminder_sent 
-                      ? 'bg-green-100 text-green-700' 
-                      : 'bg-yellow-100 text-yellow-700'
+                      ? 'bg-green-100 dark:bg-green-950/30 text-green-700 dark:text-green-300' 
+                      : 'bg-yellow-100 dark:bg-yellow-950/30 text-yellow-700 dark:text-yellow-300'
                   }`}>
-                    {appointment.reminder_sent ? 'Reminder Sent' : 'Reminder Pending'}
+                    {appointment.reminder_sent ? 'Sent' : 'Pending'}
                   </span>
                   
                   <Button
@@ -349,19 +349,24 @@ From MamaAlert - Your Pregnancy Companion`;
                       setSelectedAppointment(appointment.id);
                       setFeedbackOpen(true);
                     }}
-                    className="text-xs h-7"
+                    className="text-xs h-6 px-2"
                   >
-                    Add Feedback
+                    Feedback
                   </Button>
                 </div>
               </div>
             ))}
+            {appointments.length > 2 && (
+              <div className="text-center py-1">
+                <span className="text-xs text-muted-foreground">+{appointments.length - 2} more appointments</span>
+              </div>
+            )}
           </div>
         ) : (
-          <div className="text-center py-6 text-muted-foreground">
-            <Calendar className="h-10 w-10 mx-auto mb-3 opacity-50" />
-            <p className="text-sm">No upcoming appointments scheduled.</p>
-            <p className="text-xs mt-1">Add an appointment to receive SMS reminders.</p>
+          <div className="text-center py-4 text-muted-foreground">
+            <Calendar className="h-8 w-8 mx-auto mb-2 opacity-50" />
+            <p className="text-sm">No upcoming appointments</p>
+            <p className="text-xs mt-0.5">Add one to receive reminders</p>
           </div>
         )}
       </div>
