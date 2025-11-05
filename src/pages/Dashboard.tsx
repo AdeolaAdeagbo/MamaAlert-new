@@ -24,7 +24,9 @@ import { PostpartumFeatureCard } from "@/components/PostpartumFeatureCard";
 import { FullTermLaborWatch } from "@/components/FullTermLaborWatch";
 import { HospitalBagChecklist } from "@/components/HospitalBagChecklist";
 import { FetalGrowthTracker } from "@/components/FetalGrowthTracker";
-import { 
+import { EmergencyPlanning } from "@/components/EmergencyPlanning";
+import { TrustedTransport } from "@/components/TrustedTransport";
+import {
   Heart, 
   Baby,
   MessageCircle,
@@ -424,6 +426,16 @@ const Dashboard = () => {
                     <WeeklyHealthTips pregnancyWeek={currentWeek} />
                   </CardContent>
                 </Card>
+              </div>
+
+              {/* Emergency Planning - 36 Week Roadmap */}
+              <div className="lg:col-span-2">
+                <EmergencyPlanning userId={user?.id || ""} />
+              </div>
+
+              {/* Trusted Transport */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:col-span-2">
+                <TrustedTransport userId={user?.id || ""} />
               </div>
 
               {/* Onboarding Alert for Pregnancy Mode */}

@@ -35,6 +35,14 @@
     --accent-pink: 340 82% 90%;
     --accent-foreground: 220 13% 18%;
     
+    /* Coral theme for Emergency Planning */
+    --coral-50: 14 100% 96%;
+    --coral-100: 13 100% 89%;
+    --coral-200: 12 100% 82%;
+    --coral-600: 11 88% 60%;
+    --coral-800: 11 80% 45%;
+    --coral-950: 11 70% 15%;
+    
     /* Semantic Colors */
     --success: 142 76% 36%;
     --warning: 38 92% 50%;
@@ -85,6 +93,14 @@
     --accent-gold: 43 84% 55%;
     --accent-pink: 340 82% 70%;
     --accent-foreground: 220 14% 96%;
+    
+    /* Coral theme for Emergency Planning - Dark mode */
+    --coral-50: 11 70% 15%;
+    --coral-100: 11 70% 20%;
+    --coral-200: 11 70% 30%;
+    --coral-600: 11 88% 70%;
+    --coral-800: 11 80% 75%;
+    --coral-950: 11 70% 90%;
     
     /* Semantic colors */
     --success: 142 76% 45%;

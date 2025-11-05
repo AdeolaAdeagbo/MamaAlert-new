@@ -7,39 +7,86 @@ import { Progress } from './ui/progress';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { usePregnancyProgress } from '@/hooks/usePregnancyProgress';
-import { Shield, AlertCircle, CheckCircle, Bell, BellOff } from 'lucide-react';
+import { Shield, AlertCircle, CheckCircle, Bell, BellOff, Award, Lock, Unlock } from 'lucide-react';
+import confetti from 'canvas-confetti';
 
 interface EmergencyItem {
   id: string;
   label: string;
-  category: 'contacts' | 'hospital' | 'transport' | 'medical';
+  week: number;
+  category: 'contacts' | 'hospital' | 'transport' | 'medical' | 'financial' | 'preparation';
   isChecked: boolean;
+  emoji?: string;
 }
 
 interface EmergencyPlanningProps {
   userId: string;
 }
 
-const EMERGENCY_CHECKLIST = [
-  { id: '1', label: 'Emergency contact list saved', category: 'contacts' },
-  { id: '2', label: 'Backup emergency contact identified', category: 'contacts' },
-  { id: '3', label: 'Hospital/birthing center chosen and registered', category: 'hospital' },
-  { id: '4', label: 'Hospital route and travel time confirmed', category: 'hospital' },
-  { id: '5', label: 'Hospital bag packed and ready', category: 'hospital' },
-  { id: '6', label: 'Trusted transport contact saved', category: 'transport' },
-  { id: '7', label: 'Backup transport option identified', category: 'transport' },
-  { id: '8', label: 'Blood group confirmed and documented', category: 'medical' },
-  { id: '9', label: 'Health insurance details accessible', category: 'medical' },
-  { id: '10', label: 'Known allergies documented', category: 'medical' },
-  { id: '11', label: 'Current medications list prepared', category: 'medical' },
-] as const;
+// 36-week roadmap with emoji accents
+const EMERGENCY_ROADMAP: Omit<EmergencyItem, 'isChecked'>[] = [
+  // Weeks 1-4: Foundation
+  { id: '1', label: 'Save primary emergency contact', week: 1, category: 'contacts', emoji: '📞' },
+  { id: '2', label: 'Add backup emergency contact', week: 2, category: 'contacts', emoji: '👥' },
+  { id: '3', label: 'Document blood group', week: 3, category: 'medical', emoji: '🩸' },
+  { id: '4', label: 'List known allergies', week: 4, category: 'medical', emoji: '⚠️' },
+  
+  // Weeks 5-8: Medical Setup
+  { id: '5', label: 'Choose healthcare provider', week: 5, category: 'hospital', emoji: '🏥' },
+  { id: '6', label: 'Register at hospital/birthing center', week: 6, category: 'hospital', emoji: '📋' },
+  { id: '7', label: 'Save health insurance details', week: 7, category: 'medical', emoji: '🏥' },
+  { id: '8', label: 'Document current medications', week: 8, category: 'medical', emoji: '💊' },
+  
+  // Weeks 9-12: Transport Planning (Bronze Badge)
+  { id: '9', label: 'Identify trusted transport', week: 9, category: 'transport', emoji: '🚗' },
+  { id: '10', label: 'Save driver contact details', week: 10, category: 'transport', emoji: '📱' },
+  { id: '11', label: 'Plan backup transport option', week: 11, category: 'transport', emoji: '🚕' },
+  { id: '12', label: 'Test hospital route & timing', week: 12, category: 'transport', emoji: '🗺️' },
+  
+  // Weeks 13-16: Financial Preparation
+  { id: '13', label: 'Review delivery costs', week: 13, category: 'financial', emoji: '💰' },
+  { id: '14', label: 'Start MamaWallet savings', week: 14, category: 'financial', emoji: '💵' },
+  { id: '15', label: 'Verify insurance coverage', week: 15, category: 'financial', emoji: '📄' },
+  { id: '16', label: 'Plan for unexpected costs', week: 16, category: 'financial', emoji: '🏦' },
+  
+  // Weeks 17-20: Care Circle
+  { id: '17', label: 'Build your Care Circle', week: 17, category: 'contacts', emoji: '🤝' },
+  { id: '18', label: 'Share emergency plan with family', week: 18, category: 'contacts', emoji: '👨‍👩‍👧' },
+  { id: '19', label: 'Confirm contact availability', week: 19, category: 'contacts', emoji: '✅' },
+  { id: '20', label: 'Update emergency numbers', week: 20, category: 'contacts', emoji: '☎️' },
+  
+  // Weeks 21-24: Hospital Readiness (Silver Badge)
+  { id: '21', label: 'Tour hospital/birthing center', week: 21, category: 'hospital', emoji: '🚶‍♀️' },
+  { id: '22', label: 'Learn admission procedures', week: 22, category: 'hospital', emoji: '📝' },
+  { id: '23', label: 'Know labor & delivery floor location', week: 23, category: 'hospital', emoji: '🏥' },
+  { id: '24', label: 'Save hospital hotline', week: 24, category: 'hospital', emoji: '📞' },
+  
+  // Weeks 25-28: Document Preparation
+  { id: '25', label: 'Organize medical records', week: 25, category: 'medical', emoji: '📑' },
+  { id: '26', label: 'Prepare birth preferences', week: 26, category: 'preparation', emoji: '📋' },
+  { id: '27', label: 'Complete pre-registration forms', week: 27, category: 'hospital', emoji: '✍️' },
+  { id: '28', label: 'Update insurance info', week: 28, category: 'financial', emoji: '🔄' },
+  
+  // Weeks 29-32: Final Transport
+  { id: '29', label: 'Confirm transport availability 24/7', week: 29, category: 'transport', emoji: '⏰' },
+  { id: '30', label: 'Share hospital address with driver', week: 30, category: 'transport', emoji: '📍' },
+  { id: '31', label: 'Practice emergency call drill', week: 31, category: 'contacts', emoji: '📲' },
+  { id: '32', label: 'Pack hospital bag', week: 32, category: 'preparation', emoji: '🎒' },
+  
+  // Weeks 33-36: Baby Readiness (Gold Badge)
+  { id: '33', label: 'Prepare baby essentials', week: 33, category: 'preparation', emoji: '👶🏽' },
+  { id: '34', label: 'Stock emergency supplies', week: 34, category: 'preparation', emoji: '🧰' },
+  { id: '35', label: 'Final emergency contact check', week: 35, category: 'contacts', emoji: '🔍' },
+  { id: '36', label: 'Complete all emergency planning', week: 36, category: 'preparation', emoji: '🎉' },
+];
 
 export const EmergencyPlanning = ({ userId }: EmergencyPlanningProps) => {
   const { toast } = useToast();
-  const { currentWeek } = usePregnancyProgress(userId);
+  const { currentWeek, pregnancyData } = usePregnancyProgress(userId);
   const [checklist, setChecklist] = useState<EmergencyItem[]>([]);
   const [weeklyReminders, setWeeklyReminders] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [hasShownConfetti, setHasShownConfetti] = useState(false);
 
   useEffect(() => {
     fetchEmergencyPlan();
@@ -58,12 +105,14 @@ export const EmergencyPlanning = ({ userId }: EmergencyPlanningProps) => {
 
       if (data) {
         const savedChecklist = JSON.parse(data.checklist_items || '[]');
-        setChecklist(savedChecklist.length > 0 ? savedChecklist : 
-          EMERGENCY_CHECKLIST.map(item => ({ ...item, isChecked: false }))
-        );
+        if (savedChecklist.length > 0) {
+          setChecklist(savedChecklist);
+        } else {
+          setChecklist(EMERGENCY_ROADMAP.map(item => ({ ...item, isChecked: false })));
+        }
         setWeeklyReminders(data.weekly_reminders || false);
       } else {
-        setChecklist(EMERGENCY_CHECKLIST.map(item => ({ ...item, isChecked: false })));
+        setChecklist(EMERGENCY_ROADMAP.map(item => ({ ...item, isChecked: false })));
       }
     } catch (error) {
       console.error('Error fetching emergency plan:', error);
@@ -143,8 +192,8 @@ export const EmergencyPlanning = ({ userId }: EmergencyPlanningProps) => {
       toast({
         title: newValue ? "Reminders Enabled" : "Reminders Disabled",
         description: newValue 
-          ? "You'll receive weekly reminders until your due date."
-          : "Weekly reminders have been turned off."
+          ? "Hi Mama 💕, you'll get weekly safety reminders until delivery!"
+          : "Weekly reminders turned off."
       });
     } catch (error) {
       console.error('Error toggling reminders:', error);
@@ -159,32 +208,42 @@ export const EmergencyPlanning = ({ userId }: EmergencyPlanningProps) => {
   const getProgress = () => {
     const completed = checklist.filter(item => item.isChecked).length;
     const total = checklist.length;
-    return {
-      completed,
-      total,
-      percentage: Math.round((completed / total) * 100)
-    };
+    const percentage = Math.round((completed / total) * 100);
+    const completedWeeks = Math.max(...checklist.filter(item => item.isChecked).map(item => item.week), 0);
+    
+    return { completed, total, percentage, completedWeeks };
   };
 
-  const getCategoryIcon = (category: string) => {
-    return <Shield className="h-4 w-4" />;
-  };
-
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case 'contacts': return 'text-blue-600 dark:text-blue-400';
-      case 'hospital': return 'text-purple-600 dark:text-purple-400';
-      case 'transport': return 'text-green-600 dark:text-green-400';
-      case 'medical': return 'text-red-600 dark:text-red-400';
-      default: return 'text-gray-600 dark:text-gray-400';
-    }
+  const getBadge = (completedWeeks: number) => {
+    if (completedWeeks >= 36) return { name: 'Gold', color: 'text-yellow-600 dark:text-yellow-400', icon: '🏆' };
+    if (completedWeeks >= 24) return { name: 'Silver', color: 'text-gray-400 dark:text-gray-300', icon: '🥈' };
+    if (completedWeeks >= 12) return { name: 'Bronze', color: 'text-orange-600 dark:text-orange-400', icon: '🥉' };
+    return null;
   };
 
   const progress = getProgress();
+  const badge = getBadge(progress.completedWeeks);
+
+  // Trigger confetti on 100% completion
+  useEffect(() => {
+    if (progress.percentage === 100 && !hasShownConfetti) {
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#FF6B9D', '#FFA07A', '#FFD700', '#FF69B4']
+      });
+      setHasShownConfetti(true);
+      toast({
+        title: "🎉 You're Emergency-Ready!",
+        description: "Congratulations Mama! You've completed all 36 weeks of emergency planning.",
+      });
+    }
+  }, [progress.percentage]);
 
   if (loading) {
     return (
-      <Card className="bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-950/20 dark:to-red-950/20 border-orange-200 dark:border-orange-800">
+      <Card className="bg-gradient-to-br from-coral-50 to-rose-50 dark:from-coral-950/20 dark:to-rose-950/20 border-coral-200 dark:border-coral-800">
         <CardContent className="pt-6">
           <div className="text-center text-muted-foreground">Loading...</div>
         </CardContent>
@@ -192,45 +251,50 @@ export const EmergencyPlanning = ({ userId }: EmergencyPlanningProps) => {
     );
   }
 
-  const categories = [
-    { key: 'contacts', name: 'Emergency Contacts', color: 'blue' },
-    { key: 'hospital', name: 'Hospital Readiness', color: 'purple' },
-    { key: 'transport', name: 'Transportation', color: 'green' },
-    { key: 'medical', name: 'Medical Information', color: 'red' },
-  ];
+  const weeklyItems = checklist.filter(item => item.week === currentWeek);
+  const upcomingItems = checklist.filter(item => item.week > currentWeek).slice(0, 3);
+  const unlockedItems = checklist.filter(item => item.week <= currentWeek);
 
   return (
-    <Card className="bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-950/20 dark:to-red-950/20 border-orange-200 dark:border-orange-800">
+    <Card className="bg-gradient-to-br from-coral-50 to-rose-50 dark:from-coral-950/20 dark:to-rose-950/20 border-coral-200 dark:border-coral-800 shadow-medium">
       <CardHeader>
         <div className="flex items-center justify-between mb-2">
-          <CardTitle className="flex items-center gap-2 text-orange-800 dark:text-orange-200">
-            <div className="p-2 rounded-full bg-orange-100 dark:bg-orange-900/30">
-              <AlertCircle className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+          <CardTitle className="flex items-center gap-2 text-coral-800 dark:text-coral-200">
+            <div className="p-2 rounded-full bg-coral-100 dark:bg-coral-900/30">
+              <AlertCircle className="h-5 w-5 text-coral-600 dark:text-coral-400" />
             </div>
             Emergency Planning
           </CardTitle>
-          <Badge variant="secondary">Week {currentWeek}</Badge>
+          <div className="flex items-center gap-2">
+            {badge && (
+              <Badge variant="secondary" className={`${badge.color} font-semibold`}>
+                {badge.icon} {badge.name}
+              </Badge>
+            )}
+            <Badge variant="outline">Week {currentWeek}</Badge>
+          </div>
         </div>
-        <p className="text-sm text-orange-700 dark:text-orange-300 italic">
-          "Prepared today, protected tomorrow."
+        <p className="text-sm text-coral-700 dark:text-coral-300 italic">
+          "Prepared today, protected tomorrow." 💕
         </p>
         
         <div className="space-y-3 mt-4">
-          <div className="flex justify-between text-sm text-orange-800 dark:text-orange-200">
-            <span>Completion Progress</span>
+          <div className="flex justify-between text-sm text-coral-800 dark:text-coral-200">
+            <span>Overall Progress</span>
             <span className="font-medium">{progress.completed}/{progress.total}</span>
           </div>
-          <Progress value={progress.percentage} className="h-3" />
-          <p className="text-xs text-muted-foreground">
-            {progress.percentage}% complete - Keep going!
-          </p>
+          <Progress value={progress.percentage} className="h-3 bg-coral-100 dark:bg-coral-900/30" />
+          <div className="flex justify-between text-xs">
+            <span className="text-muted-foreground">{progress.percentage}% complete</span>
+            <span className="text-muted-foreground">{progress.completedWeeks}/36 weeks</span>
+          </div>
         </div>
 
         <Button
           variant="outline"
           size="sm"
           onClick={toggleReminders}
-          className="mt-4 w-full border-orange-300 dark:border-orange-700 text-orange-800 dark:text-orange-200"
+          className="mt-4 w-full border-coral-300 dark:border-coral-700 text-coral-800 dark:text-coral-200 hover:bg-coral-100 dark:hover:bg-coral-900/30"
         >
           {weeklyReminders ? (
             <>
@@ -247,57 +311,96 @@ export const EmergencyPlanning = ({ userId }: EmergencyPlanningProps) => {
       </CardHeader>
       
       <CardContent className="space-y-6">
-        {categories.map((category) => {
-          const categoryItems = checklist.filter(item => item.category === category.key);
-          const checkedItems = categoryItems.filter(item => item.isChecked).length;
-          
-          return (
-            <div key={category.key} className="space-y-3">
-              <div className="flex items-center gap-2">
-                <div className={getCategoryColor(category.key)}>
-                  {getCategoryIcon(category.key)}
-                </div>
-                <h4 className="font-medium text-sm text-foreground">{category.name}</h4>
-                <Badge variant="outline" className="text-xs">
-                  {checkedItems}/{categoryItems.length}
-                </Badge>
-              </div>
-              
-              <div className="space-y-2 ml-6">
-                {categoryItems.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors"
+        {/* This Week's Goals */}
+        {weeklyItems.length > 0 && (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Unlock className="h-4 w-4 text-green-600 dark:text-green-400" />
+              <h4 className="font-semibold text-sm text-foreground">This Week's Safety Goals</h4>
+              <Badge variant="outline" className="text-xs bg-green-50 dark:bg-green-950/20 border-green-300 dark:border-green-700">
+                Week {currentWeek}
+              </Badge>
+            </div>
+            
+            <div className="space-y-2 ml-6">
+              {weeklyItems.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-center space-x-3 p-3 rounded-lg bg-white/70 dark:bg-gray-800/70 border border-coral-200 dark:border-coral-800 hover:bg-white dark:hover:bg-gray-800 transition-colors"
+                >
+                  <Checkbox
+                    id={item.id}
+                    checked={item.isChecked}
+                    onCheckedChange={() => toggleItem(item.id)}
+                    className="flex-shrink-0"
+                  />
+                  <label
+                    htmlFor={item.id}
+                    className={`text-sm flex-1 cursor-pointer flex items-center gap-2 ${
+                      item.isChecked ? 'line-through text-muted-foreground' : 'text-foreground font-medium'
+                    }`}
                   >
-                    <Checkbox
-                      id={item.id}
-                      checked={item.isChecked}
-                      onCheckedChange={() => toggleItem(item.id)}
-                      className="flex-shrink-0"
-                    />
-                    <label
-                      htmlFor={item.id}
-                      className={`text-sm flex-1 cursor-pointer ${
-                        item.isChecked ? 'line-through text-muted-foreground' : 'text-foreground'
-                      }`}
-                    >
-                      {item.label}
-                    </label>
-                  </div>
-                ))}
-              </div>
+                    {item.emoji && <span>{item.emoji}</span>}
+                    {item.label}
+                  </label>
+                </div>
+              ))}
             </div>
-          );
-        })}
+          </div>
+        )}
 
-        {progress.percentage === 100 && (
-          <div className="p-4 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg">
-            <div className="flex items-center gap-2 text-green-800 dark:text-green-200">
-              <CheckCircle className="h-5 w-5" />
-              <span className="font-semibold">Fully Prepared!</span>
+        {/* Upcoming Tasks */}
+        {upcomingItems.length > 0 && (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Lock className="h-4 w-4 text-muted-foreground" />
+              <h4 className="font-medium text-sm text-muted-foreground">Coming Soon</h4>
             </div>
-            <p className="text-sm text-green-700 dark:text-green-300 mt-1">
-              Excellent work! Your emergency plan is complete. You're ready for any situation.
+            
+            <div className="space-y-2 ml-6 opacity-60">
+              {upcomingItems.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-center space-x-3 p-2 rounded-lg"
+                >
+                  <div className="text-sm flex items-center gap-2 text-muted-foreground">
+                    {item.emoji && <span className="grayscale">{item.emoji}</span>}
+                    <span>Week {item.week}: {item.label}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Milestone Badges */}
+        <div className="grid grid-cols-3 gap-3 pt-4 border-t border-coral-200 dark:border-coral-800">
+          <div className={`text-center p-3 rounded-lg ${progress.completedWeeks >= 12 ? 'bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800' : 'bg-gray-50 dark:bg-gray-900/20 opacity-50'}`}>
+            <div className="text-2xl mb-1">🥉</div>
+            <div className="text-xs font-medium">Bronze</div>
+            <div className="text-xs text-muted-foreground">Week 12</div>
+          </div>
+          <div className={`text-center p-3 rounded-lg ${progress.completedWeeks >= 24 ? 'bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700' : 'bg-gray-50 dark:bg-gray-900/20 opacity-50'}`}>
+            <div className="text-2xl mb-1">🥈</div>
+            <div className="text-xs font-medium">Silver</div>
+            <div className="text-xs text-muted-foreground">Week 24</div>
+          </div>
+          <div className={`text-center p-3 rounded-lg ${progress.completedWeeks >= 36 ? 'bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800' : 'bg-gray-50 dark:bg-gray-900/20 opacity-50'}`}>
+            <div className="text-2xl mb-1">🏆</div>
+            <div className="text-xs font-medium">Gold</div>
+            <div className="text-xs text-muted-foreground">Week 36</div>
+          </div>
+        </div>
+
+        {/* Completion Message */}
+        {progress.percentage === 100 && (
+          <div className="p-4 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border border-green-200 dark:border-green-800 rounded-lg animate-scale-in">
+            <div className="flex items-center gap-2 text-green-800 dark:text-green-200 mb-2">
+              <CheckCircle className="h-5 w-5" />
+              <span className="font-bold">You're Emergency-Ready! 🎉</span>
+            </div>
+            <p className="text-sm text-green-700 dark:text-green-300">
+              Excellent work, Mama! You've completed all 36 weeks of emergency planning. You're fully prepared for your delivery journey. 💕
             </p>
           </div>
         )}
