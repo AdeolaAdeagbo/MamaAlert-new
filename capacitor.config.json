@@ -1,0 +1,33 @@
+{
+  "appId": "app.lovable.34625e4a2fd647578a8cbc0a0653c33e",
+  "appName": "MamaAlert",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "server": {
+    "url": "https://34625e4a-2fd6-4757-8a8c-bc0a0653c33e.lovableproject.com?forceHideBadge=true",
+    "cleartext": true
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 2000,
+      "backgroundColor": "#f43f5e",
+      "androidScaleType": "CENTER_CROP",
+      "showSpinner": false
+    },
+    "StatusBar": {
+      "style": "dark",
+      "backgroundColor": "#f43f5e"
+    },
+    "Keyboard": {
+      "resize": "native",
+      "style": "dark"
+    },
+    "PushNotifications": {
+      "presentationOptions": ["badge", "sound", "alert"]
+    },
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_icon_config_sample",
+      "iconColor": "#f43f5e"
+    }
+  }
+}

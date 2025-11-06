@@ -106,19 +106,19 @@ export const HospitalBagChecklist = ({ userId }: HospitalBagChecklistProps) => {
   const progress = getProgress();
 
   if (!isReadyToPack) {
-    return (
-      <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 border-blue-200 dark:border-blue-800">
-        <CardContent className="pt-6">
-          <div className="text-center space-y-3">
-            <Luggage className="h-12 w-12 text-blue-500 mx-auto" />
-            <h3 className="font-semibold text-blue-800 dark:text-blue-200">Hospital Bag Checklist</h3>
-            <p className="text-sm text-blue-600 dark:text-blue-300">
-              Start packing from week 35. Currently at week {currentWeek}.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-    );
+  return (
+    <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 border-blue-200 dark:border-blue-800">
+      <CardContent className="p-3">
+        <div className="text-center space-y-2">
+          <Luggage className="h-8 w-8 text-blue-500 mx-auto" />
+          <h3 className="font-semibold text-sm text-blue-800 dark:text-blue-200">Hospital Bag Checklist</h3>
+          <p className="text-xs text-blue-600 dark:text-blue-300">
+            Start packing from week 35. Currently at week {currentWeek}.
+          </p>
+        </div>
+      </CardContent>
+    </Card>
+  );
   }
 
   const categories = [
@@ -130,40 +130,37 @@ export const HospitalBagChecklist = ({ userId }: HospitalBagChecklistProps) => {
 
   return (
     <Card className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 border-purple-200 dark:border-purple-800">
-      <CardHeader className="pb-4">
-        <CardTitle className="flex items-center gap-2 text-purple-800 dark:text-purple-200">
-          <Luggage className="h-5 w-5" />
+      <CardHeader className="p-3 pb-2">
+        <CardTitle className="flex items-center gap-2 text-sm text-purple-800 dark:text-purple-200">
+          <Luggage className="h-4 w-4" />
           Hospital Bag Checklist
-          <Badge variant="secondary" className="ml-auto">
+          <Badge variant="secondary" className="ml-auto text-xs">
             Week {currentWeek}
           </Badge>
         </CardTitle>
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm text-purple-700 dark:text-purple-300">
+        <div className="space-y-1.5 mt-2">
+          <div className="flex justify-between text-xs text-purple-700 dark:text-purple-300">
             <span>Essential Items</span>
             <span className="font-medium">{progress.essential.completed}/{progress.essential.total}</span>
           </div>
-          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
             <div 
-              className="bg-purple-600 h-2 rounded-full transition-all"
+              className="bg-purple-600 h-1.5 rounded-full transition-all"
               style={{ width: `${progress.essential.percentage}%` }}
             />
-          </div>
-          <div className="text-xs text-muted-foreground">
-            {progress.all.completed}/{progress.all.total} total items packed ({progress.all.percentage}%)
           </div>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setShowDetails(!showDetails)}
-            className="w-full mt-2 text-purple-700 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900/30"
+            className="w-full mt-1 h-7 text-xs text-purple-700 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900/30"
           >
-            {showDetails ? "Hide Details" : "Show More"}
+            {showDetails ? "Hide" : "Show"} ({progress.all.completed}/{progress.all.total})
           </Button>
         </div>
       </CardHeader>
       {showDetails && (
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-3 p-3 pt-0 max-h-[280px] overflow-y-auto">
           {categories.map((category) => {
           const categoryItems = checklistItems.filter(item => item.category === category.key);
           const checkedItems = categoryItems.filter(item => item.isChecked).length;
