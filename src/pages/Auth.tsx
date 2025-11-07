@@ -6,7 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Navigate, Link, useNavigate } from "react-router-dom";
-import { Loader2, Heart, Mail, Lock, User, Sparkles, CheckCircle2 } from "lucide-react";
+import { Loader2, Heart, Mail, Lock, User, Sparkles, CheckCircle2, Phone } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -18,6 +19,10 @@ const Auth = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [showPhoneAuth, setShowPhoneAuth] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [showOtpInput, setShowOtpInput] = useState(false);
   
   const { user, login, signup, isLoading } = useAuth();
   const { toast } = useToast();
@@ -89,13 +94,93 @@ const Auth = () => {
       return;
     }
     
-    // Show success message (actual implementation would call supabase.auth.resetPasswordForEmail)
+    const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+      redirectTo: `${window.location.origin}/auth`,
+    });
+    
+    if (error) {
+      toast({
+        title: "Couldn't send reset link",
+        description: getErrorMessage(error),
+        variant: "destructive",
+      });
+      return;
+    }
+    
     toast({
       title: "Check your email 💌",
       description: "We've sent you a password reset link. It should arrive within a few minutes.",
     });
     setShowForgotPassword(false);
     setResetEmail("");
+  };
+
+  const handlePhoneAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!showOtpInput) {
+      // Send OTP
+      if (!phoneNumber) {
+        toast({
+          title: "Phone Number Required",
+          description: "Please enter your phone number.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      const { error } = await supabase.auth.signInWithOtp({
+        phone: phoneNumber,
+      });
+      
+      if (error) {
+        toast({
+          title: "Couldn't send OTP",
+          description: getErrorMessage(error),
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      setShowOtpInput(true);
+      toast({
+        title: "Code sent! 📱",
+        description: "Check your phone for the verification code.",
+      });
+    } else {
+      // Verify OTP
+      if (!otp) {
+        toast({
+          title: "Code Required",
+          description: "Please enter the verification code.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      const { error } = await supabase.auth.verifyOtp({
+        phone: phoneNumber,
+        token: otp,
+        type: 'sms',
+      });
+      
+      if (error) {
+        toast({
+          title: "Invalid code",
+          description: getErrorMessage(error),
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      setShowSuccess(true);
+      setTimeout(() => {
+        toast({
+          title: "Welcome, mama! 💕",
+          description: "You're all set. Let's check on you and baby.",
+        });
+      }, 800);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -188,6 +273,83 @@ const Auth = () => {
           <p className="text-muted-foreground">
             {isLogin ? "Getting your dashboard ready..." : "Setting up your safe space..."}
           </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Phone auth modal
+  if (showPhoneAuth) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-orange-50 flex items-center justify-center px-4">
+        <div className="w-full max-w-md animate-fade-in">
+          <Card className="border-primary/20 shadow-large">
+            <CardHeader className="text-center pb-4">
+              <div className="mx-auto mb-4 w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                <Phone className="h-6 w-6 text-primary" />
+              </div>
+              <CardTitle className="text-xl">Sign In with Phone</CardTitle>
+              <p className="text-sm text-muted-foreground mt-2">
+                {showOtpInput ? "Enter the code we sent to your phone" : "We'll send you a verification code"}
+              </p>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handlePhoneAuth} className="space-y-4">
+                {!showOtpInput ? (
+                  <div>
+                    <Label htmlFor="phoneNumber" className="text-sm">Phone Number</Label>
+                    <div className="relative mt-1">
+                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="phoneNumber"
+                        type="tel"
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value)}
+                        placeholder="+234 800 000 0000"
+                        className="pl-10"
+                        required
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Include country code (e.g., +234 for Nigeria)
+                    </p>
+                  </div>
+                ) : (
+                  <div>
+                    <Label htmlFor="otp" className="text-sm">Verification Code</Label>
+                    <Input
+                      id="otp"
+                      type="text"
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value)}
+                      placeholder="000000"
+                      className="text-center text-2xl tracking-widest"
+                      maxLength={6}
+                      required
+                    />
+                  </div>
+                )}
+                
+                <Button type="submit" className="w-full" size="lg">
+                  {showOtpInput ? "Verify Code" : "Send Code"}
+                </Button>
+                
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="w-full"
+                  onClick={() => {
+                    setShowPhoneAuth(false);
+                    setPhoneNumber("");
+                    setOtp("");
+                    setShowOtpInput(false);
+                  }}
+                >
+                  Back to Sign In
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
         </div>
       </div>
     );
@@ -386,15 +548,27 @@ const Auth = () => {
                 </Button>
               </form>
 
-              {/* Divider - Future social login placeholder */}
+              {/* Divider */}
               <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center">
                   <span className="w-full border-t border-border" />
                 </div>
                 <div className="relative flex justify-center text-xs">
-                  <span className="bg-card px-2 text-muted-foreground">Coming soon: Social login</span>
+                  <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
                 </div>
               </div>
+
+              {/* Phone Auth Button */}
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={() => setShowPhoneAuth(true)}
+                disabled={isSubmitting}
+              >
+                <Phone className="h-4 w-4 mr-2" />
+                Sign in with Phone
+              </Button>
 
               {/* Toggle Login/Signup */}
               <div className="text-center">
