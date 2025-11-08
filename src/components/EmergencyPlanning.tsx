@@ -87,6 +87,7 @@ export const EmergencyPlanning = ({ userId }: EmergencyPlanningProps) => {
   const [weeklyReminders, setWeeklyReminders] = useState(false);
   const [loading, setLoading] = useState(true);
   const [hasShownConfetti, setHasShownConfetti] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
 
   useEffect(() => {
     fetchEmergencyPlan();
@@ -290,27 +291,40 @@ export const EmergencyPlanning = ({ userId }: EmergencyPlanningProps) => {
           </div>
         </div>
 
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={toggleReminders}
-          className="mt-3 w-full border-coral-300 dark:border-coral-700 text-coral-800 dark:text-coral-200 hover:bg-coral-100 dark:hover:bg-coral-900/30 h-8 text-xs"
-        >
-          {weeklyReminders ? (
-            <>
-              <BellOff className="h-3.5 w-3.5 mr-1.5" />
-              Disable Weekly Reminders
-            </>
-          ) : (
-            <>
-              <Bell className="h-3.5 w-3.5 mr-1.5" />
-              Enable Weekly Reminders
-            </>
-          )}
-        </Button>
+        <div className="flex gap-2 mt-3">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={toggleReminders}
+            className="flex-1 border-coral-300 dark:border-coral-700 text-coral-800 dark:text-coral-200 hover:bg-coral-100 dark:hover:bg-coral-900/30 h-8 text-xs"
+          >
+            {weeklyReminders ? (
+              <>
+                <BellOff className="h-3.5 w-3.5 mr-1.5" />
+                Disable Reminders
+              </>
+            ) : (
+              <>
+                <Bell className="h-3.5 w-3.5 mr-1.5" />
+                Enable Reminders
+              </>
+            )}
+          </Button>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowDetails(!showDetails)}
+            className="flex-1 border-coral-300 dark:border-coral-700 text-coral-800 dark:text-coral-200 hover:bg-coral-100 dark:hover:bg-coral-900/30 h-8 text-xs"
+          >
+            {showDetails ? "Hide Details" : "Show Details"}
+          </Button>
+        </div>
       </CardHeader>
       
       <CardContent className="space-y-4">
+        {showDetails && (
+          <>
         {/* This Week's Goals */}
         {weeklyItems.length > 0 && (
           <div className="space-y-2">
@@ -403,6 +417,8 @@ export const EmergencyPlanning = ({ userId }: EmergencyPlanningProps) => {
               Excellent work, Mama! You've completed all 36 weeks of emergency planning. You're fully prepared for your delivery journey. 💕
             </p>
           </div>
+        )}
+          </>
         )}
       </CardContent>
     </Card>

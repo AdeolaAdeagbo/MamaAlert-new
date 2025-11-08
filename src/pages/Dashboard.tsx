@@ -25,7 +25,7 @@ import { FullTermLaborWatch } from "@/components/FullTermLaborWatch";
 import { HospitalBagChecklist } from "@/components/HospitalBagChecklist";
 import { FetalGrowthTracker } from "@/components/FetalGrowthTracker";
 import { EmergencyPlanning } from "@/components/EmergencyPlanning";
-import { TrustedTransport } from "@/components/TrustedTransport";
+import { OptionsMenu } from "@/components/OptionsMenu";
 import {
   Heart, 
   Baby,
@@ -34,12 +34,10 @@ import {
   Loader2,
   Shield,
   Hospital,
-  Calendar,
-  Lightbulb
+  Calendar
 } from "lucide-react";
 import heroImage from '@/assets/dashboard-hero.jpg';
 import healthTipsImage from '@/assets/health-tips-card.jpg';
-import fetalDevImage from '@/assets/fetal-development.jpg';
 import hospitalBagImage from '@/assets/hospital-bag.jpg';
 import laborWatchImage from '@/assets/labor-watch.jpg';
 
@@ -209,7 +207,7 @@ const Dashboard = () => {
             <div className="absolute inset-0 bg-gradient-to-r from-red-600/80 to-red-700/60" />
             <CardContent className="pt-4 pb-4 sm:pt-6 sm:pb-6 relative z-10">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-                <div className="space-y-1 sm:space-y-2">
+                <div className="space-y-1 sm:space-y-2 flex-1">
                   <h1 className="text-lg sm:text-xl lg:text-2xl font-bold drop-shadow-lg">
                     Good {getTimeOfDay()}, {profile?.first_name || 'Mama'}! 💕
                   </h1>
@@ -220,50 +218,20 @@ const Dashboard = () => {
                     }
                   </p>
                 </div>
-                <div className="flex flex-col sm:text-right gap-2">
-                  <Badge variant="secondary" className="bg-white/20 text-white border-white/30 backdrop-blur-sm self-start sm:self-end text-xs">
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary" className="bg-white/20 text-white border-white/30 backdrop-blur-sm text-xs">
                     {currentMode === 'pregnancy' ? '🤰 Pregnancy' : '👶 Postpartum'}
                   </Badge>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={handleSwitchMode}
-                    className="text-white hover:bg-white/20 text-xs backdrop-blur-sm w-fit self-start sm:self-end h-7"
-                  >
-                    Switch to {currentMode === 'pregnancy' ? 'Postpartum' : 'Pregnancy'}
-                  </Button>
+                  <OptionsMenu userId={user?.id || ""} />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Daily Health Tip */}
-          <Card className="bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-amber-950/30 dark:to-yellow-950/30 border-amber-200 dark:border-amber-800 overflow-hidden relative shadow-medium">
-            <div 
-              className="absolute right-0 top-0 h-full w-1/4 sm:w-1/3 opacity-30 bg-cover bg-center"
-              style={{ backgroundImage: `url(${healthTipsImage})` }}
-            />
-            <CardContent className="pt-3 sm:pt-4 pb-3 sm:pb-4 relative z-10">
-              <div className="flex items-start gap-2 sm:gap-3 pr-12 sm:pr-16">
-                <div className="p-2 bg-amber-500 text-white rounded-full shadow-lg flex-shrink-0">
-                  <Lightbulb className="h-3 w-3 sm:h-4 sm:w-4" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-amber-800 dark:text-amber-200 mb-1 text-xs sm:text-sm">Daily Health Tip</h3>
-                  <p className="text-amber-700 dark:text-amber-300 text-xs leading-relaxed">
-                    {currentMode === 'pregnancy' 
-                      ? "Stay hydrated! Aim for 8-10 glasses of water daily. Proper hydration helps with morning sickness and supports your baby's development."
-                      : "Rest when your baby rests. Your body is still recovering, and adequate sleep is crucial for healing and milk production."
-                    }
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
 
-          {/* Emergency SOS Button - Static, Framed below Daily Health Tip */}
+          {/* Emergency SOS Button - Reduced Height */}
           <div className="flex justify-center">
-            <Card className="bg-card shadow-medium rounded-3xl p-4 sm:p-6 lg:p-8 border border-border w-full">
+            <Card className="bg-card shadow-medium rounded-2xl p-3 sm:p-4 border border-border w-full">
               <EmergencyAlertLogger
                 userId={user?.id || ""}
                 onAlertSent={handleEmergencyAlert}
@@ -271,44 +239,6 @@ const Dashboard = () => {
             </Card>
           </div>
 
-          {/* Quick Actions */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
-            <Button
-              onClick={() => navigate("/emergency-contacts")}
-              variant="outline"
-              className="h-14 sm:h-16 lg:h-20 flex flex-col items-center justify-center gap-1 bg-card hover:bg-accent text-xs p-2"
-            >
-              <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-emergency flex-shrink-0" />
-              <span className="font-medium text-center leading-tight">Emergency Contacts</span>
-            </Button>
-            
-            <Button
-              onClick={() => navigate("/healthcare-centers")}
-              variant="outline"
-              className="h-14 sm:h-16 lg:h-20 flex flex-col items-center justify-center gap-1 bg-card hover:bg-accent text-xs p-2"
-            >
-              <Hospital className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
-              <span className="font-medium text-center leading-tight">Healthcare Centers</span>
-            </Button>
-            
-            <Button
-              onClick={() => navigate("/ai-nurse")}
-              variant="outline"
-              className="h-14 sm:h-16 lg:h-20 flex flex-col items-center justify-center gap-1 bg-card hover:bg-accent text-xs p-2"
-            >
-              <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
-              <span className="font-medium text-center leading-tight">AI Nurse Chat</span>
-            </Button>
-            
-            <Button
-              onClick={() => navigate(isPostpartum ? "/symptom-logger?mode=postpartum" : "/symptom-logger?mode=pregnancy")}
-              variant="outline"
-              className="h-14 sm:h-16 lg:h-20 flex flex-col items-center justify-center gap-1 bg-card hover:bg-accent text-xs p-2"
-            >
-              <Activity className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
-              <span className="font-medium text-center leading-tight">Log Symptoms</span>
-            </Button>
-          </div>
 
           {/* Content based on mode */}
           {isPostpartum ? (
@@ -395,16 +325,10 @@ const Dashboard = () => {
                   </Card>
                 )}
 
-                {/* Fetal Growth Tracker */}
-                <Card className="bg-card shadow-medium overflow-hidden relative lg:col-span-2 xl:col-span-1">
-                  <div 
-                    className="absolute right-0 top-0 h-full w-1/3 opacity-20 bg-cover bg-center"
-                    style={{ backgroundImage: `url(${fetalDevImage})` }}
-                  />
-                  <CardContent className="pt-4 pb-4 relative z-10">
-                    <FetalGrowthTracker userId={user?.id || ""} />
-                  </CardContent>
-                </Card>
+                {/* Fetal Growth Tracker - Full Width Immersive */}
+                <div className="lg:col-span-2 xl:col-span-3">
+                  <FetalGrowthTracker userId={user?.id || ""} />
+                </div>
 
                 {/* Appointments Card */}
                 <Card className="bg-card shadow-medium">
@@ -433,11 +357,6 @@ const Dashboard = () => {
                 <EmergencyPlanning userId={user?.id || ""} />
               </div>
 
-              {/* Trusted Transport */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:col-span-2">
-                <TrustedTransport userId={user?.id || ""} />
-              </div>
-
               {/* Onboarding Alert for Pregnancy Mode */}
               {!hasPregnancyData && (
                 <Card className="border-warning/20 dark:border-warning/30 bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950/30 dark:to-yellow-950/30 shadow-soft">
@@ -461,6 +380,51 @@ const Dashboard = () => {
           )}
         </div>
       </div>
+
+      {/* Fixed Bottom Navigation - Pregnancy Mode Only */}
+      {!isPostpartum && (
+        <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-md border-t border-border shadow-2xl z-40 safe-area-inset-bottom">
+          <div className="max-w-7xl mx-auto px-2 py-2">
+            <div className="grid grid-cols-4 gap-1 sm:gap-2">
+              <Button
+                onClick={() => navigate("/emergency-contacts")}
+                variant="ghost"
+                className="h-14 sm:h-16 flex flex-col items-center justify-center gap-0.5 hover:bg-accent/50 text-xs p-1"
+              >
+                <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-emergency flex-shrink-0" />
+                <span className="font-medium text-center leading-tight text-[10px] sm:text-xs">Emergency</span>
+              </Button>
+              
+              <Button
+                onClick={() => navigate("/healthcare-centers")}
+                variant="ghost"
+                className="h-14 sm:h-16 flex flex-col items-center justify-center gap-0.5 hover:bg-accent/50 text-xs p-1"
+              >
+                <Hospital className="h-5 w-5 sm:h-6 sm:w-6 text-primary flex-shrink-0" />
+                <span className="font-medium text-center leading-tight text-[10px] sm:text-xs">Healthcare</span>
+              </Button>
+              
+              <Button
+                onClick={() => navigate("/ai-nurse")}
+                variant="ghost"
+                className="h-14 sm:h-16 flex flex-col items-center justify-center gap-0.5 hover:bg-accent/50 text-xs p-1"
+              >
+                <MessageCircle className="h-5 w-5 sm:h-6 sm:w-6 text-primary flex-shrink-0" />
+                <span className="font-medium text-center leading-tight text-[10px] sm:text-xs">AI Nurse</span>
+              </Button>
+              
+              <Button
+                onClick={() => navigate("/symptom-logger?mode=pregnancy")}
+                variant="ghost"
+                className="h-14 sm:h-16 flex flex-col items-center justify-center gap-0.5 hover:bg-accent/50 text-xs p-1"
+              >
+                <Activity className="h-5 w-5 sm:h-6 sm:w-6 text-primary flex-shrink-0" />
+                <span className="font-medium text-center leading-tight text-[10px] sm:text-xs">Log Symptoms</span>
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

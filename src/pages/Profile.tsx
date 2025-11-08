@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { useTheme } from "@/components/ThemeProvider";
+import { useMode } from "@/contexts/ModeContext";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,11 +12,12 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Navigate } from "react-router-dom";
-import { User, Bell, Shield, Moon, Sun } from "lucide-react";
+import { User, Bell, Shield, Moon, Sun, Baby } from "lucide-react";
 
 const Profile = () => {
   const { user, logout } = useAuth();
   const { theme, setTheme } = useTheme();
+  const { currentMode, switchToPostpartum, switchToPregnancy } = useMode();
   const { toast } = useToast();
   
   const [profile, setProfile] = useState({
@@ -51,6 +53,22 @@ const Profile = () => {
     });
   };
 
+  const handleSwitchMode = () => {
+    if (currentMode === 'pregnancy') {
+      switchToPostpartum(new Date().toISOString().split('T')[0]);
+      toast({
+        title: "Switched to Postpartum Mode",
+        description: "You're now viewing postpartum care features.",
+      });
+    } else {
+      switchToPregnancy();
+      toast({
+        title: "Switched to Pregnancy Mode",
+        description: "You're now viewing pregnancy care features.",
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -65,7 +83,7 @@ const Profile = () => {
         </div>
 
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="h-4 w-4" />
               Profile
@@ -73,6 +91,10 @@ const Profile = () => {
             <TabsTrigger value="notifications" className="flex items-center gap-2">
               <Bell className="h-4 w-4" />
               Notifications
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="flex items-center gap-2">
+              <Shield className="h-4 w-4" />
+              Settings
             </TabsTrigger>
             <TabsTrigger value="security" className="flex items-center gap-2">
               <Shield className="h-4 w-4" />
@@ -230,14 +252,14 @@ const Profile = () => {
             </Card>
           </TabsContent>
 
-          {/* Security Tab */}
-          <TabsContent value="security">
+          {/* Settings Tab */}
+          <TabsContent value="settings">
             <div className="space-y-6">
               <Card>
                 <CardHeader>
                   <CardTitle>App Preferences</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-6">
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
                       <Label htmlFor="theme-toggle">Dark Mode</Label>
@@ -255,9 +277,48 @@ const Profile = () => {
                       <Moon className="h-4 w-4" />
                     </div>
                   </div>
+                  
+                  <div className="flex items-center justify-between pt-4 border-t">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="mode-toggle">Pregnancy Mode</Label>
+                      <p className="text-sm text-muted-foreground">
+                        {currentMode === 'pregnancy' ? 'Switch to Postpartum Care' : 'Switch to Pregnancy Care'}
+                      </p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Baby className="h-4 w-4" />
+                      <Switch
+                        id="mode-toggle"
+                        checked={currentMode === 'postpartum'}
+                        onCheckedChange={handleSwitchMode}
+                      />
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
 
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-destructive">Account Actions</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="border border-border rounded-lg p-4">
+                    <h4 className="font-medium mb-2">Sign Out</h4>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      This will sign you out of your MamaAlert account on this device.
+                    </p>
+                    <Button variant="destructive" onClick={logout}>
+                      Sign Out
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* Security Tab */}
+          <TabsContent value="security">
+            <div className="space-y-6">
               <Card>
                 <CardHeader>
                   <CardTitle>Password & Security</CardTitle>

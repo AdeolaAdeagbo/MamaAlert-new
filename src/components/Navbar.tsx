@@ -55,20 +55,6 @@ export function Navbar() {
 
           {/* Right side controls */}
           <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
-            {/* Theme toggle */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-              className="flex-shrink-0"
-            >
-              {theme === "light" ? (
-                <Moon className="h-4 w-4" />
-              ) : (
-                <Sun className="h-4 w-4" />
-              )}
-            </Button>
-
             {/* Mobile menu button */}
             {user && (
               <Button
@@ -88,14 +74,13 @@ export function Navbar() {
             {/* User controls */}
             {user ? (
               <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
-                <Avatar className="h-8 w-8 flex-shrink-0">
-                  <AvatarFallback className="bg-primary text-primary-foreground text-sm">
-                    {user.firstName?.[0] || ''}{user.lastName?.[0] || ''}
-                  </AvatarFallback>
-                </Avatar>
-                <Button variant="ghost" onClick={logout} className="text-sm hidden sm:block">
-                  Logout
-                </Button>
+                <Link to="/profile">
+                  <Avatar className="h-8 w-8 flex-shrink-0 cursor-pointer hover:ring-2 ring-primary transition-all">
+                    <AvatarFallback className="bg-primary text-primary-foreground text-sm">
+                      {user.firstName?.[0] || ''}{user.lastName?.[0] || ''}
+                    </AvatarFallback>
+                  </Avatar>
+                </Link>
               </div>
             ) : (
               <Link to="/auth" className="flex-shrink-0">
@@ -160,13 +145,13 @@ export function Navbar() {
               >
                 Postpartum Care
               </Link>
-              <Button 
-                variant="ghost" 
-                onClick={logout} 
-                className="text-sm w-full justify-start mt-4 sm:hidden"
+              <Link 
+                to="/profile" 
+                className="block text-sm font-medium hover:text-primary transition-colors py-2"
+                onClick={() => setIsMobileMenuOpen(false)}
               >
-                Logout
-              </Button>
+                Settings
+              </Link>
             </div>
           </div>
         )}
