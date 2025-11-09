@@ -25,7 +25,7 @@ import { FullTermLaborWatch } from "@/components/FullTermLaborWatch";
 import { HospitalBagChecklist } from "@/components/HospitalBagChecklist";
 import { FetalGrowthTracker } from "@/components/FetalGrowthTracker";
 import { EmergencyPlanning } from "@/components/EmergencyPlanning";
-import { OptionsMenu } from "@/components/OptionsMenu";
+import { TrustedTransport } from "@/components/TrustedTransport";
 import {
   Heart, 
   Baby,
@@ -218,12 +218,9 @@ const Dashboard = () => {
                     }
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant="secondary" className="bg-white/20 text-white border-white/30 backdrop-blur-sm text-xs">
-                    {currentMode === 'pregnancy' ? '🤰 Pregnancy' : '👶 Postpartum'}
-                  </Badge>
-                  <OptionsMenu userId={user?.id || ""} />
-                </div>
+                <Badge variant="secondary" className="bg-white/20 text-white border-white/30 backdrop-blur-sm text-xs">
+                  {currentMode === 'pregnancy' ? '🤰 Pregnancy' : '👶 Postpartum'}
+                </Badge>
               </div>
             </CardContent>
           </Card>
@@ -348,6 +345,13 @@ const Dashboard = () => {
                 <Card className="bg-card shadow-medium lg:col-span-2 xl:col-span-1">
                   <CardContent className="pt-4 pb-4">
                     <WeeklyHealthTips pregnancyWeek={currentWeek} />
+                  </CardContent>
+                </Card>
+
+                {/* Trusted Transport Card */}
+                <Card className="bg-card shadow-medium">
+                  <CardContent className="pt-4 pb-4">
+                    <TrustedTransport userId={user?.id || ""} />
                   </CardContent>
                 </Card>
               </div>
