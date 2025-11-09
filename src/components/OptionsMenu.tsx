@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Button } from './ui/button';
 import {
   DropdownMenu,
@@ -14,7 +14,7 @@ interface OptionsMenuProps {
   userId: string;
 }
 
-export const OptionsMenu = ({ userId }: OptionsMenuProps) => {
+export const OptionsMenu: React.FC<OptionsMenuProps> = ({ userId }) => {
   const [showTransport, setShowTransport] = useState(false);
 
   return (
@@ -25,7 +25,7 @@ export const OptionsMenu = ({ userId }: OptionsMenuProps) => {
             <MoreVertical className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuContent align="end" className="w-56 bg-popover">
           <DropdownMenuItem onClick={() => setShowTransport(true)}>
             <Car className="h-4 w-4 mr-2" />
             Trusted Transport
