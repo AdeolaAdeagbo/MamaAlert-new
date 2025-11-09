@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { MapPin, Navigation } from "lucide-react";
+import { MapPin, Navigation, Loader2 } from "lucide-react";
 
 interface GoogleMapsLoaderProps {
   onPlacesLoaded: (places: any[]) => void;
@@ -125,19 +125,33 @@ export const GoogleMapsLoader = ({ onPlacesLoaded }: GoogleMapsLoaderProps) => {
   };
 
   return (
-    <div className="space-y-4 p-4 border rounded-lg bg-blue-50">
-      <div className="flex items-center gap-2">
-        <MapPin className="h-5 w-5 text-blue-600" />
-        <h3 className="font-medium">Find Nearby Healthcare Centers</h3>
+    <div className="space-y-4 p-6 border border-border rounded-3xl bg-gradient-to-br from-primary/5 to-accent/5 shadow-soft">
+      <div className="flex items-center gap-3">
+        <div className="p-2.5 rounded-2xl bg-primary/10">
+          <MapPin className="h-5 w-5 text-primary" />
+        </div>
+        <div>
+          <h3 className="font-semibold text-foreground">Find Healthcare Centers</h3>
+          <p className="text-xs text-muted-foreground">Near your location</p>
+        </div>
       </div>
       
       <Button 
         onClick={findNearbyHealthcare}
         disabled={isLoading}
-        className="w-full"
+        className="w-full h-12 rounded-2xl font-medium shadow-medium hover:shadow-large transition-all"
       >
-        <Navigation className="h-4 w-4 mr-2" />
-        {isLoading ? 'Finding Healthcare Centers...' : 'Find Nearby Centers'}
+        {isLoading ? (
+          <>
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            Finding Centers...
+          </>
+        ) : (
+          <>
+            <Navigation className="h-4 w-4 mr-2" />
+            Find Nearby Centers
+          </>
+        )}
       </Button>
     </div>
   );

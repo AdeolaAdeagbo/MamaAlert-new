@@ -182,7 +182,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 via-pink-50 to-orange-50 dark:from-background dark:via-background dark:to-card">
+    <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-accent/10">
       <Navbar />
       
       <OnboardingPrompt 
@@ -199,19 +199,19 @@ const Dashboard = () => {
       <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 lg:px-8 lg:py-8">
         <div className="space-y-4 sm:space-y-6">
           {/* Welcome Section */}
-          <Card className="gradient-primary text-white border-0 overflow-hidden relative shadow-xl">
+          <Card className="gradient-primary text-white border-0 overflow-hidden relative shadow-large rounded-3xl">
             <div 
               className="absolute inset-0 opacity-20 bg-cover bg-center bg-no-repeat"
               style={{ backgroundImage: `url(${heroImage})` }}
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-red-600/80 to-red-700/60" />
-            <CardContent className="pt-4 pb-4 sm:pt-6 sm:pb-6 relative z-10">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-                <div className="space-y-1 sm:space-y-2 flex-1">
-                  <h1 className="text-lg sm:text-xl lg:text-2xl font-bold drop-shadow-lg">
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/90 to-primary-dark/80" />
+            <CardContent className="pt-6 pb-6 sm:pt-8 sm:pb-8 relative z-10">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="space-y-2 flex-1">
+                  <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold drop-shadow-lg">
                     Good {getTimeOfDay()}, {profile?.first_name || 'Mama'}! 💕
                   </h1>
-                  <p className="text-white/90 text-xs sm:text-sm drop-shadow">
+                  <p className="text-white/90 text-sm sm:text-base drop-shadow">
                     {currentMode === 'pregnancy' 
                       ? `Week ${currentWeek} of your pregnancy journey`
                       : 'Your postpartum care dashboard'
@@ -219,7 +219,7 @@ const Dashboard = () => {
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge variant="secondary" className="bg-white/20 text-white border-white/30 backdrop-blur-sm text-xs">
+                  <Badge variant="secondary" className="bg-white/20 text-white border-white/30 backdrop-blur-sm text-sm px-4 py-1.5 rounded-full font-medium">
                     {currentMode === 'pregnancy' ? '🤰 Pregnancy' : '👶 Postpartum'}
                   </Badge>
                   <OptionsMenu userId={user?.id || ""} />
@@ -229,9 +229,9 @@ const Dashboard = () => {
           </Card>
 
 
-          {/* Emergency SOS Button - Reduced Height */}
+          {/* Emergency SOS Button */}
           <div className="flex justify-center">
-            <Card className="bg-card shadow-medium rounded-2xl p-3 sm:p-4 border border-border w-full">
+            <Card className="bg-card shadow-large rounded-3xl p-4 sm:p-5 border border-border w-full">
               <EmergencyAlertLogger
                 userId={user?.id || ""}
                 onAlertSent={handleEmergencyAlert}
