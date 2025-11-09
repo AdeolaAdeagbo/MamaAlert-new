@@ -20,8 +20,7 @@ export default {
 		},
 		extend: {
 			fontFamily: {
-				sans: ['Plus Jakarta Sans', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
-				display: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
+				sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
 			},
 			colors: {
 				border: 'hsl(var(--border))',
@@ -37,8 +36,6 @@ export default {
 				},
 				secondary: {
 					DEFAULT: 'hsl(var(--secondary))',
-					light: 'hsl(var(--secondary-light))',
-					dark: 'hsl(var(--secondary-dark))',
 					foreground: 'hsl(var(--secondary-foreground))'
 				},
 				success: {
@@ -63,8 +60,7 @@ export default {
 				},
 				accent: {
 					DEFAULT: 'hsl(var(--accent))',
-					purple: 'hsl(var(--accent-purple))',
-					lavender: 'hsl(var(--accent-lavender))',
+					gold: 'hsl(var(--accent-gold))',
 					pink: 'hsl(var(--accent-pink))',
 					foreground: 'hsl(var(--accent-foreground))'
 				},
