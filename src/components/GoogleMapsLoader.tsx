@@ -125,7 +125,7 @@ export const GoogleMapsLoader = ({ onPlacesLoaded }: GoogleMapsLoaderProps) => {
   };
 
   return (
-    <div className="space-y-4 p-6 border border-border rounded-3xl bg-gradient-to-br from-primary/5 to-accent/5 shadow-soft">
+    <div className="space-y-4 p-6 border border-border rounded-3xl bg-card shadow-soft">
       <div className="flex items-center gap-3">
         <div className="p-2.5 rounded-2xl bg-primary/10">
           <MapPin className="h-5 w-5 text-primary" />

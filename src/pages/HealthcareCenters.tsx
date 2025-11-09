@@ -95,7 +95,7 @@ const HealthcareCenters = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-accent/10">
+    <div className="min-h-screen bg-background">
       <Navbar />
       
       <div className="max-w-6xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
@@ -210,7 +210,7 @@ const HealthcareCenters = () => {
 
         {/* No Results */}
         {!isLoading && centers.length === 0 && (
-          <Card className="text-center py-16 rounded-3xl shadow-soft border-border bg-gradient-to-br from-card to-accent/5">
+          <Card className="text-center py-16 rounded-3xl shadow-soft border-border bg-card">
             <div className="p-4 rounded-3xl bg-primary/10 w-20 h-20 mx-auto mb-6 flex items-center justify-center">
               <MapPin className="h-10 w-10 text-primary" />
             </div>
@@ -222,7 +222,7 @@ const HealthcareCenters = () => {
         )}
 
         {/* Emergency Notice */}
-        <Card className="mt-8 rounded-3xl border-emergency/20 bg-gradient-to-br from-emergency/5 to-destructive/5 shadow-large overflow-hidden">
+        <Card className="mt-8 rounded-3xl border-emergency/20 bg-emergency/5 shadow-large overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-emergency/10 rounded-full blur-3xl" />
           <CardContent className="pt-8 pb-8 relative">
             <div className="text-center max-w-2xl mx-auto">

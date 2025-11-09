@@ -182,7 +182,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-accent/10">
+    <div className="min-h-screen bg-background">
       <Navbar />
       
       <OnboardingPrompt 
@@ -199,12 +199,12 @@ const Dashboard = () => {
       <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 lg:px-8 lg:py-8">
         <div className="space-y-4 sm:space-y-6">
           {/* Welcome Section */}
-          <Card className="gradient-primary text-white border-0 overflow-hidden relative shadow-large rounded-3xl">
+          <Card className="bg-primary text-white border-0 overflow-hidden relative shadow-large rounded-3xl">
             <div 
               className="absolute inset-0 opacity-20 bg-cover bg-center bg-no-repeat"
               style={{ backgroundImage: `url(${heroImage})` }}
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-primary/90 to-primary-dark/80" />
+            <div className="absolute inset-0 bg-primary/90" />
             <CardContent className="pt-6 pb-6 sm:pt-8 sm:pb-8 relative z-10">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="space-y-2 flex-1">
@@ -359,16 +359,16 @@ const Dashboard = () => {
 
               {/* Onboarding Alert for Pregnancy Mode */}
               {!hasPregnancyData && (
-                <Card className="border-warning/20 dark:border-warning/30 bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950/30 dark:to-yellow-950/30 shadow-soft">
+                <Card className="border-warning/20 bg-warning/5 shadow-soft rounded-3xl">
                   <CardContent className="pt-4 sm:pt-6">
                     <div className="text-center">
-                      <h2 className="text-lg sm:text-xl font-semibold text-amber-700 dark:text-amber-300 mb-2 sm:mb-4">Complete Your Pregnancy Profile</h2>
+                      <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-2 sm:mb-4">Complete Your Pregnancy Profile</h2>
                       <p className="text-muted-foreground mb-3 sm:mb-4 text-xs sm:text-sm">
                         Help us provide personalized care by sharing your pregnancy details.
                       </p>
                       <Button 
                         onClick={() => navigate('/pregnancy-details')}
-                        className="bg-warning hover:bg-warning/90 text-white"
+                        className="bg-warning hover:bg-warning/90 text-white rounded-2xl"
                       >
                         Complete Profile
                       </Button>
